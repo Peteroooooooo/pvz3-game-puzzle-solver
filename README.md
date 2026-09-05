@@ -1,14 +1,14 @@
-# PVZ3 Tools
+# PVZ3 Game Puzzle Solver
 
-Browser-based helper tools for **Plants vs. Zombies 3 (PVZ3)**.  
-This repo focuses on the refill-aware water sort workflow used by the game’s puzzle logic, plus related decoding utilities.
+Browser-based puzzle project for **Plants vs. Zombies 3 (PVZ3)**.  
+This repo focuses on PVZ3-style refill-aware water sort logic, puzzle solving, and related decoding utilities.
 
 ## What’s inside
 
 - `pvz3_water_sort_solver.html`  
-  Refill-aware water sort solver with step-by-step animation and physical-state validation.
+  Refill-aware PVZ3 puzzle solver with step-by-step animation and physical-state validation.
 - `pvz3_decode_solver.html`  
-  Companion decoding / puzzle utility.
+  Companion decoding / puzzle module.
 - `assets/pvz3/`  
   Local art assets used by the tools.
 
@@ -27,7 +27,7 @@ This repo focuses on the refill-aware water sort workflow used by the game’s p
 
 ## Search keywords
 
-PVZ3, Plants vs. Zombies 3, water sort solver, A* solver, refill simulation, browser tool, puzzle helper, HTML tool
+PVZ3 game puzzle solver, Plants vs. Zombies 3 puzzle, water sort puzzle, A* solver, refill simulation, browser puzzle, HTML puzzle tool
 
 ## Notes
 
