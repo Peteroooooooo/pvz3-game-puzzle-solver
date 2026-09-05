@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PvZ 3 密码破译机</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-dark: #090d16;
+  --bg-panel: #0f172a;
+  --bg-surface: #1e293b;
+  --border-subtle: rgba(148, 163, 184, 0.14);
+  --border-active: #38bdf8;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-green: #10b981;
+  --accent-blue: #38bdf8;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  background-color: var(--bg-dark);
+  background-image: radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.06) 0%, transparent 60%);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 2rem;
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  font-size: 24px;
+}
+
+.brand-text h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.brand-text p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1480px;
+  margin: 0 auto;
+  width: 100%;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Machine Main Screen */
+.machine-screen-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: fit-content;
+}
+
+.screen-monitor {
+  background-color: #0b1322;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.monitor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.monitor-title {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.status-badge {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* 4 Slots Grid */
+.slots-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.slot-box {
+  background: #0f1a2c;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.slot-box.invalid-fusion {
+  border-color: var(--accent-rose) !important;
+}
+
+.slot-box.slot-confirmed {
+  border: 2.5px solid #10b981 !important;
+  background: #0b2024;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3), inset 0 0 12px rgba(16, 185, 129, 0.08);
+}
+
+.slot-box.slot-confirmed .slot-header span:first-child {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.slot-box.slot-confirmed .slot-header span::after {
+  content: " (已锁定)";
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.slot-header {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 4px;
+  font-weight: 600;
+}
+
+.btn-slot-clear {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  padding: 3px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.btn-slot-clear svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.btn-slot-clear:hover {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+  transform: scale(1.04);
+}
+
+/* --- Top Target: Fused Plant Box --- */
+.slot-fusion-target {
+  width: 100%;
+  max-width: 110px;
+  height: 80px;
+  background: #090e18;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.slot-fusion-target.has-fused {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: #0d1624;
+}
+
+.slot-fusion-target.has-single {
+  border-color: rgba(56, 189, 248, 0.4);
+  border-style: dashed;
+}
+
+.slot-fusion-target.is-empty {
+  border: 1px dashed var(--border-subtle);
+}
+
+.fusion-card-img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.empty-fusion-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.single-fusion-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 4px;
+}
+
+.single-preview-img {
+  width: 42px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.single-preview-pending {
+  width: 38px;
+  height: 54px;
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.05);
+}
+
+/* --- Middle Transition Connector Indicator --- */
+.fusion-connector-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 2px 0;
+  color: var(--text-muted);
+}
+
+.connector-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.fusion-symbol-badge {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+}
+
+.fusion-connector-zone.active-flow .fusion-symbol-badge {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.fusion-connector-zone.active-flow .connector-line {
+  background: rgba(56, 189, 248, 0.35);
+}
+
+/* --- Bottom Ingredients Row --- */
+.slot-ingredients-row {
+  width: 100%;
+  max-width: 118px;
+  height: 60px;
+  background: #090e18;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.component-half {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 2px;
+  cursor: grab;
+  user-select: none;
+  transition: background-color 0.15s;
+}
+
+.component-half:first-child {
+  border-right: 1px dashed var(--border-subtle);
+}
+
+.component-half.active-editing {
+  background: rgba(56, 189, 248, 0.16);
+}
+
+.component-half:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.component-half.drag-over {
+  background: rgba(56, 189, 248, 0.3) !important;
+  outline: 1.5px dashed #38bdf8;
+  outline-offset: -2px;
+}
+
+.component-half.is-dragging {
+  opacity: 0.35;
+}
+
+.slot-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.slot-card-empty-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  pointer-events: none;
+}
+
+.fused-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 4px;
+}
+
+/* Feedback Status Selector */
+.feedback-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+.fb-btn {
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 6px 2px;
+  border-radius: 6px;
+  border: 2px solid rgba(148, 163, 184, 0.18);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  background: #090e18;
+  transition: all 0.15s ease;
+}
+
+.fb-btn .fb-icon-svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.fb-btn:hover {
+  border-color: rgba(148, 163, 184, 0.4);
+  color: var(--text-primary);
+  background: #0f182a;
+}
+
+/* 选中高亮状态：加粗边框 + 高饱和背景 + 纯白清晰文字 + 柔和光晕 */
+.fb-btn.correct.selected {
+  background: #064e3b;
+  background: rgba(16, 185, 129, 0.38);
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4), inset 0 0 6px rgba(16, 185, 129, 0.2);
+}
+
+.fb-btn.wrong-slot.selected {
+  background: #0c4a6e;
+  background: rgba(14, 165, 233, 0.38);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4), inset 0 0 6px rgba(56, 189, 248, 0.2);
+}
+
+.fb-btn.partial.selected {
+  background: #701a75;
+  background: rgba(236, 72, 153, 0.38);
+  border-color: #f472b6;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.4), inset 0 0 6px rgba(236, 72, 153, 0.2);
+}
+
+.fb-btn.all-wrong.selected {
+  background: #7f1d1d;
+  background: rgba(239, 68, 68, 0.38);
+  border-color: #f87171;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4), inset 0 0 6px rgba(239, 68, 68, 0.2);
+}
+
+/* Plant Selector Bar at Bottom */
+.plant-selector-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.selector-header {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.base-plants-list {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.base-plant-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.base-plant-card:hover {
+  transform: translateY(-3px);
+}
+
+.base-plant-card.is-dragging {
+  opacity: 0.4;
+}
+
+.base-plant-card .card-wrapper {
+  width: 72px;
+  height: 98px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: none;
+  transition: filter 0.15s ease;
+}
+
+.base-plant-card:hover .card-wrapper {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.base-plant-card .card-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+}
+
+.base-plant-card .card-name-bar {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Action Buttons */
+.action-buttons-row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s, transform 0.12s;
+}
+
+.btn-primary {
+  background: #10b981;
+  color: #ffffff;
+  flex: 1;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+  background: #059669;
+}
+
+.btn-secondary {
+  background: #1e293b;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.btn-secondary:hover {
+  background: #334155;
+  color: var(--text-primary);
+}
+
+/* Right Sidebar: Prediction & Logs */
+.right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: fit-content;
+}
+
+.card-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-primary);
+}
+
+.cands-preview-box {
+  background: #0b1322;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cand-row-item {
+  background: #0f172a;
+  border: 1px solid var(--border-subtle);
+  padding: 7px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+
+.cand-row-item:hover {
+  border-color: var(--border-active);
+  background: #1e293b;
+}
+
+.cand-apply-badge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* History List */
+.history-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 2px;
+}
+
+.history-list::-webkit-scrollbar {
+  width: 4px;
+}
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+.history-item {
+  background: #0b1322;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.hist-round {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent-green);
+}
+
+.hist-slots {
+  display: flex;
+  gap: 6px;
+}
+
+.hist-tag {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.06);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-icon">🌱</span>
+    <div class="brand-text">
+      <h1>PvZ 3 密码破译机</h1>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" id="btnResetGame">重置</button>
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- Left Screen & Interactive Controller -->
+  <div class="machine-screen-card">
+
+    <div class="screen-monitor">
+      <div class="monitor-header">
+        <span class="monitor-title">回合: <span id="txtGuessCount">15/15</span></span>
+        <span class="status-badge" id="txtCandidateCount">剩余解: 20,736</span>
+      </div>
+
+      <!-- 4 Slots -->
+      <div class="slots-container" id="slotsContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Base Plants Palette (Official PvZ 3 Seed Packets) -->
+    <div class="plant-selector-card">
+      <div class="selector-header">
+        <span>基础卡牌 (当前: <b id="txtCurSlot" style="color:#38bdf8;">槽位 1 · 左 (空)</b>)</span>
+      </div>
+      <div class="base-plants-list" id="basePlantsList">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+    <!-- Action / Submit -->
+    <div class="action-buttons-row">
+      <button class="btn btn-primary" id="btnSubmitFeedback">确认反馈并计算下一步</button>
+    </div>
+
+  </div>
+
+  <!-- Right Sidebar: Prediction AI & Round History -->
+  <div class="right-sidebar">
+
+    <div class="panel-card">
+      <div class="card-title">
+        <span>候选预测与诊断</span>
+      </div>
+      <div class="cands-preview-box" id="candsPreviewBox">
+        正在初始化...
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="card-title">
+        <span>历史记录</span>
+      </div>
+      <div class="history-list" id="historyList">
+        <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem;">
+          暂无记录
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// --- OFFICIAL PVZ 3 ORIGINAL SEED PACKET CARDS (LOCAL WEBP ASSETS) ---
+    const OFFICIAL_PLANT_CARDS = {
+      'S': 'assets/pvz3/Sunflower3New.webp',
+      'P': 'assets/pvz3/Peashooter3New.webp',
+      'C': 'assets/pvz3/Cabbage-pult3New.webp',
+      'W': 'assets/pvz3/Wall-nut3New.webp',
+      'K': 'assets/pvz3/Spikeweed3New.webp'
+    };
+
+    // --- OFFICIAL PVZ 3 TIER 2 FUSION PLANT CARDS (WIKI WEBP ASSETS) ---
+    const OFFICIAL_FUSION_CARDS = {
+      'SS': 'assets/pvz3/Twin_Sunflower3.webp',
+      'SP': 'assets/pvz3/Solar_Pea3.webp',
+      'SW': 'assets/pvz3/Sunflower_Seed3.webp',
+      'PP': 'assets/pvz3/Repeater3.webp',
+      'PC': 'assets/pvz3/Sling_Pea3.webp',
+      'PW': 'assets/pvz3/Pea-nut3.webp',
+      'PK': 'assets/pvz3/Pine_Needler3.webp',
+      'CC': 'assets/pvz3/Slaw_Slinger3.webp',
+      'CW': 'assets/pvz3/Chuck-nut3.webp',
+      'WW': 'assets/pvz3/Tall-nut3.webp',
+      'WK': 'assets/pvz3/Lychee3.webp',
+      'KK': 'assets/pvz3/Sawgrass3.webp'
+    };
+
+
+// Trash Icon SVG (Standard Red UI Trashcan)
+const ICON_TRASH_SVG = `
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line>
+    <line x1="14" y1="11" x2="14" y2="17"></line>
+  </svg>
+`;
+
+// 2. Feedback Icons Vector Graphics (Exact PvZ 3 UI Badges)
+const FB_SVGS = {
+  'CORRECT': `
+    <svg viewBox="0 0 24 24" class="fb-icon-svg" fill="none">
+      <path d="M12 2L3 6V12C3 17.5 6.8 22.7 12 24C17.2 22.7 21 17.5 21 12V6L12 2Z" fill="#22C55E"/>
+      <path d="M7 12.5L10.5 16L17 9.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `,
+  'WRONG_SLOT': `
+    <svg viewBox="0 0 24 24" class="fb-icon-svg" fill="none">
+      <path d="M4 8H18M18 8L14 4M18 8L14 12" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M20 16H6M6 16L10 12M6 16L10 20" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `,
+  'PARTIAL': `
+    <svg viewBox="0 0 24 24" class="fb-icon-svg" fill="none">
+      <!-- PvZ 3 Magenta Leaf / Drop Badge -->
+      <path d="M12 2C6 8 4 14 7 18C10 22 17 22 20 17C23 12 18 5 12 2Z" fill="#EC4899" stroke="#BE185D" stroke-width="1.5"/>
+      <path d="M12 6C12 12 14 16 17 18" stroke="#FDF2F8" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `,
+  'ALL_WRONG': `
+    <svg viewBox="0 0 24 24" class="fb-icon-svg" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="#EF4444" stroke-width="3"/>
+      <path d="M6 6L18 18" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  `
+};
+
+// --- 5 BASE PLANTS ---
+const BASE_PLANTS = [
+  { id: 'S', name: '向日葵' },
+  { id: 'P', name: '豌豆射手' },
+  { id: 'C', name: '卷心菜投手' },
+  { id: 'W', name: '坚果' },
+  { id: 'K', name: '地刺' }
+];
+
+const BASE_MAP = {};
+BASE_PLANTS.forEach(p => BASE_MAP[p.id] = p);
+
+const PLANT_ORDER = { 'S': 0, 'P': 1, 'C': 2, 'W': 3, 'K': 4 };
+
+function normalizeFused(p1, p2) {
+  if (!p1 || !p2) return null;
+  return PLANT_ORDER[p1] <= PLANT_ORDER[p2] ? p1 + p2 : p2 + p1;
+}
+
+// 12 PvZ 3: Evolved Tier 2 recipes available from these 5 base plants.
+const FUSION_NAMES = {
+  'SS': '双子向日葵 (Twin Sunflower)',
+  'SP': '太阳豌豆 (Solar Pea)',
+  'SW': '向日葵种子 (Sunflower Seed)',
+  'PP': '双发射手 (Repeater)',
+  'PC': '弹射豌豆 (Sling Pea)',
+  'PW': '花生坚果 (Pea-Nut)',
+  'PK': '松针射手 (Pine Needler)',
+  'CC': '卷心菜连射手 (Slaw-Slinger)',
+  'CW': '投掷坚果 (Chuck-Nut)',
+  'WW': '高坚果 (Tall-Nut)',
+  'WK': '荔枝 (Lychee)',
+  'KK': '锯齿地刺 (Sawgrass)'
+};
+
+const VALID_FUSIONS = Object.keys(FUSION_NAMES);
+
+function getFusionShortName(code) {
+  return FUSION_NAMES[code] ? FUSION_NAMES[code].split(' ')[0] : code;
+}
+
+function getFusionFullName(code) {
+  return FUSION_NAMES[code] || code;
+}
+
+function isFusionValid(p1, p2) {
+  if (!p1 || !p2) return false;
+  const code = normalizeFused(p1, p2);
+  return VALID_FUSIONS.includes(code);
+}
+
+function getFusionDisplayName(p1, p2) {
+  if (!p1 && !p2) return '空槽位 (待放入基础卡)';
+  if (p1 && !p2) return `${BASE_MAP[p1].name} (待配对)`;
+  if (!p1 && p2) return `${BASE_MAP[p2].name} (待配对)`;
+  const code = normalizeFused(p1, p2);
+  if (FUSION_NAMES[code]) {
+    return getFusionShortName(code);
+  }
+  return '⚠️ 无效组合';
+}
+
+// Tolerant state evaluator for slots (0, 1, or 2 plants)
+function getSlotState(slot) {
+  const p1 = slot.p1;
+  const p2 = slot.p2;
+  const count = (p1 ? 1 : 0) + (p2 ? 1 : 0);
+
+  if (count === 0) {
+    return {
+      status: 'empty',
+      displayName: '未选择',
+      fullName: '未放置植物',
+      fusionCode: null,
+      fusionCardImg: null,
+      valid: false
+    };
+  }
+  if (count === 1) {
+    const existing = p1 ? BASE_MAP[p1] : BASE_MAP[p2];
+    return {
+      status: 'single',
+      displayName: `${existing.name} · 待配对`,
+      fullName: `${existing.name} (等待放入第2张基础植物)`,
+      fusionCode: null,
+      fusionCardImg: null,
+      singlePlantId: p1 || p2,
+      valid: false
+    };
+  }
+
+  // count === 2
+  const code = normalizeFused(p1, p2);
+  const isValid = VALID_FUSIONS.includes(code);
+  return {
+    status: isValid ? 'fused' : 'invalid',
+    displayName: isValid ? getFusionShortName(code) : '无效组合',
+    fullName: isValid ? getFusionFullName(code) : '无效配方',
+    fusionCode: code,
+    fusionCardImg: isValid ? OFFICIAL_FUSION_CARDS[code] : null,
+    valid: isValid
+  };
+}
+
+const TIER2_LIST = VALID_FUSIONS;
+
+const GUARANTEED_OPENING_GUESS = ['SP', 'SW', 'PC', 'CW'];
+
+const GUARANTEED_SECOND_GUESS_BY_FIRST_FEEDBACK = {
+  'ALL_WRONG|ALL_WRONG|ALL_WRONG|ALL_WRONG': ['WW', 'PP', 'WK', 'PK'],
+  'ALL_WRONG|ALL_WRONG|ALL_WRONG|CORRECT': ['WW', 'PK', 'WK', 'PP'],
+  'ALL_WRONG|ALL_WRONG|ALL_WRONG|PARTIAL': ['WW', 'KK', 'WK', 'CC'],
+  'ALL_WRONG|ALL_WRONG|ALL_WRONG|WRONG_SLOT': ['SS', 'PK', 'WW', 'PP'],
+  'ALL_WRONG|ALL_WRONG|CORRECT|ALL_WRONG': ['WK', 'PP', 'WW', 'PK'],
+  'ALL_WRONG|ALL_WRONG|CORRECT|CORRECT': ['CC', 'KK', 'PP', 'WW'],
+  'ALL_WRONG|ALL_WRONG|CORRECT|PARTIAL': ['KK', 'CC', 'PP', 'WW'],
+  'ALL_WRONG|ALL_WRONG|CORRECT|WRONG_SLOT': ['PK', 'PP', 'KK', 'WK'],
+  'ALL_WRONG|ALL_WRONG|PARTIAL|ALL_WRONG': ['KK', 'PP', 'CC', 'PK'],
+  'ALL_WRONG|ALL_WRONG|PARTIAL|CORRECT': ['CC', 'KK', 'PP', 'WW'],
+  'ALL_WRONG|ALL_WRONG|PARTIAL|PARTIAL': ['WK', 'PK', 'PP', 'WW'],
+  'ALL_WRONG|ALL_WRONG|PARTIAL|WRONG_SLOT': ['WW', 'PP', 'CC', 'WK'],
+  'ALL_WRONG|ALL_WRONG|WRONG_SLOT|ALL_WRONG': ['WW', 'CC', 'PP', 'PK'],
+  'ALL_WRONG|ALL_WRONG|WRONG_SLOT|CORRECT': ['WW', 'WK', 'PK', 'KK'],
+  'ALL_WRONG|ALL_WRONG|WRONG_SLOT|PARTIAL': ['WW', 'PP', 'PK', 'CC'],
+  'ALL_WRONG|ALL_WRONG|WRONG_SLOT|WRONG_SLOT': ['CC', 'KK', 'WW', 'PP'],
+  'ALL_WRONG|CORRECT|ALL_WRONG|ALL_WRONG': ['WK', 'PP', 'WW', 'PK'],
+  'ALL_WRONG|CORRECT|ALL_WRONG|CORRECT': ['CC', 'WK', 'WW', 'KK'],
+  'ALL_WRONG|CORRECT|ALL_WRONG|PARTIAL': ['KK', 'PW', 'WW', 'WK'],
+  'ALL_WRONG|CORRECT|ALL_WRONG|WRONG_SLOT': ['WK', 'KK', 'WW', 'PK'],
+  'ALL_WRONG|CORRECT|CORRECT|ALL_WRONG': ['WW', 'SS', 'CC', 'PP'],
+  'ALL_WRONG|CORRECT|CORRECT|CORRECT': ['PW', 'CC', 'WW', 'WK'],
+  'ALL_WRONG|CORRECT|CORRECT|PARTIAL': ['WK', 'PW', 'CC', 'WW'],
+  'ALL_WRONG|CORRECT|CORRECT|WRONG_SLOT': ['SS', 'PP', 'PW', 'PK'],
+  'ALL_WRONG|CORRECT|PARTIAL|ALL_WRONG': ['KK', 'WW', 'PP', 'PK'],
+  'ALL_WRONG|CORRECT|PARTIAL|CORRECT': ['CC', 'WW', 'PP', 'WK'],
+  'ALL_WRONG|CORRECT|PARTIAL|PARTIAL': ['WK', 'WW', 'PP', 'PW'],
+  'ALL_WRONG|CORRECT|PARTIAL|WRONG_SLOT': ['WW', 'PP', 'CC', 'PK'],
+  'ALL_WRONG|CORRECT|WRONG_SLOT|PARTIAL': ['WW', 'CC', 'PK', 'KK'],
+  'ALL_WRONG|CORRECT|WRONG_SLOT|WRONG_SLOT': ['CC', 'SS', 'WW', 'WK'],
+  'ALL_WRONG|PARTIAL|ALL_WRONG|ALL_WRONG': ['WK', 'SS', 'WW', 'KK'],
+  'ALL_WRONG|PARTIAL|ALL_WRONG|CORRECT': ['WW', 'WK', 'KK', 'PW'],
+  'ALL_WRONG|PARTIAL|ALL_WRONG|PARTIAL': ['WK', 'WK', 'KK', 'PW'],
+  'ALL_WRONG|PARTIAL|ALL_WRONG|WRONG_SLOT': ['WW', 'CC', 'WK', 'PW'],
+  'ALL_WRONG|PARTIAL|CORRECT|ALL_WRONG': ['WK', 'WW', 'PP', 'KK'],
+  'ALL_WRONG|PARTIAL|CORRECT|CORRECT': ['WW', 'WK', 'PW', 'CC'],
+  'ALL_WRONG|PARTIAL|CORRECT|PARTIAL': ['WW', 'PW', 'CC', 'WK'],
+  'ALL_WRONG|PARTIAL|CORRECT|WRONG_SLOT': ['CC', 'WW', 'PW', 'WK'],
+  'ALL_WRONG|PARTIAL|PARTIAL|ALL_WRONG': ['WK', 'WW', 'PP', 'PK'],
+  'ALL_WRONG|PARTIAL|PARTIAL|CORRECT': ['WW', 'PW', 'CC', 'WK'],
+  'ALL_WRONG|PARTIAL|PARTIAL|PARTIAL': ['WW', 'PK', 'PW', 'WK'],
+  'ALL_WRONG|PARTIAL|PARTIAL|WRONG_SLOT': ['WW', 'PC', 'CC', 'PP'],
+  'ALL_WRONG|PARTIAL|WRONG_SLOT|PARTIAL': ['WK', 'PW', 'KK', 'WW'],
+  'ALL_WRONG|PARTIAL|WRONG_SLOT|WRONG_SLOT': ['CC', 'WW', 'PK', 'WK'],
+  'ALL_WRONG|WRONG_SLOT|ALL_WRONG|ALL_WRONG': ['WW', 'PP', 'CC', 'PK'],
+  'ALL_WRONG|WRONG_SLOT|ALL_WRONG|CORRECT': ['WW', 'PK', 'WK', 'KK'],
+  'ALL_WRONG|WRONG_SLOT|ALL_WRONG|PARTIAL': ['WK', 'PW', 'WW', 'SS'],
+  'ALL_WRONG|WRONG_SLOT|ALL_WRONG|WRONG_SLOT': ['CC', 'WW', 'SS', 'KK'],
+  'ALL_WRONG|WRONG_SLOT|CORRECT|PARTIAL': ['WW', 'PP', 'CC', 'KK'],
+  'ALL_WRONG|WRONG_SLOT|CORRECT|WRONG_SLOT': ['PK', 'WW', 'CC', 'KK'],
+  'ALL_WRONG|WRONG_SLOT|PARTIAL|PARTIAL': ['WW', 'PW', 'PP', 'KK'],
+  'ALL_WRONG|WRONG_SLOT|PARTIAL|WRONG_SLOT': ['WW', 'PK', 'CC', 'WK'],
+  'ALL_WRONG|WRONG_SLOT|WRONG_SLOT|ALL_WRONG': ['WW', 'SS', 'CC', 'PP'],
+  'ALL_WRONG|WRONG_SLOT|WRONG_SLOT|CORRECT': ['PW', 'CC', 'WW', 'WK'],
+  'ALL_WRONG|WRONG_SLOT|WRONG_SLOT|PARTIAL': ['WK', 'CC', 'PW', 'WW'],
+  'ALL_WRONG|WRONG_SLOT|WRONG_SLOT|WRONG_SLOT': ['PW', 'CC', 'WW', 'WK'],
+  'CORRECT|ALL_WRONG|ALL_WRONG|ALL_WRONG': ['WW', 'PK', 'WK', 'PP'],
+  'CORRECT|ALL_WRONG|ALL_WRONG|CORRECT': ['SS', 'PP', 'WW', 'CC'],
+  'CORRECT|ALL_WRONG|ALL_WRONG|PARTIAL': ['PP', 'KK', 'WK', 'WW'],
+  'CORRECT|ALL_WRONG|CORRECT|ALL_WRONG': ['PK', 'PP', 'KK', 'SS'],
+  'CORRECT|ALL_WRONG|CORRECT|CORRECT': ['SS', 'PP', 'PK', 'CC'],
+  'CORRECT|ALL_WRONG|CORRECT|PARTIAL': ['PP', 'CC', 'PK', 'WW'],
+  'CORRECT|ALL_WRONG|PARTIAL|ALL_WRONG': ['PW', 'KK', 'PK', 'PP'],
+  'CORRECT|ALL_WRONG|PARTIAL|CORRECT': ['PW', 'PK', 'PP', 'CC'],
+  'CORRECT|ALL_WRONG|PARTIAL|PARTIAL': ['PP', 'PK', 'PW', 'WW'],
+  'CORRECT|ALL_WRONG|PARTIAL|WRONG_SLOT': ['PP', 'PK', 'KK', 'WK'],
+  'CORRECT|ALL_WRONG|WRONG_SLOT|ALL_WRONG': ['PK', 'KK', 'WK', 'PP'],
+  'CORRECT|ALL_WRONG|WRONG_SLOT|CORRECT': ['SS', 'PP', 'PK', 'PW'],
+  'CORRECT|ALL_WRONG|WRONG_SLOT|PARTIAL': ['PW', 'PP', 'WK', 'CC'],
+  'CORRECT|ALL_WRONG|WRONG_SLOT|WRONG_SLOT': ['SS', 'PK', 'KK', 'PP'],
+  'CORRECT|CORRECT|ALL_WRONG|ALL_WRONG': ['PP', 'WW', 'SS', 'KK'],
+  'CORRECT|CORRECT|ALL_WRONG|CORRECT': ['SS', 'SS', 'WW', 'WK'],
+  'CORRECT|CORRECT|ALL_WRONG|PARTIAL': ['SS', 'PW', 'WW', 'WK'],
+  'CORRECT|CORRECT|CORRECT|ALL_WRONG': ['SS', 'SS', 'PP', 'KK'],
+  'CORRECT|CORRECT|CORRECT|PARTIAL': ['PW', 'CC', 'WW', 'WK'],
+  'CORRECT|CORRECT|PARTIAL|ALL_WRONG': ['SS', 'PW', 'PK', 'PP'],
+  'CORRECT|CORRECT|PARTIAL|CORRECT': ['PP', 'PW', 'PK', 'CC'],
+  'CORRECT|CORRECT|PARTIAL|PARTIAL': ['PP', 'CC', 'WK', 'PW'],
+  'CORRECT|CORRECT|PARTIAL|WRONG_SLOT': ['SS', 'PP', 'PW', 'PK'],
+  'CORRECT|CORRECT|WRONG_SLOT|PARTIAL': ['SS', 'PP', 'PK', 'PW'],
+  'CORRECT|PARTIAL|ALL_WRONG|ALL_WRONG': ['PP', 'WW', 'KK', 'SS'],
+  'CORRECT|PARTIAL|ALL_WRONG|CORRECT': ['PW', 'WW', 'WK', 'SS'],
+  'CORRECT|PARTIAL|ALL_WRONG|PARTIAL': ['SS', 'WK', 'WW', 'PW'],
+  'CORRECT|PARTIAL|ALL_WRONG|WRONG_SLOT': ['SS', 'WW', 'KK', 'PP'],
+  'CORRECT|PARTIAL|CORRECT|ALL_WRONG': ['PP', 'WW', 'PK', 'SS'],
+  'CORRECT|PARTIAL|CORRECT|CORRECT': ['SS', 'WW', 'PW', 'WK'],
+  'CORRECT|PARTIAL|CORRECT|PARTIAL': ['SS', 'WW', 'WK', 'PW'],
+  'CORRECT|PARTIAL|CORRECT|WRONG_SLOT': ['SS', 'PP', 'PW', 'WK'],
+  'CORRECT|PARTIAL|PARTIAL|ALL_WRONG': ['PK', 'SS', 'PW', 'PP'],
+  'CORRECT|PARTIAL|PARTIAL|CORRECT': ['PP', 'WW', 'PW', 'PK'],
+  'CORRECT|PARTIAL|PARTIAL|PARTIAL': ['SS', 'WW', 'PW', 'WK'],
+  'CORRECT|PARTIAL|PARTIAL|WRONG_SLOT': ['WW', 'WK', 'PP', 'PW'],
+  'CORRECT|PARTIAL|WRONG_SLOT|PARTIAL': ['SS', 'WW', 'PP', 'WK'],
+  'CORRECT|PARTIAL|WRONG_SLOT|WRONG_SLOT': ['PW', 'WW', 'PK', 'WK'],
+  'CORRECT|WRONG_SLOT|ALL_WRONG|ALL_WRONG': ['PK', 'WK', 'KK', 'PP'],
+  'CORRECT|WRONG_SLOT|ALL_WRONG|CORRECT': ['SS', 'PP', 'CC', 'WW'],
+  'CORRECT|WRONG_SLOT|ALL_WRONG|PARTIAL': ['PW', 'WK', 'SS', 'WW'],
+  'CORRECT|WRONG_SLOT|ALL_WRONG|WRONG_SLOT': ['SS', 'PW', 'WW', 'WK'],
+  'CORRECT|WRONG_SLOT|CORRECT|PARTIAL': ['SS', 'PP', 'PW', 'CC'],
+  'CORRECT|WRONG_SLOT|PARTIAL|PARTIAL': ['PW', 'WK', 'PP', 'PK'],
+  'CORRECT|WRONG_SLOT|PARTIAL|WRONG_SLOT': ['PP', 'PK', 'CC', 'PW'],
+  'CORRECT|WRONG_SLOT|WRONG_SLOT|ALL_WRONG': ['SS', 'SS', 'PP', 'KK'],
+  'CORRECT|WRONG_SLOT|WRONG_SLOT|PARTIAL': ['PW', 'WK', 'SS', 'CC'],
+  'CORRECT|WRONG_SLOT|WRONG_SLOT|WRONG_SLOT': ['SP', 'PC', 'CW', 'SW'],
+  'PARTIAL|ALL_WRONG|ALL_WRONG|ALL_WRONG': ['SS', 'PK', 'KK', 'PP'],
+  'PARTIAL|ALL_WRONG|ALL_WRONG|CORRECT': ['PP', 'PK', 'KK', 'WW'],
+  'PARTIAL|ALL_WRONG|ALL_WRONG|PARTIAL': ['PP', 'PK', 'WK', 'WW'],
+  'PARTIAL|ALL_WRONG|CORRECT|ALL_WRONG': ['PK', 'PP', 'PW', 'KK'],
+  'PARTIAL|ALL_WRONG|CORRECT|CORRECT': ['PP', 'PK', 'PW', 'KK'],
+  'PARTIAL|ALL_WRONG|CORRECT|PARTIAL': ['PW', 'PP', 'PK', 'CC'],
+  'PARTIAL|ALL_WRONG|PARTIAL|ALL_WRONG': ['PW', 'PK', 'PK', 'KK'],
+  'PARTIAL|ALL_WRONG|PARTIAL|CORRECT': ['PW', 'PP', 'PK', 'CC'],
+  'PARTIAL|ALL_WRONG|PARTIAL|PARTIAL': ['PK', 'PP', 'WK', 'PW'],
+  'PARTIAL|ALL_WRONG|PARTIAL|WRONG_SLOT': ['PW', 'PK', 'PP', 'KK'],
+  'PARTIAL|ALL_WRONG|WRONG_SLOT|ALL_WRONG': ['CC', 'PP', 'PW', 'PK'],
+  'PARTIAL|ALL_WRONG|WRONG_SLOT|CORRECT': ['PP', 'CC', 'PK', 'PW'],
+  'PARTIAL|ALL_WRONG|WRONG_SLOT|PARTIAL': ['CW', 'PP', 'WW', 'CC'],
+  'PARTIAL|ALL_WRONG|WRONG_SLOT|WRONG_SLOT': ['PP', 'CC', 'PK', 'WK'],
+  'PARTIAL|CORRECT|ALL_WRONG|ALL_WRONG': ['PP', 'WW', 'SS', 'KK'],
+  'PARTIAL|CORRECT|ALL_WRONG|CORRECT': ['SS', 'PP', 'WW', 'PW'],
+  'PARTIAL|CORRECT|ALL_WRONG|PARTIAL': ['SS', 'WK', 'WW', 'PW'],
+  'PARTIAL|CORRECT|CORRECT|ALL_WRONG': ['SS', 'PW', 'PK', 'PP'],
+  'PARTIAL|CORRECT|CORRECT|CORRECT': ['SS', 'PP', 'PW', 'PK'],
+  'PARTIAL|CORRECT|CORRECT|PARTIAL': ['PP', 'WW', 'WK', 'PW'],
+  'PARTIAL|CORRECT|PARTIAL|ALL_WRONG': ['PK', 'SS', 'PW', 'PP'],
+  'PARTIAL|CORRECT|PARTIAL|CORRECT': ['PP', 'SS', 'PW', 'PK'],
+  'PARTIAL|CORRECT|PARTIAL|PARTIAL': ['PP', 'SS', 'PK', 'PW'],
+  'PARTIAL|CORRECT|PARTIAL|WRONG_SLOT': ['PP', 'SS', 'PK', 'WW'],
+  'PARTIAL|CORRECT|WRONG_SLOT|ALL_WRONG': ['SS', 'PP', 'WW', 'KK'],
+  'PARTIAL|CORRECT|WRONG_SLOT|CORRECT': ['SS', 'PP', 'PK', 'CC'],
+  'PARTIAL|CORRECT|WRONG_SLOT|PARTIAL': ['PP', 'PK', 'PW', 'WW'],
+  'PARTIAL|CORRECT|WRONG_SLOT|WRONG_SLOT': ['PP', 'PW', 'PK', 'WK'],
+  'PARTIAL|PARTIAL|ALL_WRONG|ALL_WRONG': ['PP', 'WW', 'WK', 'PK'],
+  'PARTIAL|PARTIAL|ALL_WRONG|CORRECT': ['PP', 'PW', 'WK', 'WW'],
+  'PARTIAL|PARTIAL|ALL_WRONG|PARTIAL': ['PW', 'PK', 'WW', 'WK'],
+  'PARTIAL|PARTIAL|ALL_WRONG|WRONG_SLOT': ['PP', 'WW', 'WK', 'PK'],
+  'PARTIAL|PARTIAL|CORRECT|ALL_WRONG': ['PW', 'WW', 'PP', 'PK'],
+  'PARTIAL|PARTIAL|CORRECT|CORRECT': ['PW', 'PK', 'SS', 'WW'],
+  'PARTIAL|PARTIAL|CORRECT|PARTIAL': ['PW', 'WW', 'CC', 'WK'],
+  'PARTIAL|PARTIAL|CORRECT|WRONG_SLOT': ['PP', 'PW', 'PK', 'WK'],
+  'PARTIAL|PARTIAL|PARTIAL|ALL_WRONG': ['PK', 'PW', 'WK', 'PP'],
+  'PARTIAL|PARTIAL|PARTIAL|CORRECT': ['PP', 'PW', 'PK', 'CC'],
+  'PARTIAL|PARTIAL|PARTIAL|PARTIAL': ['PP', 'WW', 'PK', 'WK'],
+  'PARTIAL|PARTIAL|PARTIAL|WRONG_SLOT': ['PP', 'PW', 'CC', 'WW'],
+  'PARTIAL|PARTIAL|WRONG_SLOT|ALL_WRONG': ['PP', 'PW', 'WK', 'PK'],
+  'PARTIAL|PARTIAL|WRONG_SLOT|CORRECT': ['PW', 'WW', 'PK', 'WK'],
+  'PARTIAL|PARTIAL|WRONG_SLOT|PARTIAL': ['PW', 'WW', 'PP', 'CC'],
+  'PARTIAL|PARTIAL|WRONG_SLOT|WRONG_SLOT': ['PP', 'CC', 'PW', 'WK'],
+  'PARTIAL|WRONG_SLOT|ALL_WRONG|ALL_WRONG': ['SS', 'WK', 'WW', 'PP'],
+  'PARTIAL|WRONG_SLOT|ALL_WRONG|CORRECT': ['SS', 'PK', 'WW', 'WK'],
+  'PARTIAL|WRONG_SLOT|ALL_WRONG|PARTIAL': ['SS', 'PP', 'WW', 'SP'],
+  'PARTIAL|WRONG_SLOT|ALL_WRONG|WRONG_SLOT': ['SS', 'WK', 'WW', 'PK'],
+  'PARTIAL|WRONG_SLOT|CORRECT|ALL_WRONG': ['SS', 'WK', 'KK', 'PP'],
+  'PARTIAL|WRONG_SLOT|CORRECT|CORRECT': ['SS', 'PP', 'CC', 'WW'],
+  'PARTIAL|WRONG_SLOT|CORRECT|PARTIAL': ['PP', 'PW', 'WW', 'WK'],
+  'PARTIAL|WRONG_SLOT|CORRECT|WRONG_SLOT': ['SS', 'PP', 'PW', 'PK'],
+  'PARTIAL|WRONG_SLOT|PARTIAL|ALL_WRONG': ['PP', 'KK', 'PW', 'PK'],
+  'PARTIAL|WRONG_SLOT|PARTIAL|CORRECT': ['PP', 'WW', 'PK', 'CC'],
+  'PARTIAL|WRONG_SLOT|PARTIAL|PARTIAL': ['SS', 'WW', 'PP', 'PW'],
+  'PARTIAL|WRONG_SLOT|PARTIAL|WRONG_SLOT': ['SS', 'PK', 'PP', 'WW'],
+  'PARTIAL|WRONG_SLOT|WRONG_SLOT|ALL_WRONG': ['PP', 'PW', 'SS', 'PK'],
+  'PARTIAL|WRONG_SLOT|WRONG_SLOT|CORRECT': ['SS', 'CC', 'PK', 'PP'],
+  'PARTIAL|WRONG_SLOT|WRONG_SLOT|PARTIAL': ['PK', 'PP', 'WW', 'WK'],
+  'PARTIAL|WRONG_SLOT|WRONG_SLOT|WRONG_SLOT': ['PK', 'PP', 'CC', 'SS'],
+  'WRONG_SLOT|ALL_WRONG|ALL_WRONG|ALL_WRONG': ['PP', 'PK', 'WW', 'SS'],
+  'WRONG_SLOT|ALL_WRONG|ALL_WRONG|WRONG_SLOT': ['SS', 'PP', 'WW', 'CC'],
+  'WRONG_SLOT|ALL_WRONG|CORRECT|ALL_WRONG': ['WK', 'PP', 'PK', 'KK'],
+  'WRONG_SLOT|ALL_WRONG|CORRECT|WRONG_SLOT': ['SS', 'PP', 'PK', 'CC'],
+  'WRONG_SLOT|ALL_WRONG|PARTIAL|ALL_WRONG': ['PW', 'PK', 'SS', 'PP'],
+  'WRONG_SLOT|ALL_WRONG|PARTIAL|CORRECT': ['WW', 'PP', 'CC', 'KK'],
+  'WRONG_SLOT|ALL_WRONG|PARTIAL|PARTIAL': ['PW', 'PP', 'KK', 'WW'],
+  'WRONG_SLOT|ALL_WRONG|PARTIAL|WRONG_SLOT': ['CC', 'PK', 'PP', 'PW'],
+  'WRONG_SLOT|ALL_WRONG|WRONG_SLOT|ALL_WRONG': ['PP', 'CC', 'KK', 'SS'],
+  'WRONG_SLOT|ALL_WRONG|WRONG_SLOT|CORRECT': ['PP', 'CC', 'SS', 'KK'],
+  'WRONG_SLOT|ALL_WRONG|WRONG_SLOT|PARTIAL': ['WK', 'PP', 'PK', 'CC'],
+  'WRONG_SLOT|ALL_WRONG|WRONG_SLOT|WRONG_SLOT': ['CC', 'PW', 'PK', 'PP'],
+  'WRONG_SLOT|CORRECT|ALL_WRONG|ALL_WRONG': ['PK', 'WK', 'WW', 'KK'],
+  'WRONG_SLOT|CORRECT|ALL_WRONG|WRONG_SLOT': ['SS', 'SS', 'WW', 'WK'],
+  'WRONG_SLOT|CORRECT|CORRECT|ALL_WRONG': ['PP', 'SS', 'CC', 'WW'],
+  'WRONG_SLOT|CORRECT|PARTIAL|ALL_WRONG': ['PK', 'PW', 'PP', 'SS'],
+  'WRONG_SLOT|CORRECT|PARTIAL|CORRECT': ['PW', 'PP', 'PK', 'WW'],
+  'WRONG_SLOT|CORRECT|PARTIAL|PARTIAL': ['PK', 'PW', 'WK', 'WW'],
+  'WRONG_SLOT|CORRECT|PARTIAL|WRONG_SLOT': ['PK', 'PP', 'CC', 'SS'],
+  'WRONG_SLOT|CORRECT|WRONG_SLOT|ALL_WRONG': ['PP', 'PW', 'PK', 'SS'],
+  'WRONG_SLOT|CORRECT|WRONG_SLOT|PARTIAL': ['WK', 'PW', 'WW', 'CC'],
+  'WRONG_SLOT|CORRECT|WRONG_SLOT|WRONG_SLOT': ['PC', 'SW', 'CW', 'SP'],
+  'WRONG_SLOT|PARTIAL|ALL_WRONG|ALL_WRONG': ['PK', 'SS', 'WW', 'PP'],
+  'WRONG_SLOT|PARTIAL|ALL_WRONG|CORRECT': ['PK', 'SS', 'WW', 'KK'],
+  'WRONG_SLOT|PARTIAL|ALL_WRONG|PARTIAL': ['KK', 'WW', 'WK', 'PW'],
+  'WRONG_SLOT|PARTIAL|ALL_WRONG|WRONG_SLOT': ['PW', 'WW', 'WK', 'SS'],
+  'WRONG_SLOT|PARTIAL|CORRECT|ALL_WRONG': ['WK', 'SS', 'PK', 'PP'],
+  'WRONG_SLOT|PARTIAL|CORRECT|CORRECT': ['PP', 'SS', 'CC', 'WW'],
+  'WRONG_SLOT|PARTIAL|CORRECT|PARTIAL': ['PP', 'CC', 'WW', 'WK'],
+  'WRONG_SLOT|PARTIAL|CORRECT|WRONG_SLOT': ['CC', 'SS', 'PW', 'WK'],
+  'WRONG_SLOT|PARTIAL|PARTIAL|ALL_WRONG': ['WW', 'SS', 'SW', 'PP'],
+  'WRONG_SLOT|PARTIAL|PARTIAL|CORRECT': ['PW', 'WW', 'PP', 'PK'],
+  'WRONG_SLOT|PARTIAL|PARTIAL|PARTIAL': ['PP', 'SS', 'PW', 'WW'],
+  'WRONG_SLOT|PARTIAL|PARTIAL|WRONG_SLOT': ['WW', 'WK', 'PK', 'PP'],
+  'WRONG_SLOT|PARTIAL|WRONG_SLOT|ALL_WRONG': ['PK', 'SS', 'WK', 'PP'],
+  'WRONG_SLOT|PARTIAL|WRONG_SLOT|CORRECT': ['PW', 'SS', 'WK', 'WW'],
+  'WRONG_SLOT|PARTIAL|WRONG_SLOT|PARTIAL': ['WK', 'SS', 'PP', 'WW'],
+  'WRONG_SLOT|PARTIAL|WRONG_SLOT|WRONG_SLOT': ['WW', 'WK', 'SS', 'CC'],
+  'WRONG_SLOT|WRONG_SLOT|ALL_WRONG|ALL_WRONG': ['WW', 'PP', 'KK', 'SS'],
+  'WRONG_SLOT|WRONG_SLOT|ALL_WRONG|CORRECT': ['PK', 'SS', 'WW', 'WK'],
+  'WRONG_SLOT|WRONG_SLOT|ALL_WRONG|PARTIAL': ['PK', 'WK', 'SS', 'WW'],
+  'WRONG_SLOT|WRONG_SLOT|ALL_WRONG|WRONG_SLOT': ['WW', 'WK', 'PW', 'SS'],
+  'WRONG_SLOT|WRONG_SLOT|CORRECT|ALL_WRONG': ['SS', 'WK', 'PK', 'PP'],
+  'WRONG_SLOT|WRONG_SLOT|CORRECT|PARTIAL': ['WK', 'PW', 'WW', 'SS'],
+  'WRONG_SLOT|WRONG_SLOT|CORRECT|WRONG_SLOT': ['SW', 'CW', 'PC', 'SP'],
+  'WRONG_SLOT|WRONG_SLOT|PARTIAL|ALL_WRONG': ['PK', 'WK', 'PP', 'SS'],
+  'WRONG_SLOT|WRONG_SLOT|PARTIAL|CORRECT': ['PP', 'PK', 'SS', 'PW'],
+  'WRONG_SLOT|WRONG_SLOT|PARTIAL|PARTIAL': ['PK', 'PW', 'SS', 'WW'],
+  'WRONG_SLOT|WRONG_SLOT|PARTIAL|WRONG_SLOT': ['SS', 'CC', 'PK', 'PP'],
+  'WRONG_SLOT|WRONG_SLOT|WRONG_SLOT|ALL_WRONG': ['PK', 'PP', 'SS', 'PW'],
+  'WRONG_SLOT|WRONG_SLOT|WRONG_SLOT|CORRECT': ['SW', 'PC', 'SP', 'CW'],
+  'WRONG_SLOT|WRONG_SLOT|WRONG_SLOT|PARTIAL': ['CC', 'SS', 'WW', 'WK'],
+  'WRONG_SLOT|WRONG_SLOT|WRONG_SLOT|WRONG_SLOT': ['SW', 'PC', 'CW', 'SP']
+};
+
+// Current Guess State
+let currentGuess = [
+  { p1: 'S', p2: 'P', fb: null },
+  { p1: 'S', p2: 'W', fb: null },
+  { p1: 'P', p2: 'C', fb: null },
+  { p1: 'C', p2: 'W', fb: null }
+];
+
+let activeSlot = 0; // 0, 1, 2, 3
+let activeHalf = 1; // 1 (left) or 2 (right)
+
+// In-memory drag & drop data transfer fallback for smooth browser support
+let draggedPlantData = null;
+
+let historyRounds = [];
+let candidates = [];
+let guessesLeft = 15;
+
+// Best recommended guess for next round
+let recommendedGuess = GUARANTEED_OPENING_GUESS.slice();
+
+const FEEDBACK_MODE_ORDER = [
+  'strict_exact',
+  'consume_exact',
+  'component_wrong_slot_first',
+  'component_partial_first'
+];
+
+const FEEDBACK_MODE_META = {
+  strict_exact: {
+    label: '严格整卡优先',
+    note: '先判定同位整卡，再判定整卡错位，最后判定本位共享基础卡。'
+  },
+  consume_exact: {
+    label: '整卡错位可消耗',
+    note: '同位整卡会先占用一次错位名额，适合重复卡位的变体规则。'
+  },
+  component_wrong_slot_first: {
+    label: '共享基础卡后置',
+    note: '先看别的槽位有没有整卡/基础卡命中，再看本位是否只命中一半。'
+  },
+  component_partial_first: {
+    label: '共享基础卡前置',
+    note: '同位只要命中一张基础卡，就先记为半对。'
+  }
+};
+
+let activeFeedbackMode = 'strict_exact';
+
+function getActiveFeedbackModeMeta() {
+  return FEEDBACK_MODE_META[activeFeedbackMode] || FEEDBACK_MODE_META.strict_exact;
+}
+
+function getFeedbackLabel(fb) {
+  return {
+    CORRECT: '正确',
+    WRONG_SLOT: '错位',
+    PARTIAL: '半对',
+    ALL_WRONG: '全错'
+  }[fb] || fb;
+}
+
+function feedbackKey(arr) {
+  return arr.join('|');
+}
+
+function baseCounts(code) {
+  const counts = {};
+  counts[code[0]] = (counts[code[0]] || 0) + 1;
+  counts[code[1]] = (counts[code[1]] || 0) + 1;
+  return counts;
+}
+
+function overlapCount(codeA, codeB) {
+  const a = baseCounts(codeA);
+  const b = baseCounts(codeB);
+  let total = 0;
+  Object.keys(a).forEach(base => {
+    if (b[base]) {
+      total += Math.min(a[base], b[base]);
+    }
+  });
+  return total;
+}
+
+function shareAnyBase(codeA, codeB) {
+  return overlapCount(codeA, codeB) > 0;
+}
+
+function buildCandidateSpace() {
+  const space = [];
+  for (let a = 0; a < TIER2_LIST.length; a++) {
+    for (let b = 0; b < TIER2_LIST.length; b++) {
+      for (let c = 0; c < TIER2_LIST.length; c++) {
+        for (let d = 0; d < TIER2_LIST.length; d++) {
+          space.push([TIER2_LIST[a], TIER2_LIST[b], TIER2_LIST[c], TIER2_LIST[d]]);
+        }
+      }
+    }
+  }
+  return space;
+}
+
+function evaluateFeedbackStrictExact(guessArr, secretArr) {
+  const result = new Array(4).fill('ALL_WRONG');
+
+  for (let i = 0; i < 4; i++) {
+    const guess = guessArr[i];
+    const secret = secretArr[i];
+
+    if (guess === secret) {
+      result[i] = 'CORRECT';
+      continue;
+    }
+
+    if (secretArr.some((s, j) => j !== i && s === guess)) {
+      result[i] = 'WRONG_SLOT';
+      continue;
+    }
+
+    if (shareAnyBase(guess, secret)) {
+      result[i] = 'PARTIAL';
+    }
+  }
+
+  return result;
+}
+
+function evaluateFeedbackConsumeExact(guessArr, secretArr) {
+  const result = new Array(4).fill('ALL_WRONG');
+  const remaining = {};
+
+  for (const code of secretArr) {
+    remaining[code] = (remaining[code] || 0) + 1;
+  }
+
+  for (let i = 0; i < 4; i++) {
+    if (guessArr[i] === secretArr[i]) {
+      result[i] = 'CORRECT';
+      remaining[guessArr[i]]--;
+    }
+  }
+
+  for (let i = 0; i < 4; i++) {
+    if (result[i] === 'CORRECT') {
+      continue;
+    }
+
+    const guess = guessArr[i];
+    if ((remaining[guess] || 0) > 0) {
+      result[i] = 'WRONG_SLOT';
+      remaining[guess]--;
+      continue;
+    }
+
+    if (shareAnyBase(guess, secretArr[i])) {
+      result[i] = 'PARTIAL';
+    }
+  }
+
+  return result;
+}
+
+function evaluateFeedbackComponentWrongSlotFirst(guessArr, secretArr) {
+  const result = new Array(4).fill('ALL_WRONG');
+
+  for (let i = 0; i < 4; i++) {
+    const guess = guessArr[i];
+    const secret = secretArr[i];
+
+    if (guess === secret) {
+      result[i] = 'CORRECT';
+      continue;
+    }
+
+    if (secretArr.some((s, j) => j !== i && shareAnyBase(guess, s))) {
+      result[i] = 'WRONG_SLOT';
+      continue;
+    }
+
+    if (shareAnyBase(guess, secret)) {
+      result[i] = 'PARTIAL';
+    }
+  }
+
+  return result;
+}
+
+function evaluateFeedbackComponentPartialFirst(guessArr, secretArr) {
+  const result = new Array(4).fill('ALL_WRONG');
+
+  for (let i = 0; i < 4; i++) {
+    const guess = guessArr[i];
+    const secret = secretArr[i];
+
+    if (guess === secret) {
+      result[i] = 'CORRECT';
+      continue;
+    }
+
+    if (shareAnyBase(guess, secret)) {
+      result[i] = 'PARTIAL';
+      continue;
+    }
+
+    if (secretArr.some((s, j) => j !== i && shareAnyBase(guess, s))) {
+      result[i] = 'WRONG_SLOT';
+    }
+  }
+
+  return result;
+}
+
+function evaluateFeedback(guessArr, secretArr, mode = activeFeedbackMode) {
+  switch (mode) {
+    case 'consume_exact':
+      return evaluateFeedbackConsumeExact(guessArr, secretArr);
+    case 'component_wrong_slot_first':
+      return evaluateFeedbackComponentWrongSlotFirst(guessArr, secretArr);
+    case 'component_partial_first':
+      return evaluateFeedbackComponentPartialFirst(guessArr, secretArr);
+    case 'strict_exact':
+    default:
+      return evaluateFeedbackStrictExact(guessArr, secretArr);
+  }
+}
+
+function filterCandidatesByRound(pool, guessArr, fbArr, mode = activeFeedbackMode) {
+  return pool.filter(secret => {
+    const evalFb = evaluateFeedback(guessArr, secret, mode);
+    return evalFb[0] === fbArr[0] &&
+           evalFb[1] === fbArr[1] &&
+           evalFb[2] === fbArr[2] &&
+           evalFb[3] === fbArr[3];
+  });
+}
+
+function replayHistoryWithMode(rounds, mode) {
+  let pool = buildCandidateSpace();
+  for (const round of rounds) {
+    pool = filterCandidatesByRound(pool, round.guess, round.fb, mode);
+    if (pool.length === 0) {
+      break;
+    }
+  }
+  return pool;
+}
+
+function getSlotFeedbackCounts(pool, guessArr, mode) {
+  const counts = [
+    { CORRECT: 0, WRONG_SLOT: 0, PARTIAL: 0, ALL_WRONG: 0 },
+    { CORRECT: 0, WRONG_SLOT: 0, PARTIAL: 0, ALL_WRONG: 0 },
+    { CORRECT: 0, WRONG_SLOT: 0, PARTIAL: 0, ALL_WRONG: 0 },
+    { CORRECT: 0, WRONG_SLOT: 0, PARTIAL: 0, ALL_WRONG: 0 }
+  ];
+
+  pool.forEach(secret => {
+    const fb = evaluateFeedback(guessArr, secret, mode);
+    for (let i = 0; i < 4; i++) {
+      counts[i][fb[i]]++;
+    }
+  });
+
+  return counts;
+}
+
+function renderCountsSummary(counts) {
+  return counts.map((slotCounts, idx) => {
+    const order = ['CORRECT', 'WRONG_SLOT', 'PARTIAL', 'ALL_WRONG'];
+    return `槽${idx + 1}: ` + order.map(key => `${getFeedbackLabel(key)} ${slotCounts[key]}`).join(' / ');
+  }).join('<br>');
+}
+
+function buildConflictHtml(guessArr, fbArr, fallbackNotes) {
+  const allRounds = historyRounds.concat([{ guess: guessArr, fb: fbArr, candsAfter: 0 }]);
+  const attempts = FEEDBACK_MODE_ORDER.map(mode => {
+    const pool = replayHistoryWithMode(allRounds, mode);
+    return {
+      mode,
+      pool,
+      meta: FEEDBACK_MODE_META[mode] || { label: mode, note: '' }
+    };
+  });
+
+  const successful = attempts.filter(item => item.pool.length > 0);
+  const bestAttempt = successful[0] || attempts[0];
+  const focusCounts = getSlotFeedbackCounts(
+    replayHistoryWithMode(historyRounds, bestAttempt.mode),
+    guessArr,
+    bestAttempt.mode
+  );
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="font-weight:700; color:#f87171;">⚠️ 当前反馈和已知历史冲突</div>
+      <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.45;">
+        本轮输入：${fbArr.map(getFeedbackLabel).join(' / ')}<br>
+        已按 ${FEEDBACK_MODE_ORDER.length} 种反馈机制回放；${successful.length ? `其中 ${successful.length} 种仍可成立。` : '没有一种能同时解释全部历史。'}
+      </div>
+      <div style="font-size:0.8rem; color:#7dd3fc; line-height:1.45;">
+        推荐排查模型：<b>${bestAttempt.meta.label}</b><br>
+        ${bestAttempt.meta.note}
+      </div>
+      <div style="font-size:0.78rem; color:#e0f2fe; line-height:1.55; border-top:1px solid rgba(56,189,248,0.18); padding-top:8px;">
+        ${renderCountsSummary(focusCounts)}
+      </div>
+      ${fallbackNotes ? `<div style="font-size:0.76rem; color:#fca5a5;">${fallbackNotes}</div>` : ''}
+    </div>
+  `;
+}
+
+function initCandidateSpace() {
+  candidates = buildCandidateSpace();
+  updateCandidateCountUI();
+}
+
+function updateCandidateCountUI() {
+  const countEl = document.getElementById('txtCandidateCount');
+  if (countEl) {
+    countEl.textContent = `剩余解: ${candidates.length.toLocaleString()}`;
+  }
+  const box = document.getElementById('candsPreviewBox');
+  if (!box) return;
+
+  if (candidates.length <= 6 && candidates.length > 1) {
+    box.innerHTML = candidates.map((c, idx) => `
+        <div class="cand-row-item" onclick="applyCandidateByIndex(${idx})">
+          <span><b>#${idx+1}:</b> [${c.map(p => getFusionShortName(p)).join(', ')}]</span>
+          <span class="cand-apply-badge">填入</span>
+        </div>
+      `).join('');
+  } else if (candidates.length === 1) {
+    box.innerHTML = `<div style="color:#10b981; font-weight:700;">锁定：[${candidates[0].map(p => getFusionShortName(p)).join(', ')}]</div>`;
+  } else if (candidates.length === 0) {
+    box.innerHTML = `<div style="color:#f43f5e; font-weight:700;">冲突：0 候选解</div>`;
+  } else {
+    box.innerHTML = `剩余 ${candidates.length.toLocaleString()} 种组合`;
+  }
+}
+
+function applyCandidateByIndex(idx) {
+  if (candidates[idx]) {
+    recommendedGuess = candidates[idx];
+    applyRecommendedGuessToSlots();
+    resetFeedbackButtons();
+    renderSlots();
+  }
+}
+
+// --- UI RENDERING ---
+function renderUI() {
+  renderSlots();
+  renderBasePalette();
+  renderHistory();
+}
+
+function resetFeedbackButtons() {
+  currentGuess.forEach(s => {
+    s.fb = null;
+  });
+}
+
+function handlePlantDrop(targetSlotIdx, targetHalf, dataTransfer) {
+  let data = draggedPlantData;
+  if (!data && dataTransfer) {
+    try {
+      const raw = dataTransfer.getData('application/x-pvz-plant');
+      if (raw) {
+        data = JSON.parse(raw);
+      } else {
+        const text = dataTransfer.getData('text/plain');
+        if (text && OFFICIAL_PLANT_CARDS[text]) {
+          data = { type: 'palette', plantId: text };
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (!data || !data.plantId) return;
+
+  const targetKey = (targetHalf === 1) ? 'p1' : 'p2';
+
+  if (data.type === 'slot') {
+    const srcSlotIdx = data.slotIdx;
+    const srcHalfKey = (data.half === 1) ? 'p1' : 'p2';
+
+    if (srcSlotIdx !== targetSlotIdx || data.half !== targetHalf) {
+      const prevTarget = currentGuess[targetSlotIdx][targetKey];
+      currentGuess[targetSlotIdx][targetKey] = data.plantId;
+      currentGuess[srcSlotIdx][srcHalfKey] = prevTarget;
+      currentGuess[targetSlotIdx].fb = null;
+      currentGuess[srcSlotIdx].fb = null;
+    }
+  } else {
+    // From palette
+    currentGuess[targetSlotIdx][targetKey] = data.plantId;
+    currentGuess[targetSlotIdx].fb = null;
+  }
+
+  activeSlot = targetSlotIdx;
+  activeHalf = targetHalf;
+  draggedPlantData = null;
+  renderSlots();
+}
+
+function clearSlot(slotIdx) {
+  // 如果已确认为正确，清空时一并解除锁定
+  currentGuess[slotIdx].p1 = null;
+  currentGuess[slotIdx].p2 = null;
+  currentGuess[slotIdx].fb = null;
+  activeSlot = slotIdx;
+  activeHalf = 1;
+  renderSlots();
+}
+
+function clearCurrentSlot() {
+  clearSlot(activeSlot);
+}
+
+function renderSlots() {
+  const container = document.getElementById('slotsContainer');
+  container.innerHTML = '';
+
+  currentGuess.forEach((slot, idx) => {
+    const isSlotFocused = (activeSlot === idx);
+    const isConfirmedCorrect = (slot.fb === 'CORRECT');
+    const state = getSlotState(slot);
+    const box = document.createElement('div');
+    box.className = `slot-box ${state.status === 'invalid' ? 'invalid-fusion' : ''} ${isConfirmedCorrect ? 'slot-confirmed' : ''}`;
+
+    let fusionCardHtml = '';
+    if (state.status === 'fused') {
+      fusionCardHtml = `<img class="fusion-card-img" src="${state.fusionCardImg}" alt="${state.displayName}">`;
+    } else if (state.status === 'single') {
+      fusionCardHtml = `
+        <div class="single-fusion-placeholder">
+          <img class="single-preview-img" src="${OFFICIAL_PLANT_CARDS[state.singlePlantId]}" alt="${BASE_MAP[state.singlePlantId].name}">
+          <div class="single-preview-pending">+?</div>
+        </div>
+      `;
+    } else if (state.status === 'invalid') {
+      fusionCardHtml = `
+        <div class="empty-fusion-placeholder" style="color:#f43f5e;">
+          <span style="font-size:1.1rem;">⚠️</span>
+          <span style="font-size:0.75rem; font-weight:600;">无效组合</span>
+        </div>
+      `;
+    } else {
+      // empty
+      fusionCardHtml = `
+        <div class="empty-fusion-placeholder">
+          <span style="font-size:1.1rem; opacity:0.35;">＋</span>
+        </div>
+      `;
+    }
+
+    box.innerHTML = `
+      <div class="slot-header">
+        <span>槽位 ${idx + 1}</span>
+        <button class="btn-slot-clear" onclick="clearSlot(${idx})" title="清空槽位 ${idx + 1}">${ICON_TRASH_SVG}</button>
+      </div>
+
+      <!-- Top Target: Fused Plant Box -->
+      <div class="slot-fusion-target ${state.status === 'fused' ? 'has-fused' : (state.status === 'single' ? 'has-single' : (state.status === 'invalid' ? 'has-single' : 'is-empty'))}" id="target-${idx}">
+        ${fusionCardHtml}
+      </div>
+
+      <!-- Fused Plant Name Label -->
+      <div class="fused-label" style="${state.status === 'invalid' ? 'color:#f87171;' : ''}">
+        ${state.displayName}
+      </div>
+
+      <!-- Middle Transition Generative Connector Zone -->
+      <div class="fusion-connector-zone ${state.status === 'fused' ? 'active-flow' : ''}">
+        <span class="connector-line"></span>
+        <span class="fusion-symbol-badge">▲</span>
+        <span class="connector-line"></span>
+      </div>
+
+      <!-- Bottom Ingredients Row (Raw Cards) -->
+      <div class="slot-ingredients-row" id="fused-${idx}">
+        <div class="component-half ${isSlotFocused && activeHalf === 1 ? 'active-editing' : ''}" onclick="selectSlotHalf(${idx}, 1)">
+          ${slot.p1 ? `<img class="slot-card-img" src="${OFFICIAL_PLANT_CARDS[slot.p1]}" alt="${BASE_MAP[slot.p1].name}">` : `<div class="slot-card-empty-hint">原料 1</div>`}
+        </div>
+        <div class="component-half ${isSlotFocused && activeHalf === 2 ? 'active-editing' : ''}" onclick="selectSlotHalf(${idx}, 2)">
+          ${slot.p2 ? `<img class="slot-card-img" src="${OFFICIAL_PLANT_CARDS[slot.p2]}" alt="${BASE_MAP[slot.p2].name}">` : `<div class="slot-card-empty-hint">原料 2</div>`}
+        </div>
+      </div>
+
+      <!-- Feedback Picker -->
+      <div class="feedback-picker">
+        <button class="fb-btn correct ${slot.fb === 'CORRECT' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'CORRECT')">
+          ${FB_SVGS['CORRECT']} 正确
+        </button>
+        <button class="fb-btn wrong-slot ${slot.fb === 'WRONG_SLOT' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'WRONG_SLOT')">
+          ${FB_SVGS['WRONG_SLOT']} 错位
+        </button>
+        <button class="fb-btn partial ${slot.fb === 'PARTIAL' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'PARTIAL')">
+          ${FB_SVGS['PARTIAL']} 半对
+        </button>
+        <button class="fb-btn all-wrong ${slot.fb === 'ALL_WRONG' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'ALL_WRONG')">
+          ${FB_SVGS['ALL_WRONG']} 全错
+        </button>
+      </div>
+    `;
+
+    // Wire up Drag and Drop for the top fusion target
+    const fusionTarget = box.querySelector('.slot-fusion-target');
+    fusionTarget.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+    fusionTarget.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      fusionTarget.classList.add('drag-over');
+    });
+    fusionTarget.addEventListener('dragleave', (e) => {
+      fusionTarget.classList.remove('drag-over');
+    });
+    fusionTarget.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fusionTarget.classList.remove('drag-over');
+      // Fill the first empty half or default to half 1
+      const targetHalf = (!slot.p1 && slot.p2) ? 1 : ((slot.p1 && !slot.p2) ? 2 : 1);
+      handlePlantDrop(idx, targetHalf, e.dataTransfer);
+    });
+
+    // Wire up Drag and Drop for the slot ingredient halves
+    const fusedDisplay = box.querySelector('.slot-ingredients-row');
+    const halves = box.querySelectorAll('.component-half');
+
+    halves.forEach((halfEl, hIdx) => {
+      const halfNum = hIdx + 1;
+      const plantKey = (halfNum === 1) ? 'p1' : 'p2';
+
+      if (slot[plantKey]) {
+        halfEl.draggable = true;
+
+        halfEl.addEventListener('dragstart', (e) => {
+          draggedPlantData = {
+            type: 'slot',
+            plantId: slot[plantKey],
+            slotIdx: idx,
+            half: halfNum
+          };
+          try {
+            e.dataTransfer.setData('text/plain', slot[plantKey]);
+            e.dataTransfer.setData('application/x-pvz-plant', JSON.stringify(draggedPlantData));
+          } catch (_) {}
+          e.dataTransfer.effectAllowed = 'move';
+          halfEl.classList.add('is-dragging');
+        });
+
+        halfEl.addEventListener('dragend', () => {
+          halfEl.classList.remove('is-dragging');
+          draggedPlantData = null;
+          document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+      }
+
+      halfEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = (draggedPlantData && draggedPlantData.type === 'slot') ? 'move' : 'copy';
+      });
+
+      halfEl.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        halfEl.classList.add('drag-over');
+      });
+
+      halfEl.addEventListener('dragleave', (e) => {
+        e.stopPropagation();
+        halfEl.classList.remove('drag-over');
+      });
+
+      halfEl.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        halfEl.classList.remove('drag-over');
+        handlePlantDrop(idx, halfNum, e.dataTransfer);
+      });
+    });
+
+    fusedDisplay.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+
+    fusedDisplay.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const rect = fusedDisplay.getBoundingClientRect();
+      const targetHalf = (e.clientX < rect.left + rect.width / 2) ? 1 : 2;
+      handlePlantDrop(idx, targetHalf, e.dataTransfer);
+    });
+
+    container.appendChild(box);
+  });
+
+  const curSlot = currentGuess[activeSlot];
+  const curHalfName = (activeHalf === 1) ? '左' : '右';
+  const curPlantId = curSlot ? (activeHalf === 1 ? curSlot.p1 : curSlot.p2) : null;
+  const curPlantDesc = curPlantId ? BASE_MAP[curPlantId].name : '空';
+  document.getElementById('txtCurSlot').textContent = `槽位 ${activeSlot + 1} · ${curHalfName} (${curPlantDesc})`;
+}
+
+function selectSlotHalf(slotIdx, half) {
+  activeSlot = slotIdx;
+  activeHalf = half;
+  renderSlots();
+}
+
+function setSlotFeedback(slotIdx, fbType) {
+  currentGuess[slotIdx].fb = fbType;
+  renderSlots();
+}
+
+function renderBasePalette() {
+  const container = document.getElementById('basePlantsList');
+  container.innerHTML = '';
+
+  BASE_PLANTS.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'base-plant-card';
+    card.draggable = true;
+    card.innerHTML = `
+      <div class="card-wrapper">
+        <img src="${OFFICIAL_PLANT_CARDS[p.id]}" alt="${p.name}">
+      </div>
+      <div class="card-name-bar">${p.name}</div>
+    `;
+
+    card.addEventListener('dragstart', (e) => {
+      draggedPlantData = { type: 'palette', plantId: p.id };
+      try {
+        e.dataTransfer.setData('text/plain', p.id);
+        e.dataTransfer.setData('application/x-pvz-plant', JSON.stringify(draggedPlantData));
+      } catch (_) {}
+      e.dataTransfer.effectAllowed = 'copy';
+      card.classList.add('is-dragging');
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('is-dragging');
+      draggedPlantData = null;
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    card.onclick = () => {
+      const editingSlot = activeSlot;
+      if (activeHalf === 1) {
+        currentGuess[editingSlot].p1 = p.id;
+        currentGuess[editingSlot].fb = null;
+        activeHalf = 2;
+      } else {
+        currentGuess[editingSlot].p2 = p.id;
+        currentGuess[editingSlot].fb = null;
+        if (editingSlot < 3) {
+          activeSlot = editingSlot + 1;
+          activeHalf = 1;
+        }
+      }
+      renderSlots();
+    };
+
+    container.appendChild(card);
+  });
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (historyRounds.length === 0) {
+    container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.8rem;">暂无记录，请填入第 1 轮猜测并提交反馈</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  historyRounds.forEach((round, rIdx) => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+
+    item.innerHTML = `
+      <span class="hist-round">#${rIdx + 1}</span>
+      <div class="hist-slots">
+        ${round.guess.map((g, i) => `
+          <span class="hist-tag">
+            <span style="display:inline-flex; width:18px; height:24px; align-items:center; justify-content:center; border-radius:3px; overflow:hidden;">
+              <img src="${OFFICIAL_PLANT_CARDS[g[0]]}" style="width:100%; height:100%; object-fit:cover;">
+            </span>
+            <span style="display:inline-flex; width:18px; height:24px; align-items:center; justify-content:center; border-radius:3px; overflow:hidden;">
+              <img src="${OFFICIAL_PLANT_CARDS[g[1]]}" style="width:100%; height:100%; object-fit:cover;">
+            </span>
+            <span style="display:inline-flex; width:14px; height:14px; margin-left:2px;">${FB_SVGS[round.fb[i]]}</span>
+          </span>
+        `).join('')}
+      </div>
+      <span style="font-size:0.75rem; color:#38bdf8;">余 ${round.candsAfter} 解</span>
+    `;
+
+    container.appendChild(item);
+  });
+}
+
+// --- OPTIMAL SOLVER ALGORITHM ---
+function submitCurrentFeedback() {
+  if (guessesLeft <= 0) {
+    alert('⚠️ 本局 15 次机会已经用完，请点击「重开新一局」后再继续。');
+    return;
+  }
+
+  const guessArr = currentGuess.map(s => normalizeFused(s.p1, s.p2));
+  const fbArr = currentGuess.map(s => s.fb);
+
+  // Check empty slots, single-card incomplete slots, and invalid fusions
+  for (let i = 0; i < 4; i++) {
+    const s = currentGuess[i];
+    const count = (s.p1 ? 1 : 0) + (s.p2 ? 1 : 0);
+    if (count === 0) {
+      alert(`⚠️ 槽位 ${i + 1} 尚未放入植物卡片！请为每个槽位放入 2 张基础植物合成二阶植物后再提交。`);
+      return;
+    }
+    if (count === 1) {
+      const plantName = BASE_MAP[s.p1 || s.p2].name;
+      alert(`⚠️ 槽位 ${i + 1} 目前只有 1 张基础卡（${plantName}），处于待配对状态！请放入第 2 张基础卡合成二阶植物后再提交。`);
+      return;
+    }
+    if (!isFusionValid(s.p1, s.p2)) {
+      alert(`⚠️ 槽位 ${i + 1} 是无效组合（不存在该二阶融合植物）！请先调整为合法配方后再提交。`);
+      return;
+    }
+  }
+
+  const unselectedSlots = [];
+  currentGuess.forEach((s, i) => {
+    if (!s.fb) unselectedSlots.push(i + 1);
+  });
+  if (unselectedSlots.length > 0) {
+    alert(`⚠️ 请先为槽位 [${unselectedSlots.join(', ')}] 选择游戏给出的真实反馈图标（✅正确 / ⇄错位 / 🍂半对 / 🚫全错），然后再点击确认！`);
+    return;
+  }
+
+  // Filter remaining candidates based on CURRENT guess & CURRENT feedback.
+  let filtered = filterCandidatesByRound(candidates, guessArr, fbArr, activeFeedbackMode);
+  let switchedMode = null;
+
+  if (filtered.length === 0 && candidates.length > 0) {
+    const allRounds = historyRounds.concat([{ guess: guessArr, fb: fbArr, candsAfter: 0 }]);
+    const fallbackMode = FEEDBACK_MODE_ORDER.find(mode => replayHistoryWithMode(allRounds, mode).length > 0);
+
+    if (fallbackMode && fallbackMode !== activeFeedbackMode) {
+      activeFeedbackMode = fallbackMode;
+      candidates = replayHistoryWithMode(historyRounds, activeFeedbackMode);
+      filtered = filterCandidatesByRound(candidates, guessArr, fbArr, activeFeedbackMode);
+      switchedMode = getActiveFeedbackModeMeta().label;
+    }
+  }
+
+  if (filtered.length === 0 && candidates.length > 0) {
+    const notes = '这不是在质疑你输入；更可能是当前融合表/反馈机制仍少了一种游戏特殊规则，或者某张融合牌的配方映射需要校正。';
+    document.getElementById('candsPreviewBox').innerHTML = buildConflictHtml(guessArr, fbArr, notes);
+    alert('⚠️ 我理解这个报错：程序按当前规则找不到解，但这不等于你填错。\n\n右侧已经给出本轮每个槽位的反馈分布诊断，本次不会过滤候选。');
+    return;
+  }
+
+  candidates = filtered;
+  guessesLeft--;
+  document.getElementById('txtGuessCount').textContent = `${guessesLeft}/15`;
+  updateCandidateCountUI();
+
+  historyRounds.push({
+    guess: guessArr,
+    fb: fbArr,
+    candsAfter: candidates.length
+  });
+
+  if (candidates.length === 1) {
+    recommendedGuess = candidates[0];
+    applyRecommendedGuessToSlots();
+    currentGuess.forEach(s => s.fb = 'CORRECT');
+    setTimeout(() => {
+      alert(`🎉 恭喜！已 100% 绝对锁定最终唯一真解：\n\n槽1: ${getFusionFullName(candidates[0][0])}\n槽2: ${getFusionFullName(candidates[0][1])}\n槽3: ${getFusionFullName(candidates[0][2])}\n槽4: ${getFusionFullName(candidates[0][3])}\n\n已自动填入上方槽位，在游戏里直接填这套即可通关！`);
+    }, 100);
+  } else if (candidates.length === 0) {
+    alert('❌ 矛盾冲突：未找到符合所有反馈的答案，请检查刚才是否有某个槽位的反馈图标点错了！');
+  } else {
+    recommendedGuess = calculateNextBestGuess(candidates, guessArr);
+    applyRecommendedGuessToSlots();
+    resetFeedbackButtons();
+
+    if (switchedMode) {
+      setTimeout(() => {
+        alert(`已自动切换到更贴近本局反馈的机制：${switchedMode}\n\n我已经按这个机制重新过滤历史并填入下一步推荐。`);
+      }, 100);
+    }
+  }
+
+  renderUI();
+}
+
+function applyRecommendedGuessToSlots(options = {}) {
+  const preserveCorrect = Boolean(options.preserveCorrect);
+  recommendedGuess.forEach((code, idx) => {
+    if (preserveCorrect && currentGuess[idx].fb === 'CORRECT') {
+      return;
+    }
+    currentGuess[idx].p1 = code[0];
+    currentGuess[idx].p2 = code[1];
+  });
+}
+
+function pickEvenly(arr, limit) {
+  if (arr.length <= limit) return arr;
+
+  const picked = [];
+  const lastIdx = arr.length - 1;
+  for (let i = 0; i < limit; i++) {
+    picked.push(arr[Math.round((i * lastIdx) / (limit - 1))]);
+  }
+  return picked;
+}
+
+function addRecommendationRulesFromRound(rules, guessArr, fbArr) {
+  if (!guessArr || !fbArr) return;
+
+  for (let i = 0; i < 4; i++) {
+    const code = guessArr[i];
+    const fb = fbArr[i];
+    if (!code || !fb) continue;
+
+    if (fb === 'CORRECT') {
+      rules.locked[i] = code;
+    } else {
+      rules.discouragedAtSlot[i].add(code);
+    }
+  }
+}
+
+function getRecommendationRules() {
+  const rules = {
+    locked: [null, null, null, null],
+    discouragedAtSlot: [new Set(), new Set(), new Set(), new Set()]
+  };
+
+  historyRounds.forEach(round => {
+    addRecommendationRulesFromRound(rules, round.guess, round.fb);
+  });
+
+  addRecommendationRulesFromRound(
+    rules,
+    currentGuess.map(s => normalizeFused(s.p1, s.p2)),
+    currentGuess.map(s => s.fb)
+  );
+
+  return rules;
+}
+
+function guessMatchesLockedSlots(guess, rules) {
+  for (let i = 0; i < 4; i++) {
+    if (rules.locked[i] && guess[i] !== rules.locked[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function getSameSlotRepeatPenalty(guess, rules) {
+  let penalty = 0;
+
+  for (let i = 0; i < 4; i++) {
+    if (!rules.locked[i] && rules.discouragedAtSlot[i].has(guess[i])) {
+      penalty++;
+    }
+  }
+
+  return penalty;
+}
+
+function getFixedCandidateMismatchPenalty(guess, cands) {
+  if (!cands || cands.length === 0) return 0;
+
+  let penalty = 0;
+  for (let i = 0; i < 4; i++) {
+    const fixedCode = cands[0][i];
+    if (cands.every(c => c[i] === fixedCode) && guess[i] !== fixedCode) {
+      penalty++;
+    }
+  }
+  return penalty;
+}
+
+function getGuessKey(guess) {
+  return guess.join('-');
+}
+
+function buildRecommendationSearchPool(validSearchSpace, cands) {
+  if (cands.length <= 120 || validSearchSpace.length <= 2500) {
+    return validSearchSpace;
+  }
+
+  const poolByKey = new Map();
+  pickEvenly(validSearchSpace, 600).forEach(g => {
+    poolByKey.set(getGuessKey(g), g);
+  });
+  cands.forEach(c => {
+    poolByKey.set(getGuessKey(c), c);
+  });
+
+  return Array.from(poolByKey.values());
+}
+
+function isGuaranteedOpeningHistoryActive() {
+  return activeFeedbackMode === 'strict_exact' &&
+         historyRounds.length > 0 &&
+         getGuessKey(historyRounds[0].guess) === getGuessKey(GUARANTEED_OPENING_GUESS);
+}
+
+function findOneRoundSeparatorGuess(cands) {
+  if (!cands || cands.length === 0) return null;
+  if (cands.length === 1) return cands[0];
+  if (cands.length > 256) return null;
+
+  const searchByKey = new Map();
+  cands.forEach(c => searchByKey.set(getGuessKey(c), c));
+  buildCandidateSpace().forEach(g => searchByKey.set(getGuessKey(g), g));
+
+  for (const g of searchByKey.values()) {
+    const seenFeedback = new Set();
+    let separatesAll = true;
+
+    for (const secret of cands) {
+      const fb = evaluateFeedback(g, secret, activeFeedbackMode).join('|');
+      if (seenFeedback.has(fb)) {
+        separatesAll = false;
+        break;
+      }
+      seenFeedback.add(fb);
+    }
+
+    if (separatesAll) {
+      return g;
+    }
+  }
+
+  return null;
+}
+
+function getGuaranteedPlanGuess(cands) {
+  if (!isGuaranteedOpeningHistoryActive()) return null;
+
+  if (historyRounds.length === 1) {
+    const key = feedbackKey(historyRounds[0].fb);
+    const planned = GUARANTEED_SECOND_GUESS_BY_FIRST_FEEDBACK[key];
+    return planned ? planned.slice() : null;
+  }
+
+  if (historyRounds.length === 2) {
+    return findOneRoundSeparatorGuess(cands);
+  }
+
+  return null;
+}
+
+// --- 先走三轮保证性信息探针；其他路径回退到香农信息熵（Max Shannon Entropy & Minimax） ---
+function calculateNextBestGuess(cands, previousGuess) {
+  if (!cands || cands.length === 0) return GUARANTEED_OPENING_GUESS.slice();
+  if (cands.length === 1) return cands[0];
+
+  const guaranteedPlanGuess = getGuaranteedPlanGuess(cands);
+  if (guaranteedPlanGuess) return guaranteedPlanGuess;
+
+  const recommendationRules = getRecommendationRules();
+
+  if (cands.length === 2) {
+    const prevKey = previousGuess ? previousGuess.join('-') : '';
+    const playableCands = cands.filter(c => guessMatchesLockedSlots(c, recommendationRules));
+    const orderedCands = playableCands.length > 0 ? playableCands : cands;
+    return orderedCands.find(c => c.join('-') !== prevKey) || orderedCands[0];
+  }
+
+  // 2. 构造符合物理锁定的搜索空间：
+  // 必须满足：凡是已锁定的槽位，植物必须与锁定完全一致！
+  // 未锁定的自由槽位：保持全空间信息熵搜索，只在同分时偏向更自然的推荐
+  const fullSpace = buildCandidateSpace();
+  const validSearchSpace = [];
+
+  for (const g of fullSpace) {
+    if (guessMatchesLockedSlots(g, recommendationRules)) {
+      validSearchSpace.push(g);
+    }
+  }
+
+  const pool = buildRecommendationSearchPool(validSearchSpace, cands);
+  const candidateKeys = new Set(cands.map(getGuessKey));
+  let bestG = cands[0] || pool[0];
+  let minWorst = 999999;
+  let maxEntropy = -1;
+  let bestInCands = false;
+  let bestRepeatPenalty = 999999;
+  let bestFixedMismatchPenalty = 999999;
+
+  for (const g of pool) {
+    const parts = {};
+    for (const s of cands) {
+      const fb = evaluateFeedback(g, s, activeFeedbackMode).join('|');
+      parts[fb] = (parts[fb] || 0) + 1;
+    }
+    const worst = Math.max(...Object.values(parts));
+    let entropy = 0;
+    for (const cnt of Object.values(parts)) {
+      const p = cnt / cands.length;
+      entropy -= p * Math.log2(p);
+    }
+
+    const repeatPenalty = getSameSlotRepeatPenalty(g, recommendationRules);
+    const fixedMismatchPenalty = getFixedCandidateMismatchPenalty(g, cands);
+    const inCands = candidateKeys.has(getGuessKey(g));
+
+    // 优先：极小化最坏情况（Minimax）
+    // 次优：最大化香农信息熵（Max Shannon Entropy）
+    // 平局：减少无意义的同槽重复，再偏向候选集中已经一致的槽位，最后优先候选解
+    if (worst < minWorst ||
+       (worst === minWorst && entropy > maxEntropy + 1e-6) ||
+       (worst === minWorst && Math.abs(entropy - maxEntropy) <= 1e-6 && repeatPenalty < bestRepeatPenalty) ||
+       (worst === minWorst && Math.abs(entropy - maxEntropy) <= 1e-6 && repeatPenalty === bestRepeatPenalty && fixedMismatchPenalty < bestFixedMismatchPenalty) ||
+       (worst === minWorst && Math.abs(entropy - maxEntropy) <= 1e-6 && repeatPenalty === bestRepeatPenalty && fixedMismatchPenalty === bestFixedMismatchPenalty && inCands && !bestInCands)) {
+      minWorst = worst;
+      maxEntropy = entropy;
+      bestG = g;
+      bestInCands = inCands;
+      bestRepeatPenalty = repeatPenalty;
+      bestFixedMismatchPenalty = fixedMismatchPenalty;
+    }
+  }
+
+  return bestG;
+}
+
+document.getElementById('btnSubmitFeedback').onclick = submitCurrentFeedback;
+
+document.getElementById('btnResetGame').onclick = () => {
+  guessesLeft = 15;
+  document.getElementById('txtGuessCount').textContent = '15/15';
+  historyRounds = [];
+  activeFeedbackMode = 'strict_exact';
+  initCandidateSpace();
+  recommendedGuess = GUARANTEED_OPENING_GUESS.slice();
+  currentGuess.forEach(s => s.fb = null);
+  applyRecommendedGuessToSlots();
+  renderUI();
+};
+
+window.onload = () => {
+  initCandidateSpace();
+  applyRecommendedGuessToSlots();
+  renderUI();
+};
+</script>
+</body>
+</html>
+
