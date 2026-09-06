@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PVZ3 Game Puzzle Solver</title>
-  <meta name="description" content="PVZ3 Game Puzzle Solver: refill-aware water sort solver and decoding helper for Plants vs. Zombies 3 puzzles.">
+  <title>PVZ3 游戏谜题入口</title>
+  <meta name="description" content="PVZ3 静态谜题入口页，包含倒水求解器与解码器。">
   <style>
     :root {
       --bg: #07111f;
-      --panel: rgba(13, 20, 36, 0.92);
-      --panel-2: rgba(16, 24, 44, 0.96);
-      --border: rgba(148, 163, 184, 0.18);
+      --panel: rgba(15, 23, 42, 0.92);
+      --border: rgba(148, 163, 184, 0.16);
       --text: #e2e8f0;
       --muted: #94a3b8;
       --accent: #38bdf8;
@@ -20,62 +19,42 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 28%),
-        radial-gradient(circle at top right, rgba(52, 211, 153, 0.10), transparent 26%),
-        var(--bg);
-      color: var(--text);
       min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
     .shell {
-      max-width: 1100px;
+      max-width: 760px;
       margin: 0 auto;
       padding: 28px 20px 40px;
     }
     .topbar {
       display: flex;
-      align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 22px;
-    }
-    .brand {
-      display: flex;
       align-items: center;
-      gap: 14px;
-      min-width: 0;
-    }
-    .mark {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(52, 211, 153, 0.18));
-      border: 1px solid var(--border);
-      display: grid;
-      place-items: center;
-      font-size: 24px;
-      flex: 0 0 auto;
+      margin-bottom: 24px;
     }
     h1 {
       margin: 0;
-      font-size: 1.45rem;
-      line-height: 1.15;
+      font-size: 1.6rem;
+      line-height: 1.1;
     }
-    .sub {
-      margin-top: 4px;
+    .subtitle {
+      margin-top: 5px;
       color: var(--muted);
       font-size: 0.92rem;
     }
-    .lang {
+    .lang-switch {
       display: inline-flex;
-      gap: 8px;
       padding: 4px;
+      gap: 4px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.72);
       border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.7);
     }
-    .lang button {
+    .lang-switch button {
       border: 0;
       background: transparent;
       color: var(--muted);
@@ -83,226 +62,212 @@
       border-radius: 999px;
       cursor: pointer;
       font: inherit;
+      transition: background 0.15s ease, color 0.15s ease;
     }
-    .lang button.active {
+    .lang-switch button.active {
       background: rgba(56, 189, 248, 0.16);
       color: var(--text);
     }
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-      gap: 18px;
-      align-items: start;
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
-    .panel {
+    .tool,
+    .repo {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
-    }
-    .lead {
-      margin: 0 0 14px;
-      font-size: 1rem;
-      line-height: 1.7;
-      color: var(--text);
-    }
-    .tool-grid {
-      display: grid;
-      gap: 12px;
+      padding: 18px;
     }
     .tool {
-      background: var(--panel-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 18px;
     }
     .tool h2 {
-      margin: 0 0 6px;
-      font-size: 1rem;
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+      line-height: 1.2;
     }
     .tool p {
       margin: 0;
       color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      line-height: 1.55;
     }
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.20);
-      color: var(--text);
+      justify-content: center;
+      min-width: 132px;
+      padding: 12px 16px;
+      border-radius: 12px;
       text-decoration: none;
-      background: rgba(15, 23, 42, 0.72);
-      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    }
-    .btn.primary {
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.20), rgba(52, 211, 153, 0.16));
-      border-color: rgba(56, 189, 248, 0.34);
+      color: var(--text);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(52, 211, 153, 0.14));
+      transition: transform 0.15s ease, border-color 0.15s ease;
     }
     .btn:hover {
       transform: translateY(-1px);
-      border-color: rgba(56, 189, 248, 0.5);
+      border-color: rgba(56, 189, 248, 0.48);
     }
-    .meta {
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: 0.85rem;
-      line-height: 1.6;
-    }
-    .links {
-      display: grid;
-      gap: 10px;
-    }
-    .link-row {
+    .repo {
       display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 0;
-      border-top: 1px solid rgba(148, 163, 184, 0.12);
-      color: var(--text);
       text-decoration: none;
+      color: var(--text);
+      background: rgba(11, 17, 30, 0.78);
     }
-    .link-row:first-child { border-top: 0; padding-top: 0; }
-    .link-row small { color: var(--muted); display: block; margin-top: 4px; }
+    .repo strong {
+      display: block;
+      font-size: 0.98rem;
+      margin-bottom: 4px;
+    }
+    .repo span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
     .foot {
-      margin-top: 18px;
+      margin-top: 16px;
       color: var(--muted);
       font-size: 0.82rem;
+      line-height: 1.6;
     }
-    [data-lang="en"] { display: none; }
-    html.en [data-lang="zh"] { display: none; }
-    html.en [data-lang="en"] { display: block; }
-    @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; }
-      .tool { align-items: flex-start; flex-direction: column; }
-      .actions { justify-content: flex-start; }
-      .topbar { align-items: flex-start; flex-direction: column; }
+    @media (max-width: 720px) {
+      .topbar,
+      .tool,
+      .repo {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        width: 100%;
+      }
+      .lang-switch {
+        align-self: flex-start;
+      }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <div class="topbar">
-      <div class="brand">
-        <div class="mark">🧪</div>
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle"></h1>
+        <div class="subtitle" id="pageSubtitle"></div>
+      </div>
+      <div class="lang-switch" aria-label="Language switcher">
+        <button id="langZh" type="button">中文</button>
+        <button id="langEn" type="button">English</button>
+      </div>
+    </header>
+
+    <main class="stack">
+      <section class="tool">
         <div>
-          <h1>PVZ3 Game Puzzle Solver</h1>
-          <div class="sub" data-lang="zh">PVZ3 静态谜题入口页 · 中文 / English</div>
-          <div class="sub" data-lang="en">Static puzzle hub for PVZ3 · Chinese / English</div>
+          <h2 id="solverTitle"></h2>
+          <p id="solverDesc"></p>
         </div>
-      </div>
-      <div class="lang" role="tablist" aria-label="Language switcher">
-        <button id="btnZh" class="active" type="button">中文</button>
-        <button id="btnEn" type="button">English</button>
-      </div>
-    </div>
-
-    <div class="hero">
-      <section class="panel">
-        <p class="lead" data-lang="zh">
-          这是一个面向 Plants vs. Zombies 3 的静态网页谜题项目。它包含倒水求解、加料模拟和反馈推演两部分，适合直接放在 GitHub Pages 上公开访问。
-        </p>
-        <p class="lead" data-lang="en">
-          This is a static browser puzzle project for Plants vs. Zombies 3. It includes a refill-aware water sort solver and a feedback decoder, and is ready for public GitHub Pages hosting.
-        </p>
-
-        <div class="tool-grid">
-          <div class="tool">
-            <div>
-              <h2>PVZ3 Water Sort Solver</h2>
-              <p data-lang="zh">支持加料规则的倒水求解器，带动画和物理合法性校验。</p>
-              <p data-lang="en">Refill-aware water sort solver with animation and physical validation.</p>
-            </div>
-            <div class="actions">
-              <a class="btn primary" href="./pvz3_water_sort_solver.html">Open</a>
-            </div>
-          </div>
-
-          <div class="tool">
-            <div>
-              <h2>PVZ3 Decode Solver</h2>
-              <p data-lang="zh">配套的卡牌反馈推演工具。</p>
-              <p data-lang="en">Companion feedback / decoding solver.</p>
-            </div>
-            <div class="actions">
-              <a class="btn primary" href="./pvz3_decode_solver.html">Open</a>
-            </div>
-          </div>
-        </div>
+        <a class="btn" id="solverLink" href="./pvz3_water_sort_solver.html"></a>
       </section>
 
-      <aside class="panel">
-        <div class="links">
-          <a class="link-row" href="./README.zh-CN.md">
-            <div>
-              中文说明
-              <small data-lang="zh">更适合中文读者的仓库说明</small>
-              <small data-lang="en">Repository overview in Chinese</small>
-            </div>
-            <span>→</span>
-          </a>
-          <a class="link-row" href="./README.md">
-            <div>
-              English README
-              <small data-lang="zh">英文版仓库说明</small>
-              <small data-lang="en">English repository overview</small>
-            </div>
-            <span>→</span>
-          </a>
-          <a class="link-row" href="./docs/copy-review.md">
-            <div>
-              文案审查
-              <small data-lang="zh">标题、按钮、提示文案替换建议</small>
-              <small data-lang="en">Copy review and replacement notes</small>
-            </div>
-            <span>→</span>
-          </a>
+      <section class="tool">
+        <div>
+          <h2 id="decoderTitle"></h2>
+          <p id="decoderDesc"></p>
         </div>
+        <a class="btn" id="decoderLink" href="./pvz3_decode_solver.html"></a>
+      </section>
 
-        <div class="meta" data-lang="zh">
-          建议直接用这个首页作为 GitHub Pages 的公开入口。
+      <a class="repo" href="https://github.com/Peteroooooooo/pvz3-game-puzzle-solver" target="_blank" rel="noreferrer">
+        <div>
+          <strong id="repoTitle"></strong>
+          <span id="repoHint"></span>
         </div>
-        <div class="meta" data-lang="en">
-          Use this page as the public GitHub Pages entry point.
-        </div>
-      </aside>
-    </div>
+        <div>→</div>
+      </a>
 
-    <div class="foot" data-lang="zh">粉丝向项目，与 PopCap、EA 或官方 Plants vs. Zombies 团队无关。</div>
-    <div class="foot" data-lang="en">Fan-made project. Not affiliated with PopCap, EA, or the official Plants vs. Zombies team.</div>
+      <div class="foot" id="footText"></div>
+    </main>
   </div>
 
   <script>
-    const root = document.documentElement;
-    const btnZh = document.getElementById('btnZh');
-    const btnEn = document.getElementById('btnEn');
+    const STRINGS = {
+      zh: {
+        title: 'PVZ3 游戏谜题入口',
+        subtitle: '两个静态网页工具',
+        solverTitle: 'Water Sort Solver',
+        solverDesc: '倒水求解器。',
+        solverLink: '打开',
+        decoderTitle: 'PVZ Decoder Solver',
+        decoderDesc: '卡牌反馈推演工具。',
+        decoderLink: '打开',
+        repoTitle: 'GitHub 仓库',
+        repoHint: '查看源码和说明',
+        foot: '粉丝向项目，与 PopCap、EA 或官方 Plants vs. Zombies 团队无关。'
+      },
+      en: {
+        title: 'PVZ3 Game Puzzle Hub',
+        subtitle: 'Two static browser tools',
+        solverTitle: 'Water Sort Solver',
+        solverDesc: 'Water sort puzzle solver.',
+        solverLink: 'Open',
+        decoderTitle: 'PVZ Decoder Solver',
+        decoderDesc: 'Card feedback decoding tool.',
+        decoderLink: 'Open',
+        repoTitle: 'GitHub Repository',
+        repoHint: 'View source and notes',
+        foot: 'Fan-made project. Not affiliated with PopCap, EA, or the official Plants vs. Zombies team.'
+      }
+    };
 
-    function setLang(lang) {
+    const root = document.documentElement;
+    const btnZh = document.getElementById('langZh');
+    const btnEn = document.getElementById('langEn');
+    const nodes = {
+      pageTitle: document.getElementById('pageTitle'),
+      pageSubtitle: document.getElementById('pageSubtitle'),
+      solverTitle: document.getElementById('solverTitle'),
+      solverDesc: document.getElementById('solverDesc'),
+      solverLink: document.getElementById('solverLink'),
+      decoderTitle: document.getElementById('decoderTitle'),
+      decoderDesc: document.getElementById('decoderDesc'),
+      decoderLink: document.getElementById('decoderLink'),
+      repoTitle: document.getElementById('repoTitle'),
+      repoHint: document.getElementById('repoHint'),
+      footText: document.getElementById('footText')
+    };
+
+    function applyLang(lang) {
+      const copy = STRINGS[lang] || STRINGS.zh;
       const isEn = lang === 'en';
-      root.classList.toggle('en', isEn);
+      root.lang = isEn ? 'en' : 'zh-CN';
       btnZh.classList.toggle('active', !isEn);
       btnEn.classList.toggle('active', isEn);
-      localStorage.setItem('pvz3-pages-lang', lang);
-      document.documentElement.lang = isEn ? 'en' : 'zh-CN';
+
+      document.title = copy.title;
+      nodes.pageTitle.textContent = copy.title;
+      nodes.pageSubtitle.textContent = copy.subtitle;
+      nodes.solverTitle.textContent = copy.solverTitle;
+      nodes.solverDesc.textContent = copy.solverDesc;
+      nodes.solverLink.textContent = copy.solverLink;
+      nodes.decoderTitle.textContent = copy.decoderTitle;
+      nodes.decoderDesc.textContent = copy.decoderDesc;
+      nodes.decoderLink.textContent = copy.decoderLink;
+      nodes.repoTitle.textContent = copy.repoTitle;
+      nodes.repoHint.textContent = copy.repoHint;
+      nodes.footText.textContent = copy.foot;
+      localStorage.setItem('pvz3-home-lang', lang);
     }
 
-    btnZh.addEventListener('click', () => setLang('zh'));
-    btnEn.addEventListener('click', () => setLang('en'));
+    btnZh.addEventListener('click', () => applyLang('zh'));
+    btnEn.addEventListener('click', () => applyLang('en'));
 
-    setLang(localStorage.getItem('pvz3-pages-lang') || 'zh');
+    applyLang(localStorage.getItem('pvz3-home-lang') || 'zh');
   </script>
 </body>
 </html>
