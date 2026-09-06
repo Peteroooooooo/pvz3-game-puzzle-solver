@@ -167,6 +167,34 @@ header {
   background: rgba(244, 63, 94, 0.2);
 }
 
+.lang-switch {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lang-switch button {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.lang-switch button.active {
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--text-primary);
+}
+
 /* Layout */
 .app-container {
   max-width: 1560px;
@@ -593,18 +621,24 @@ header {
 
 .target-status-chip {
   font-family: var(--font-main);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 5px 9px;
   border-radius: 6px;
   border: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
   color: var(--text-secondary);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
   width: 100%;
+  min-height: 38px;
   text-align: center;
-  white-space: nowrap;
+  line-height: 1.12;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .target-status-chip:hover {
   transform: translateY(-1px);
@@ -1059,6 +1093,10 @@ header {
     <button class="btn" id="btnRandomLevel" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 600;" title="Generate a solvable random puzzle (R)">🎲 生成随机关卡</button>
     <button class="btn" id="btnRandomRefill" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(56, 189, 248, 0.25)); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.5); font-weight: 600;" title="Simulate a 4-unit refill after a recipe clear (F)">💧 模拟加料</button>
     <button class="btn btn-primary" id="btnRunSolve">⚡ 求解最短路径</button>
+    <div class="lang-switch" aria-label="Language switcher">
+      <button id="btnLangZh" type="button">中文</button>
+      <button id="btnLangEn" type="button">English</button>
+    </div>
   </div>
 </header>
 
@@ -1242,6 +1280,8 @@ const WATER_COPY = {
     random: '🎲 生成随机关卡',
     refill: '💧 模拟加料',
     solve: '⚡ 求解最短路径',
+    langZh: '中文',
+    langEn: 'English',
     boardLabel: '盘面',
     boardShape: '7 瓶 (上 3 / 下 4)',
     strategyLabel: '算法策略',
@@ -1336,6 +1376,8 @@ const WATER_COPY = {
     random: '🎲 Random level',
     refill: '💧 Simulate refill',
     solve: '⚡ Solve shortest path',
+    langZh: '中文',
+    langEn: 'English',
     boardLabel: 'Board',
     boardShape: '7 tubes (top 3 / bottom 4)',
     strategyLabel: 'Strategy',
@@ -1434,6 +1476,41 @@ function setWaterLang(lang, persist = true) {
   if (persist) localStorage.setItem('pvz3-home-lang', uiLang);
 }
 
+function syncWaterLanguageButtons() {
+  const zhBtn = document.getElementById('btnLangZh');
+  const enBtn = document.getElementById('btnLangEn');
+  if (zhBtn) {
+    zhBtn.classList.toggle('active', uiLang === 'zh');
+    zhBtn.setAttribute('aria-pressed', uiLang === 'zh' ? 'true' : 'false');
+  }
+  if (enBtn) {
+    enBtn.classList.toggle('active', uiLang === 'en');
+    enBtn.setAttribute('aria-pressed', uiLang === 'en' ? 'true' : 'false');
+  }
+  const copy = wc();
+  if (zhBtn) zhBtn.textContent = copy.langZh;
+  if (enBtn) enBtn.textContent = copy.langEn;
+}
+
+function switchWaterLanguage(lang) {
+  const next = lang === 'en' ? 'en' : 'zh';
+  if (next === uiLang) return;
+  setWaterLang(next);
+  const url = new URL(window.location.href);
+  url.searchParams.set('lang', uiLang);
+  history.replaceState(null, '', url.toString());
+  applyWaterLanguage();
+  renderBoard();
+  renderPalette();
+  if (currentPlan) {
+    renderTimeline(currentPlan);
+    if (currentStepIdx >= 0) {
+      showStep(currentStepIdx, false);
+    }
+  }
+  updateNavButtonStates();
+}
+
 function tubeLabel(tubeIdx) {
   return wc().tube(tubeIdx + 1);
 }
@@ -1506,6 +1583,7 @@ function applyWaterLanguage() {
     const node = document.getElementById(id);
     if (node) node.textContent = text;
   });
+  syncWaterLanguageButtons();
 
   const exactOption = document.querySelector('#selectAlgorithmStrategy option[value="exact_refill"]');
   const classicOption = document.querySelector('#selectAlgorithmStrategy option[value="classic"]');
@@ -3460,6 +3538,11 @@ function setupKeyboardShortcuts() {
 }
 
 function setupUIEvents() {
+  const btnLangZh = document.getElementById('btnLangZh');
+  const btnLangEn = document.getElementById('btnLangEn');
+  if (btnLangZh) btnLangZh.onclick = () => switchWaterLanguage('zh');
+  if (btnLangEn) btnLangEn.onclick = () => switchWaterLanguage('en');
+
   document.getElementById('btnUndo').onclick = undo;
   document.getElementById('btnRunSolve').onclick = runSolve;
   document.getElementById('btnSampleBoard').onclick = loadSamplePuzzle;

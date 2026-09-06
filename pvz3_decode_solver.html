@@ -601,6 +601,34 @@ header {
   color: var(--text-primary);
 }
 
+.lang-switch {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lang-switch button {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.lang-switch button.active {
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--text-primary);
+}
+
 /* Right Sidebar: Prediction & Logs */
 .right-sidebar {
   display: flex;
@@ -729,6 +757,10 @@ header {
     </div>
   </div>
   <div class="header-actions">
+    <div class="lang-switch" aria-label="Language switcher">
+      <button id="btnLangZh" type="button">中文</button>
+      <button id="btnLangEn" type="button">English</button>
+    </div>
     <button class="btn btn-secondary" id="btnResetGame">Reset</button>
   </div>
 </header>
@@ -873,6 +905,8 @@ const I18N = {
   zh: {
     pageTitle: 'PVZ3 反馈推演器',
     reset: '重置',
+    langZh: '中文',
+    langEn: 'English',
     roundLabel: '回合',
     remainingPrefix: n => `剩余解: ${n.toLocaleString()}`,
     baseCardLabel: '基础卡牌',
@@ -960,6 +994,8 @@ const I18N = {
   en: {
     pageTitle: 'PVZ3 Feedback Decoder',
     reset: 'Reset',
+    langZh: '中文',
+    langEn: 'English',
     roundLabel: 'Round',
     remainingPrefix: n => `Remaining: ${n.toLocaleString()}`,
     baseCardLabel: 'Base Cards',
@@ -1054,6 +1090,33 @@ function setDecodeLang(lang, persist = true) {
   uiLang = lang === 'en' ? 'en' : 'zh';
   document.documentElement.lang = uiLang === 'en' ? 'en' : 'zh-CN';
   if (persist) localStorage.setItem('pvz3-home-lang', uiLang);
+}
+
+function syncDecodeLanguageButtons() {
+  const zhBtn = document.getElementById('btnLangZh');
+  const enBtn = document.getElementById('btnLangEn');
+  if (zhBtn) {
+    zhBtn.classList.toggle('active', uiLang === 'zh');
+    zhBtn.setAttribute('aria-pressed', uiLang === 'zh' ? 'true' : 'false');
+  }
+  if (enBtn) {
+    enBtn.classList.toggle('active', uiLang === 'en');
+    enBtn.setAttribute('aria-pressed', uiLang === 'en' ? 'true' : 'false');
+  }
+  const copy = getCopy();
+  if (zhBtn) zhBtn.textContent = copy.langZh;
+  if (enBtn) enBtn.textContent = copy.langEn;
+}
+
+function switchDecodeLanguage(lang) {
+  const next = lang === 'en' ? 'en' : 'zh';
+  if (next === uiLang) return;
+  setDecodeLang(next);
+  const url = new URL(window.location.href);
+  url.searchParams.set('lang', uiLang);
+  history.replaceState(null, '', url.toString());
+  applyDecodeLanguage();
+  renderUI();
 }
 
 function getBasePlantName(id) {
@@ -1761,6 +1824,8 @@ function applyDecodeLanguage() {
   });
   const preview = document.getElementById('candsPreviewBox');
   if (preview && !candidates.length) preview.textContent = copy.candidateInit;
+  syncDecodeLanguageButtons();
+  updateCandidateCountUI();
 }
 
 function resetFeedbackButtons() {
@@ -2460,6 +2525,9 @@ function calculateNextBestGuess(cands, previousGuess) {
 }
 
 document.getElementById('btnSubmitFeedback').onclick = submitCurrentFeedback;
+
+document.getElementById('btnLangZh').onclick = () => switchDecodeLanguage('zh');
+document.getElementById('btnLangEn').onclick = () => switchDecodeLanguage('en');
 
 document.getElementById('btnResetGame').onclick = () => {
   guessesLeft = 15;
