@@ -1047,8 +1047,8 @@ header {
   <div class="brand">
     <div class="brand-badge">🧪</div>
     <div>
-      <div class="brand-title">PVZ3 游戏谜题求解器</div>
-      <div class="brand-sub">REFILL-AWARE WATER SORT · A* SEARCH</div>
+      <div class="brand-title" id="brandTitle">PVZ3 游戏谜题求解器</div>
+      <div class="brand-sub" id="brandSub">REFILL-AWARE WATER SORT · A* SEARCH</div>
     </div>
   </div>
 
@@ -1069,8 +1069,8 @@ header {
 
     <div class="control-bar">
       <div class="control-left">
-        <span class="stat-pill">盘面: <b>7 瓶 (上 3 / 下 4)</b></span>
-        <span class="stat-pill">算法策略:
+        <span class="stat-pill"><span id="boardLabel">盘面</span>: <b id="boardShapeLabel">7 瓶 (上 3 / 下 4)</b></span>
+        <span class="stat-pill"><span id="strategyLabel">算法策略</span>:
           <select id="selectAlgorithmStrategy" style="background: var(--bg-surface); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
             <option value="exact_refill" selected>🧮 PVZ3 加料感知 A*</option>
             <option value="classic">⚡ 基线 A* Search</option>
@@ -1107,7 +1107,7 @@ header {
 
       <!-- Fast Palette Side Panel -->
       <div class="palette-panel">
-        <span class="palette-label">当前涂料</span>
+        <span class="palette-label" id="paletteLabel">当前涂料</span>
         <div id="paletteSwatches" class="palette-swatches"></div>
         <div class="palette-tip">
           数字 1~5 换色 · 左键填充单格 · 右键清空单格 · 双击填满整瓶
@@ -1123,7 +1123,7 @@ header {
     <div class="plan-card">
       <div class="plan-header">
         <div class="plan-title">
-          <span>📋 求解步骤</span>
+          <span id="planTitle">📋 求解步骤</span>
         </div>
         <div class="move-count-badge" id="badgeStepCount">未求解</div>
       </div>
@@ -1139,10 +1139,10 @@ header {
       <div class="stepper-controls">
         <button class="step-nav-btn" id="btnPrevStep">
           <span class="nav-arrow">◀</span>
-          <span>上一步</span>
+          <span id="prevStepText">上一步</span>
         </button>
         <button class="step-nav-btn primary" id="btnNextStep">
-          <span>下一步</span>
+          <span id="nextStepText">下一步</span>
           <span class="nav-arrow">▶</span>
         </button>
       </div>
@@ -1156,7 +1156,7 @@ header {
     </div>
 
     <!-- PvZ3 Mechanic Guide -->
-    <div class="mechanic-card">
+    <div class="mechanic-card" id="mechanicCard">
       <b>💡 求解策略说明：</b><br>
       1. <b>PVZ3 加料感知 A*</b>：默认策略会规划到下一次配方完成，并评估完成后的 4 格加料分支。<br>
       2. <b>基线 A* Search</b>：用于静态盘面的最短路径对照，不额外评估后续加料风险。<br>
@@ -1171,11 +1171,11 @@ header {
 <div id="smokeModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
-      <div class="modal-title">📊 100 局随机模拟测试</div>
+      <div class="modal-title" id="smokeTitle">📊 100 局随机模拟测试</div>
       <button class="modal-close" id="btnCloseSmokeModal">&times;</button>
     </div>
     <div class="modal-body">
-      <div style="line-height: 1.5; color: #94a3b8;">
+      <div id="smokeIntro" style="line-height: 1.5; color: #94a3b8;">
         将连续生成 <b>100 局随机 4 色盘面</b>。每局在配方完成后，按照已建模的 PVZ3 加料规则<b>排除刚清空的瓶位</b>，并向其余未满瓶<b>分批加入共 4 格</b>刚完成的颜色，用于评估策略成功率和平均步数。
       </div>
 
@@ -1186,19 +1186,19 @@ header {
       <div class="smoke-stat-grid">
         <div class="smoke-stat-card">
           <div class="smoke-stat-val" id="statSmokePassRate" style="color: #34d399;">0%</div>
-          <div class="smoke-stat-lbl">通关胜率</div>
+          <div class="smoke-stat-lbl" id="smokePassLabel">通关胜率</div>
         </div>
         <div class="smoke-stat-card">
           <div class="smoke-stat-val" id="statSmokeAvgSteps">0</div>
-          <div class="smoke-stat-lbl">平均通关步数</div>
+          <div class="smoke-stat-lbl" id="smokeStepsLabel">平均通关步数</div>
         </div>
         <div class="smoke-stat-card">
           <div class="smoke-stat-val" id="statSmokeDeadlocks" style="color: #f43f5e;">0</div>
-          <div class="smoke-stat-lbl">未完成局数</div>
+          <div class="smoke-stat-lbl" id="smokeDeadlocksLabel">未完成局数</div>
         </div>
         <div class="smoke-stat-card">
           <div class="smoke-stat-val" id="statSmokeAvgRefills" style="color: #fbbf24;">0</div>
-          <div class="smoke-stat-lbl">平均加料格数</div>
+          <div class="smoke-stat-lbl" id="smokeRefillsLabel">平均加料格数</div>
         </div>
       </div>
 
@@ -1222,12 +1222,228 @@ const TUBE_COUNT = 7;
 const CAPACITY = 4;
 const REFILL_PICK_COUNT = 4;
 
+function getWaterLang() {
+  const params = new URLSearchParams(window.location.search);
+  const queryLang = params.get('lang');
+  if (queryLang === 'en' || queryLang === 'zh') return queryLang;
+  const savedLang = localStorage.getItem('pvz3-home-lang');
+  if (savedLang === 'en' || savedLang === 'zh') return savedLang;
+  return 'zh';
+}
+
+let uiLang = getWaterLang();
+
+const WATER_COPY = {
+  zh: {
+    title: 'PVZ3 游戏谜题求解器',
+    undo: '↩️ 撤销',
+    clear: '🗑️ 清空盘面',
+    sample: '📋 示例关卡',
+    random: '🎲 生成随机关卡',
+    refill: '💧 模拟加料',
+    solve: '⚡ 求解最短路径',
+    boardLabel: '盘面',
+    boardShape: '7 瓶 (上 3 / 下 4)',
+    strategyLabel: '算法策略',
+    exactStrategy: '🧮 PVZ3 加料感知 A*',
+    classicStrategy: '⚡ 基线 A* Search',
+    smokeOpen: '📊 100 局模拟测试',
+    smokeOpenTitle: '在当前浏览器里运行 100 局随机模拟',
+    undoTitle: '撤销上一步 (Ctrl+Z)',
+    clearTitle: '清空盘面',
+    sampleTitle: '加载示例关卡',
+    randomTitle: '生成可解随机关卡',
+    refillButtonTitle: '模拟一次 4 格加料',
+    solveTitle: '寻找当前盘面的最短路径',
+    paletteLabel: '当前涂料',
+    paletteTip: '数字 1~5 换色 · 左键填充单格 · 右键清空单格 · 双击填满整瓶',
+    planTitle: '📋 求解步骤',
+    unsolved: '未求解',
+    waitingSolve: '等待求解',
+    clickSolve: '点击「⚡ 求解最短路径」',
+    solveHint: '系统将规划达成目标配方的倾倒路径，并在加料后支持继续求解',
+    prev: '上一步',
+    next: '下一步',
+    noSteps: '暂无步骤记录',
+    mechanicHtml: '<b>💡 求解策略说明：</b><br>1. <b>PVZ3 加料感知 A*</b>：默认策略会规划到下一次配方完成，并评估完成后的 4 格加料分支。<br>2. <b>基线 A* Search</b>：用于静态盘面的最短路径对照，不额外评估后续加料风险。<br>3. <b>加料后继续求解</b>：配方完成后，可使用顶部「💧 模拟加料」或各瓶「+加料」更新盘面，再重新求解。',
+    smokeTitle: '📊 100 局随机模拟测试',
+    smokeIntro: '将连续生成 <b>100 局随机 4 色盘面</b>。每局在配方完成后，按照已建模的 PVZ3 加料规则<b>排除刚清空的瓶位</b>，并向其余未满瓶<b>分批加入共 4 格</b>刚完成的颜色，用于评估策略成功率和平均步数。',
+    smokePass: '通关胜率',
+    smokeSteps: '平均通关步数',
+    smokeDeadlocks: '未完成局数',
+    smokeRefills: '平均加料格数',
+    smokeLogsInit: '点击下方按钮即可在当前浏览器内运行 100 局模拟。',
+    smokeClose: '关闭',
+    smokeStart: '🚀 开始 100 局模拟',
+    smokeRerun: '🚀 再次运行 100 局模拟',
+    tube: n => `瓶 ${n}`,
+    slotLayer: (n, color) => `第 ${n} 层: ${color}`,
+    refillBtn: '+加料',
+    refillTitle: (tube, color) => `给${tube}顶部注入 1 格当前颜色【${color}】`,
+    freeTarget: '⚪ 自由中转',
+    freeTitle: '当前为自由中转瓶。点击可切换目标配方',
+    setFreeTitle: '设为：自由中转瓶 (无目标)',
+    setTargetTitle: color => `设为目标：${color}`,
+    targetText: color => `🎯 目标: ${color}`,
+    targetTitle: color => `目标集满 4 格【${color}】。点击可切换下一个`,
+    undoNotice: '已撤销上一步操作',
+    completedRecipe: (tube, color) => `🎉 ${tube} 已装满 4 格【${color}】配方，已自动解除目标并转为「自由中转瓶」！`,
+    tubeFull: tube => `${tube} 已满，无法再加料！`,
+    refillFilled: (tube, color) => `已向${tube}顶部注入 1 格【${color}】`,
+    emptyBoard: '当前盘面全空，请先填入试管液体或点击顶部「示例关卡」！',
+    noTarget: '请至少为一个试管指定目标配方颜色（瓶子下方的选择器）！',
+    shortage: (color, count) => `无法推演：【${color}】全场总共只有 ${count} 格，不足以集满 4 格配方！请补齐颜色。`,
+    solvingExact: '🧮 正在评估配方完成后的 4 格加料分支，并使用 A* 继续求解...',
+    solvingClassic: '⚡ 正在运行基线 A* Search...',
+    plannedNext: steps => `🧮 已规划到下一次配方完成，共 ${steps} 步。完成后请按实际加料结果更新盘面，再继续求解。`,
+    foundPath: steps => `🎉 已找到可行最短路径，共 ${steps} 步。请点击右侧「下一步 ▶」查看操作。`,
+    nextClearBadge: steps => `下次消除 ${steps} 步`,
+    totalStepsBadge: steps => `共 ${steps} 步`,
+    readyStart: '已准备 · 点击「下一步 ▶」开始',
+    firstPreview: (from, to, amount, color) => `第 1 步预告：从 瓶 ${from} 倒入 瓶 ${to} (${amount} 格 ${color})`,
+    stepCount: (idx, total) => `步骤 ${idx} / ${total}`,
+    heroPour: (from, to, amount, color) => `瓶 <b>${from}</b> ➔ 瓶 <b>${to}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(倾倒 ${amount} 格 ${color})</span>`,
+    defaultStepSub: '完成本次倾倒后，继续执行下一步。',
+    clearedSub: (tube, color) => `<span style="color:#34d399; font-weight:700;">✨ ${tube} 完成【${color}】配方并清空。</span><br><span style="color:#93c5fd;">下一轮加料会排除刚清空的瓶位，并向其余未满瓶分批加入共 4 格【${color}】。可点击顶部<b>「💧 模拟加料」</b>，或按游戏结果使用对应瓶子的<b>「+加料」</b>。</span>`,
+    clearedChip: '✨ 已达成消除',
+    noSolution: '❌ 当前盘面暂无可行解。可能原因：可用空间不足，或关键颜色被阻挡。',
+    stepLine: (from, to, amount, color) => `瓶 <b>${from}</b> ➔ 瓶 <b>${to}</b> (${amount}格 ${color})`,
+    clearNote: '✨配方消除',
+    returnedInitial: '已回到初始盘面',
+    readyStep1: '准备执行第 1 步',
+    pressNext: '请点击「下一步 ▶」或按键盘右箭头开始',
+    clearBoardNotice: '盘面已清空。可手动录入当前关卡，或点击「🎲 生成随机关卡」。',
+    sampleNotice: '示例关卡已加载。可点击「求解最短路径」开始计算。',
+    randomGenerated: (colors, filled, empty, steps) => `🎲 <b>随机关卡已生成。</b><br>颜色：${colors}<br>初始装水瓶：<b>${filled}</b>；空瓶：<b>${empty}</b>。<br>已通过 A* 验证可解，参考步数约 ${steps} 步。`,
+    refillNone: '⚠️ 除刚清空的瓶位外，当前没有可承接喷料的未满瓶；本轮加料视为 0 格。',
+    excludedTube: tube => `已排除刚清空的${tube}；`,
+    refillDone: (count, colorHtml, tubes) => `💧 <b>加料已模拟。</b>{excluded}本轮共加入 <b>${count}</b> 格【${colorHtml}】，位置：${tubes}。可点击「⚡ 求解最短路径」重新规划。`,
+    physicalOne: (tube, gap, bad) => `${tube} 不符合物理规律：从下往上第 ${gap} 格是空的，但第 ${bad} 格上方已经有液体。`,
+    physicalPrefix: '❌ 盘面不符合物理规律：',
+    physicalTail: count => `，另外还有 ${count} 个瓶子也不合法`,
+    physicalFix: '。请先把下方空格补齐，再继续。',
+    smokeLogPass: (game, steps, drops) => `[局 ${game.toString().padStart(3, '0')}] ✅ 完成: ${steps} 步 | 追加加料: ${drops} 格`,
+    smokeLogFail: game => `[局 ${game.toString().padStart(3, '0')}] ❌ 未完成: 无可行解或超时`,
+    smokeRunning: '⏳ 模拟运行中...',
+    smokeStartLog: '⚡ 开始运行 100 局随机模拟...\n',
+    smokeDone: (pass, steps) => `\n🎉 100 局模拟完成。完成率 ${pass}，平均步数 ${steps} 步。\n`
+  },
+  en: {
+    title: 'PVZ3 Water Sort Solver',
+    undo: '↩️ Undo',
+    clear: '🗑️ Clear board',
+    sample: '📋 Sample board',
+    random: '🎲 Random level',
+    refill: '💧 Simulate refill',
+    solve: '⚡ Solve shortest path',
+    boardLabel: 'Board',
+    boardShape: '7 tubes (top 3 / bottom 4)',
+    strategyLabel: 'Strategy',
+    exactStrategy: '🧮 PVZ3 refill-aware A*',
+    classicStrategy: '⚡ Baseline A* Search',
+    smokeOpen: '📊 100-run test',
+    smokeOpenTitle: 'Run 100 random simulations in this browser',
+    undoTitle: 'Undo previous action (Ctrl+Z)',
+    clearTitle: 'Clear board',
+    sampleTitle: 'Load sample board',
+    randomTitle: 'Generate a solvable random level',
+    refillButtonTitle: 'Simulate one 4-block refill',
+    solveTitle: 'Find the shortest path for the current board',
+    paletteLabel: 'Current paint',
+    paletteTip: 'Keys 1-5 switch color · Left click fills one slot · Right click clears one slot · Double click fills the tube',
+    planTitle: '📋 Solution steps',
+    unsolved: 'Unsolved',
+    waitingSolve: 'Waiting',
+    clickSolve: 'Click “⚡ Solve shortest path”',
+    solveHint: 'The solver plans a pouring path to the target recipe, then supports continuing after refills.',
+    prev: 'Previous',
+    next: 'Next',
+    noSteps: 'No steps yet',
+    mechanicHtml: '<b>💡 Strategy notes:</b><br>1. <b>PVZ3 refill-aware A*</b>: the default strategy plans to the next recipe clear and evaluates the 4-block refill branches after that clear.<br>2. <b>Baseline A* Search</b>: a shortest-path reference for static boards, without extra refill-risk evaluation.<br>3. <b>Continue after refill</b>: after a recipe clears, use the top “💧 Simulate refill” button or each tube’s “+Refill” button to update the board, then solve again.',
+    smokeTitle: '📊 100-run random simulation',
+    smokeIntro: 'This will generate <b>100 random 4-color boards</b>. After each recipe clear, the modeled PVZ3 refill rule <b>excludes the just-cleared tube</b> and then <b>adds 4 total blocks</b> of the cleared color across the remaining non-full tubes, to measure success rate and average steps.',
+    smokePass: 'Clear rate',
+    smokeSteps: 'Avg. steps',
+    smokeDeadlocks: 'Failed runs',
+    smokeRefills: 'Avg. refill blocks',
+    smokeLogsInit: 'Click the button below to run 100 simulations in this browser.',
+    smokeClose: 'Close',
+    smokeStart: '🚀 Start 100-run simulation',
+    smokeRerun: '🚀 Run 100 simulations again',
+    tube: n => `Tube ${n}`,
+    slotLayer: (n, color) => `Layer ${n}: ${color}`,
+    refillBtn: '+Refill',
+    refillTitle: (tube, color) => `Add 1 block of the current color [${color}] to the top of ${tube}`,
+    freeTarget: '⚪ Free transfer',
+    freeTitle: 'This tube is a free transfer tube. Click to switch target recipe.',
+    setFreeTitle: 'Set as free transfer tube (no target)',
+    setTargetTitle: color => `Set target: ${color}`,
+    targetText: color => `🎯 Target: ${color}`,
+    targetTitle: color => `Collect 4 blocks of [${color}]. Click to switch to the next target.`,
+    undoNotice: 'Undid the previous action',
+    completedRecipe: (tube, color) => `🎉 ${tube} is full with 4 blocks of [${color}]. The target is cleared and it becomes a free transfer tube!`,
+    tubeFull: tube => `${tube} is full. No more refill can be added.`,
+    refillFilled: (tube, color) => `Added 1 block of [${color}] to the top of ${tube}`,
+    emptyBoard: 'The board is empty. Fill the tubes first or click “Sample board” in the top bar.',
+    noTarget: 'Assign at least one target recipe color to a tube using the selector below each tube.',
+    shortage: (color, count) => `Cannot solve: there are only ${count} blocks of [${color}] on the board, not enough to build a 4-block recipe.`,
+    solvingExact: '🧮 Evaluating the 4-block refill branches after a recipe clear, then continuing with A*...',
+    solvingClassic: '⚡ Running baseline A* Search...',
+    plannedNext: steps => `🧮 Planned through the next recipe clear in ${steps} steps. After the real refill result, update the board and solve again.`,
+    foundPath: steps => `🎉 Found a valid shortest path in ${steps} steps. Use the right-side “Next ▶” button to step through it.`,
+    nextClearBadge: steps => `Next clear in ${steps} steps`,
+    totalStepsBadge: steps => `${steps} total steps`,
+    readyStart: 'Ready · click “Next ▶” to start',
+    firstPreview: (from, to, amount, color) => `Step 1 preview: pour ${amount} ${amount === 1 ? 'block' : 'blocks'} of ${color} from Tube ${from} to Tube ${to}`,
+    stepCount: (idx, total) => `Step ${idx} / ${total}`,
+    heroPour: (from, to, amount, color) => `Tube <b>${from}</b> ➔ Tube <b>${to}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(pour ${amount} ${amount === 1 ? 'block' : 'blocks'} of ${color})</span>`,
+    defaultStepSub: 'After this pour, continue to the next step.',
+    clearedSub: (tube, color) => `<span style="color:#34d399; font-weight:700;">✨ ${tube} completed the [${color}] recipe and cleared.</span><br><span style="color:#93c5fd;">The next refill will exclude the just-cleared tube and add 4 total blocks of [${color}] across the remaining non-full tubes. Use the top <b>“💧 Simulate refill”</b> button, or use each tube’s <b>“+Refill”</b> button to match the game result.</span>`,
+    clearedChip: '✨ Cleared',
+    noSolution: '❌ No valid solution for the current board. Likely causes: not enough free space, or a key color is blocked.',
+    stepLine: (from, to, amount, color) => `Tube <b>${from}</b> ➔ Tube <b>${to}</b> (${amount} ${amount === 1 ? 'block' : 'blocks'} ${color})`,
+    clearNote: '✨Recipe clear',
+    returnedInitial: 'Returned to the initial board',
+    readyStep1: 'Ready to execute step 1',
+    pressNext: 'Click “Next ▶” or press the right arrow key to start',
+    clearBoardNotice: 'Board cleared. Enter the current puzzle manually, or click “🎲 Random level”.',
+    sampleNotice: 'Sample board loaded. Click “Solve shortest path” to start.',
+    randomGenerated: (colors, filled, empty, steps) => `🎲 <b>Random level generated.</b><br>Colors: ${colors}<br>Filled tubes: <b>${filled}</b>; empty tubes: <b>${empty}</b>.<br>Validated solvable by A*, reference path is about ${steps} steps.`,
+    refillNone: '⚠️ No non-full tube can take the refill except the one that was just cleared; this refill counts as 0 blocks.',
+    excludedTube: tube => `Excluded the just-cleared ${tube}; `,
+    refillDone: (count, colorHtml, tubes) => `💧 <b>Refill simulated.</b>{excluded}Added <b>${count}</b> blocks of [${colorHtml}], at: ${tubes}. Click “⚡ Solve shortest path” to replan.`,
+    physicalOne: (tube, gap, bad) => `${tube} violates the physical stacking rule: layer ${gap} from the bottom is empty, but layer ${bad} above it has liquid.`,
+    physicalPrefix: '❌ The board violates the physical stacking rule: ',
+    physicalTail: count => `, plus ${count} more invalid tube(s)`,
+    physicalFix: '. Please fill the lower gap first.',
+    smokeLogPass: (game, steps, drops) => `[Run ${game.toString().padStart(3, '0')}] ✅ Solved: ${steps} steps | refill: ${drops} blocks`,
+    smokeLogFail: game => `[Run ${game.toString().padStart(3, '0')}] ❌ Failed: no solution or timeout`,
+    smokeRunning: '⏳ Running...',
+    smokeStartLog: '⚡ Starting 100 random simulations...\n',
+    smokeDone: (pass, steps) => `\n🎉 100-run simulation complete. Clear rate ${pass}, average ${steps} steps.\n`
+  }
+};
+
+function wc() {
+  return WATER_COPY[uiLang] || WATER_COPY.zh;
+}
+
+function setWaterLang(lang, persist = true) {
+  uiLang = lang === 'en' ? 'en' : 'zh';
+  document.documentElement.lang = uiLang === 'en' ? 'en' : 'zh-CN';
+  if (persist) localStorage.setItem('pvz3-home-lang', uiLang);
+}
+
+function tubeLabel(tubeIdx) {
+  return wc().tube(tubeIdx + 1);
+}
+
 const LIQUID_COLORS = [
-  { id: 'G', name: '豌豆绿', hex: '#22c55e', key: '1' },
-  { id: 'B', name: '水波蓝', hex: '#7dd3fc', key: '2' },
-  { id: 'O', name: '橙汁橙', hex: '#ff8a1f', key: '3' },
-  { id: 'R', name: '番茄红', hex: '#ef4444', key: '4' },
-  { id: 'P', name: '葡萄紫', hex: '#a855f7', key: '5' }
+  { id: 'G', zh: '豌豆绿', en: 'Pea Green', hex: '#22c55e', key: '1', get name() { return uiLang === 'en' ? this.en : this.zh; } },
+  { id: 'B', zh: '水波蓝', en: 'Wave Blue', hex: '#7dd3fc', key: '2', get name() { return uiLang === 'en' ? this.en : this.zh; } },
+  { id: 'O', zh: '橙汁橙', en: 'Juice Orange', hex: '#ff8a1f', key: '3', get name() { return uiLang === 'en' ? this.en : this.zh; } },
+  { id: 'R', zh: '番茄红', en: 'Tomato Red', hex: '#ef4444', key: '4', get name() { return uiLang === 'en' ? this.en : this.zh; } },
+  { id: 'P', zh: '葡萄紫', en: 'Grape Purple', hex: '#a855f7', key: '5', get name() { return uiLang === 'en' ? this.en : this.zh; } }
 ];
 
 const COLOR_MAP = {};
@@ -1254,10 +1470,83 @@ let lastClearedTube = null; // 记录最近一次消除的瓶位：本轮随机�
 let isStepAnimating = false;
 let stepAnimationToken = 0;
 
+function applyWaterLanguage() {
+  setWaterLang(uiLang);
+  const copy = wc();
+  document.title = copy.title;
+  const textNodes = {
+    brandTitle: copy.title,
+    boardLabel: copy.boardLabel,
+    boardShapeLabel: copy.boardShape,
+    strategyLabel: copy.strategyLabel,
+    btnUndo: copy.undo,
+    btnClearBoard: copy.clear,
+    btnSampleBoard: copy.sample,
+    btnRandomLevel: copy.random,
+    btnRandomRefill: copy.refill,
+    btnRunSolve: copy.solve,
+    btnOpenSmokeTest: copy.smokeOpen,
+    planTitle: copy.planTitle,
+    badgeStepCount: copy.unsolved,
+    heroStepNum: copy.waitingSolve,
+    heroText: copy.clickSolve,
+    heroSub: copy.solveHint,
+    prevStepText: copy.prev,
+    nextStepText: copy.next,
+    paletteLabel: copy.paletteLabel,
+    smokeTitle: copy.smokeTitle,
+    smokePassLabel: copy.smokePass,
+    smokeStepsLabel: copy.smokeSteps,
+    smokeDeadlocksLabel: copy.smokeDeadlocks,
+    smokeRefillsLabel: copy.smokeRefills,
+    btnCancelSmokeTest: copy.smokeClose,
+    btnStartSmokeTest: copy.smokeStart
+  };
+  Object.entries(textNodes).forEach(([id, text]) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = text;
+  });
+
+  const exactOption = document.querySelector('#selectAlgorithmStrategy option[value="exact_refill"]');
+  const classicOption = document.querySelector('#selectAlgorithmStrategy option[value="classic"]');
+  if (exactOption) exactOption.textContent = copy.exactStrategy;
+  if (classicOption) classicOption.textContent = copy.classicStrategy;
+
+  const paletteLabel = document.getElementById('paletteLabel');
+  if (paletteLabel) paletteLabel.textContent = copy.paletteLabel;
+  const paletteTip = document.querySelector('.palette-tip');
+  if (paletteTip) paletteTip.textContent = copy.paletteTip;
+  const btnUndo = document.getElementById('btnUndo');
+  if (btnUndo) btnUndo.title = copy.undoTitle;
+  const btnClear = document.getElementById('btnClearBoard');
+  if (btnClear) btnClear.title = copy.clearTitle;
+  const btnSample = document.getElementById('btnSampleBoard');
+  if (btnSample) btnSample.title = copy.sampleTitle;
+  const btnRandom = document.getElementById('btnRandomLevel');
+  if (btnRandom) btnRandom.title = copy.randomTitle;
+  const btnRefill = document.getElementById('btnRandomRefill');
+  if (btnRefill) btnRefill.title = copy.refillButtonTitle;
+  const btnSolve = document.getElementById('btnRunSolve');
+  if (btnSolve) btnSolve.title = copy.solveTitle;
+  const btnOpenSmoke = document.getElementById('btnOpenSmokeTest');
+  if (btnOpenSmoke) btnOpenSmoke.title = copy.smokeOpenTitle;
+  const mechanicCard = document.getElementById('mechanicCard');
+  if (mechanicCard) mechanicCard.innerHTML = copy.mechanicHtml;
+  const smokeIntro = document.getElementById('smokeIntro');
+  if (smokeIntro) smokeIntro.innerHTML = copy.smokeIntro;
+  const smokeLogs = document.getElementById('smokeLogsArea');
+  if (smokeLogs && !smokeLogs.dataset.started) smokeLogs.textContent = copy.smokeLogsInit;
+  const timeline = document.getElementById('timelineContainer');
+  if (timeline && !currentPlan) {
+    timeline.innerHTML = `<div style="text-align:center; padding: 30px 10px; color: var(--text-muted); font-size: 0.78rem;">${copy.noSteps}</div>`;
+  }
+}
+
 // ==========================================
 // 3. INITIALIZATION
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
+  applyWaterLanguage();
   renderPalette();
   generateRandomLevel(false); // 首次进入即完全随机生成关卡（符合PvZ3规则且验证可解）
   setupKeyboardShortcuts();
@@ -1283,7 +1572,7 @@ function undo() {
   lastClearedTube = Number.isInteger(prev.lastClearedTube) ? prev.lastClearedTube : null;
   renderBoard();
   clearPlan();
-  showNotice('已撤销上一步操作', 'success');
+  showNotice(wc().undoNotice, 'success');
 }
 
 // ==========================================
@@ -1346,9 +1635,10 @@ function getTubePhysicalError(tube) {
 }
 
 function formatPhysicalError(tubeIdx, tube, err) {
+  const copy = wc();
   const gapSlot = err.firstGap + 1;
   const badSlot = err.offendingSlot + 1;
-  return `瓶 ${tubeIdx + 1} 不符合物理规律：从下往上第 ${gapSlot} 格是空的，但第 ${badSlot} 格上方已经有液体。`;
+  return copy.physicalOne(tubeLabel(tubeIdx), gapSlot, badSlot);
 }
 
 function validatePhysicalBoardState(displayNotice = true) {
@@ -1361,15 +1651,17 @@ function validatePhysicalBoardState(displayNotice = true) {
   if (issues.length === 0) return true;
 
   if (displayNotice) {
+    const copy = wc();
     const preview = issues.slice(0, 2).map(item => formatPhysicalError(item.tubeIdx, boardState[item.tubeIdx], item.err));
-    const tail = issues.length > 2 ? `，另外还有 ${issues.length - 2} 个瓶子也不合法` : '';
-    showNotice(`❌ 盘面不符合物理规律：${preview.join('；')}${tail}。请先把下方空格补齐，再继续。`, 'error');
+    const tail = issues.length > 2 ? copy.physicalTail(issues.length - 2) : '';
+    showNotice(`${copy.physicalPrefix}${preview.join('；')}${tail}${copy.physicalFix}`, 'error');
   }
 
   return false;
 }
 
 function createTubeElement(tubeIdx) {
+  const copy = wc();
   const wrapper = document.createElement('div');
   wrapper.className = 'tube-wrapper';
   wrapper.id = `tube-${tubeIdx}`;
@@ -1383,13 +1675,13 @@ function createTubeElement(tubeIdx) {
 
   const headerTag = document.createElement('span');
   headerTag.className = 'tube-header-tag';
-  headerTag.textContent = `瓶 ${tubeIdx + 1}`;
+  headerTag.textContent = copy.tube(tubeIdx + 1);
   headerBox.appendChild(headerTag);
 
   const refillBtn = document.createElement('button');
   refillBtn.className = 'tube-add-refill-btn';
-  refillBtn.textContent = '+加料';
-  refillBtn.title = `给瓶 ${tubeIdx + 1} 顶部注入 1 格当前颜色【${COLOR_MAP[currentBrush].name}】`;
+  refillBtn.textContent = copy.refillBtn;
+  refillBtn.title = copy.refillTitle(copy.tube(tubeIdx + 1), COLOR_MAP[currentBrush].name);
   refillBtn.onclick = (e) => {
     e.stopPropagation();
     pushRefill(tubeIdx);
@@ -1417,7 +1709,7 @@ function createTubeElement(tubeIdx) {
     if (colorId && COLOR_MAP[colorId]) {
       slotEl.classList.add('filled');
       slotEl.style.backgroundColor = COLOR_MAP[colorId].hex;
-      slotEl.title = `第 ${slot + 1} 层: ${COLOR_MAP[colorId].name}`;
+      slotEl.title = copy.slotLayer(slot + 1, COLOR_MAP[colorId].name);
     }
 
     // Click Single Slot
@@ -1480,7 +1772,7 @@ function createTubeElement(tubeIdx) {
   const freeDot = document.createElement('button');
   freeDot.className = `target-dot-btn ${currentTargetColor === null ? 'selected' : ''}`;
   freeDot.style.background = 'rgba(255, 255, 255, 0.25)';
-  freeDot.title = '设为：自由中转瓶 (无目标)';
+  freeDot.title = copy.setFreeTitle;
   freeDot.onclick = (e) => {
     e.stopPropagation();
     saveHistory();
@@ -1493,7 +1785,7 @@ function createTubeElement(tubeIdx) {
     const dot = document.createElement('button');
     dot.className = `target-dot-btn ${currentTargetColor === c.id ? 'selected' : ''}`;
     dot.style.background = c.hex;
-    dot.title = `设为目标：${c.name}`;
+    dot.title = copy.setTargetTitle(c.name);
     dot.onclick = (e) => {
       e.stopPropagation();
       saveHistory();
@@ -1530,26 +1822,28 @@ function setTubeTargetRecipe(tubeIdx, colorId) {
 }
 
 function updateTargetChipUI(chipEl, colorId) {
+  const copy = wc();
   if (!colorId || !COLOR_MAP[colorId]) {
     chipEl.style.backgroundColor = 'var(--bg-elevated)';
     chipEl.style.borderColor = 'var(--border-subtle)';
     chipEl.style.color = 'var(--text-secondary)';
     chipEl.style.boxShadow = 'none';
-    chipEl.textContent = '⚪ 自由中转';
-    chipEl.title = '当前为自由中转瓶。点击可切换目标配方';
+    chipEl.textContent = copy.freeTarget;
+    chipEl.title = copy.freeTitle;
   } else {
     const c = COLOR_MAP[colorId];
     chipEl.style.backgroundColor = c.hex;
     chipEl.style.borderColor = '#ffffff';
     chipEl.style.color = '#ffffff';
     chipEl.style.boxShadow = `0 0 10px ${c.hex}66`;
-    chipEl.textContent = `🎯 目标: ${c.name}`;
-    chipEl.title = `目标集满 4 格【${c.name}】。点击可切换下一个`;
+    chipEl.textContent = copy.targetText(c.name);
+    chipEl.title = copy.targetTitle(c.name);
   }
 }
 
 // 当正确颜色填满瓶子时，自动把目标选项解除，变为自由中转瓶
 function checkAndAutoFreeTargetTubes(tubeIdx) {
+  const copy = wc();
   const targetColor = targetRecipes[tubeIdx];
   if (!targetColor) return;
   const tube = boardState[tubeIdx];
@@ -1559,7 +1853,7 @@ function checkAndAutoFreeTargetTubes(tubeIdx) {
     lastClearedColor = targetColor;
     lastClearedTube = tubeIdx;
     currentBrush = targetColor;
-    showNotice(`🎉 瓶 ${tubeIdx + 1} 已装满 4 格【${COLOR_MAP[targetColor].name}】配方，已自动解除目标并转为「自由中转瓶」！`, 'success');
+    showNotice(copy.completedRecipe(tubeLabel(tubeIdx), COLOR_MAP[targetColor].name), 'success');
     renderBoard();
     clearPlan();
   }
@@ -1598,6 +1892,7 @@ function clearSlot(tubeIdx, slotIdx) {
 }
 
 function pushRefill(tubeIdx) {
+  const copy = wc();
   if (isStepAnimating) return;
   const tube = boardState[tubeIdx];
   normalizeTubeStorage(tube);
@@ -1607,14 +1902,14 @@ function pushRefill(tubeIdx) {
     return;
   }
   if (tube.length >= CAPACITY) {
-    showNotice(`瓶 ${tubeIdx + 1} 已满，无法再加料！`, 'error');
+    showNotice(copy.tubeFull(tubeLabel(tubeIdx)), 'error');
     return;
   }
   saveHistory();
   tube.push(currentBrush);
   renderBoard();
   clearPlan();
-  showNotice(`已向瓶 ${tubeIdx + 1} 顶部注入 1 格【${COLOR_MAP[currentBrush].name}】`, 'success');
+  showNotice(copy.refillFilled(tubeLabel(tubeIdx), COLOR_MAP[currentBrush].name), 'success');
   checkAndAutoFreeTargetTubes(tubeIdx);
 }
 
@@ -1622,6 +1917,7 @@ function pushRefill(tubeIdx) {
 // 5. COLOR PALETTE BAR
 // ==========================================
 function renderPalette() {
+  const copy = wc();
   const container = document.getElementById('paletteSwatches');
   container.innerHTML = '';
 
@@ -1644,6 +1940,7 @@ function renderPalette() {
 // 6. CORE ALGORITHM: ROBUST A* PUZZLE SOLVER
 // ==========================================
 function runSolve() {
+  const copy = wc();
   clearPlan();
   const banner = document.getElementById('noticeBox');
   banner.style.display = 'none';
@@ -1656,7 +1953,7 @@ function runSolve() {
 
   const totalSlots = boardState.reduce((acc, t) => acc + t.reduce((sum, c) => sum + (isFilledColor(c) ? 1 : 0), 0), 0);
   if (totalSlots === 0) {
-    showNotice('当前盘面全空，请先填入试管液体或点击顶部「加载经典关卡」！', 'error');
+    showNotice(copy.emptyBoard, 'error');
     return;
   }
 
@@ -1667,7 +1964,7 @@ function runSolve() {
   });
 
   if (initialTargets.length === 0) {
-    showNotice('请至少为一个试管指定目标配方颜色（瓶子下方的下拉选择）！', 'error');
+    showNotice(copy.noTarget, 'error');
     return;
   }
 
@@ -1682,7 +1979,7 @@ function runSolve() {
   for (const t of initialTargets) {
     const count = colorTotals[t.color] || 0;
     if (count < CAPACITY) {
-      showNotice(`无法推演：【${COLOR_MAP[t.color].name}】全场总共只有 ${count} 格，不足以集满 4 格配方！请补齐颜色。`, 'error');
+      showNotice(copy.shortage(COLOR_MAP[t.color].name, count), 'error');
       return;
     }
   }
@@ -1694,8 +1991,8 @@ function runSolve() {
 
   showNotice(
     isExactRefillStrategy
-      ? '🧮 正在评估配方完成后的 4 格加料分支，并使用 A* 继续求解...'
-      : '⚡ 正在进行 A* 全局状态剪枝推演...',
+      ? copy.solvingExact
+      : copy.solvingClassic,
     'success'
   );
 
@@ -1711,27 +2008,27 @@ function runSolve() {
         ? solution[solution.length - 1].remainingTargets.length
         : 0;
       const planBadge = isExactRefillStrategy && remainingAfterPlan > 0
-        ? `下次消除 ${solution.length} 步`
-        : `共 ${solution.length} 步`;
+        ? copy.nextClearBadge(solution.length)
+        : copy.totalStepsBadge(solution.length);
       document.getElementById('badgeStepCount').textContent = planBadge;
       renderTimeline(solution);
 
       // 保持停留在初始开局状态，绝对不自动倒出第 1 步！
-      document.getElementById('heroStepNum').textContent = `已规划${planBadge}`;
-      document.getElementById('heroText').textContent = `已准备 · 点击「下一步 ▶」开始`;
+      document.getElementById('heroStepNum').textContent = planBadge;
+      document.getElementById('heroText').textContent = copy.readyStart;
       const firstMove = solution[0];
       const firstColorObj = COLOR_MAP[firstMove.color] || { name: firstMove.color };
-      document.getElementById('heroSub').textContent = `第 1 步预告：从 瓶 ${firstMove.from + 1} 倒入 瓶 ${firstMove.to + 1} (${firstMove.amount} 格 ${firstColorObj.name})`;
+      document.getElementById('heroSub').textContent = copy.firstPreview(firstMove.from + 1, firstMove.to + 1, firstMove.amount, firstColorObj.name);
       updateNavButtonStates();
 
       if (isExactRefillStrategy && remainingAfterPlan > 0) {
-        showNotice(`🧮 已规划到下一次配方完成，共 ${solution.length} 步。完成后请按实际加料结果更新盘面，再继续求解。`, 'success');
+        showNotice(copy.plannedNext(solution.length), 'success');
       } else {
-        showNotice(`🎉 已找到可行最短路径，共 ${solution.length} 步。请点击右侧「下一步 ▶」查看操作。`, 'success');
+        showNotice(copy.foundPath(solution.length), 'success');
       }
     } else {
-      document.getElementById('badgeStepCount').textContent = `无可行解`;
-      showNotice('❌ 当前盘面暂无可行解。可能原因：可用空间不足，或关键颜色被阻挡。', 'error');
+      document.getElementById('badgeStepCount').textContent = uiLang === 'en' ? 'No solution' : '无可行解';
+      showNotice(copy.noSolution, 'error');
     }
   }, 30);
 }
@@ -1861,12 +2158,13 @@ function planRandomRefillDrops(tubes, refillColor, excludedTubeIdx = null) {
 }
 
 function summarizeTubeDrops(drops) {
+  const copy = wc();
   const counts = new Map();
   drops.forEach(idx => counts.set(idx, (counts.get(idx) || 0) + 1));
   return [...counts.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([idx, count]) => `瓶 <b>${idx + 1}</b>${count > 1 ? ` ×${count}` : ''}`)
-    .join('、');
+    .map(([idx, count]) => `${copy.tube(idx + 1)}${count > 1 ? ` <b>×${count}</b>` : ''}`)
+    .join(uiLang === 'en' ? ', ' : '、');
 }
 
 function scoreRefillDamage(tubes, remainingTargets) {
@@ -1918,6 +2216,7 @@ function normalizeInitialTargets(tubes, targets) {
 }
 
 function applyMoveAndClear(tubes, targets, move) {
+  const copy = wc();
   const nextTubes = applyMove(tubes, move);
   const nextTargets = cloneTargets(targets);
   let note = '';
@@ -1930,7 +2229,7 @@ function applyMoveAndClear(tubes, targets, move) {
     if (targetTube.length === CAPACITY && targetTube.every(c => c === target.color)) {
       nextTubes[target.tubeIdx] = [];
       nextTargets.splice(i, 1);
-      note = `✨ 瓶 ${target.tubeIdx + 1} 达成【${COLOR_MAP[target.color].name}】配方并瞬间清空腾位！`;
+      note = copy.clearedSub(copy.tube(target.tubeIdx + 1), COLOR_MAP[target.color].name);
       clearedTube = target.tubeIdx;
       clearedColor = target.color;
       break;
@@ -2364,6 +2663,7 @@ function calculateHeuristic(tubes, remainingTargets, strategy = 'classic') {
 }
 
 function executeAStarSearch(initialTubes, initialTargets, strategy = null) {
+  const copy = wc();
   if (!strategy) {
     const sel = document.getElementById('selectAlgorithmStrategy');
     strategy = sel ? sel.value : EXACT_REFILL_STRATEGY;
@@ -2433,7 +2733,7 @@ function executeAStarSearch(initialTubes, initialTargets, strategy = null) {
         if (targetTube.length === CAPACITY && targetTube.every(c => c === target.color)) {
           // PvZ3 核心机制：达成配方，此瓶立刻清空腾位！
           nextTubes[target.tubeIdx] = [];
-          stageNote = `✨ 瓶 ${target.tubeIdx + 1} 达成【${COLOR_MAP[target.color].name}】配方并瞬间清空腾位！`;
+          stageNote = copy.clearedSub(copy.tube(target.tubeIdx + 1), COLOR_MAP[target.color].name);
           stageClearedTube = target.tubeIdx;
           stageClearedColor = target.color;
           nextTargets.splice(i, 1);
@@ -2548,6 +2848,7 @@ function applyMove(tubes, move) {
 // 7. STEPPER & TIMELINE PLAYBACK
 // ==========================================
 function renderTimeline(moves) {
+  const copy = wc();
   const container = document.getElementById('timelineContainer');
   container.innerHTML = '';
 
@@ -2560,9 +2861,9 @@ function renderTimeline(moves) {
     item.innerHTML = `
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="step-badge">#${idx + 1}</span>
-        <span>瓶 <b>${m.from + 1}</b> ➔ 瓶 <b>${m.to + 1}</b> (${m.amount}格 ${colorObj.name})</span>
+        <span>${copy.stepLine(m.from + 1, m.to + 1, m.amount, colorObj.name)}</span>
       </div>
-      <span style="font-size:0.7rem; color:var(--accent-emerald);">${m.note ? '✨配方消除' : ''}</span>
+      <span style="font-size:0.7rem; color:var(--accent-emerald);">${m.note ? copy.clearNote : ''}</span>
     `;
 
     item.onclick = () => showStep(idx);
@@ -2591,7 +2892,7 @@ function setSlotLiquid(slotEl, colorId) {
   if (colorId && COLOR_MAP[colorId]) {
     slotEl.classList.add('filled');
     slotEl.style.backgroundColor = COLOR_MAP[colorId].hex;
-    slotEl.title = `药水: ${COLOR_MAP[colorId].name}`;
+    slotEl.title = COLOR_MAP[colorId].name;
   } else {
     slotEl.classList.remove('filled');
     slotEl.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
@@ -2729,7 +3030,7 @@ function playSequentialPourAnimation(move, beforeState, afterState, onFinish) {
         dstSlotEl.classList.remove('slot-draining');
         dstSlotEl.classList.add('filled', 'slot-filling');
         dstSlotEl.style.backgroundColor = colorHex;
-        dstSlotEl.title = `第 ${fillIdx + 1} 层: ${colorObj.name}`;
+        dstSlotEl.title = wc().slotLayer(fillIdx + 1, colorObj.name);
 
         window.setTimeout(() => {
           if (token !== stepAnimationToken) return;
@@ -2746,6 +3047,7 @@ function playSequentialPourAnimation(move, beforeState, afterState, onFinish) {
 }
 
 function commitStepTargetsAndRefillCue(move) {
+  const copy = wc();
   // 动态同步试管下方的目标配方状态（消除后同步变为自由中转，绝不残留旧目标）
   if (move.remainingTargets) {
     const currentTargetMap = {};
@@ -2765,11 +3067,12 @@ function commitStepTargetsAndRefillCue(move) {
     document.querySelectorAll('.color-chip-btn').forEach(b => {
       b.classList.toggle('active', b.textContent.includes(cName));
     });
-    document.getElementById('heroSub').innerHTML = `<span style="color:#34d399; font-weight:700;">✨ 瓶 ${move.clearedTube + 1} 完成【${cName}】配方并清空。</span><br><span style="color:#93c5fd;">下一轮加料会排除刚清空的瓶位，并向其余未满瓶分批加入共 4 格【${cName}】。可点击顶部<b>「💧 模拟加料」</b>，或按游戏结果使用对应瓶子的<b>「+加料」</b>。</span>`;
+    document.getElementById('heroSub').innerHTML = copy.clearedSub(copy.tube(move.clearedTube + 1), cName);
   }
 }
 
 function showStep(stepIdx, animate = true) {
+  const copy = wc();
   if (!currentPlan || stepIdx < 0 || stepIdx >= currentPlan.length) return;
   if (isStepAnimating) return;
   currentStepIdx = stepIdx;
@@ -2784,9 +3087,9 @@ function showStep(stepIdx, animate = true) {
   const move = currentPlan[stepIdx];
   const colorObj = COLOR_MAP[move.color] || { name: move.color };
 
-  document.getElementById('heroStepNum').textContent = `步骤 ${stepIdx + 1} / ${currentPlan.length}`;
-  document.getElementById('heroText').innerHTML = `瓶 <b>${move.from + 1}</b> ➔ 瓶 <b>${move.to + 1}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(倾倒 ${move.amount} 格 ${colorObj.name})</span>`;
-  document.getElementById('heroSub').textContent = move.note || `完成本次倾倒后，继续执行下一步。`;
+  document.getElementById('heroStepNum').textContent = copy.stepCount(stepIdx + 1, currentPlan.length);
+  document.getElementById('heroText').innerHTML = copy.heroPour(move.from + 1, move.to + 1, move.amount, colorObj.name);
+  document.getElementById('heroSub').innerHTML = move.note || copy.defaultStepSub;
 
   const beforeState = getBoardStateBeforeStep(stepIdx);
   const afterState = move.afterState ? move.afterState.map(t => [...t]) : null;
@@ -2880,7 +3183,7 @@ function updateTubeTargetsVisual(remainingTargets, justClearedTubeIdx = null) {
         chip.style.borderColor = 'var(--accent-emerald)';
         chip.style.color = '#34d399';
         chip.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.5)';
-        chip.textContent = '✨ 已达成消除';
+        chip.textContent = wc().clearedChip;
       } else {
         updateTargetChipUI(chip, colorId);
       }
@@ -2899,6 +3202,7 @@ function updateTubeTargetsVisual(remainingTargets, justClearedTubeIdx = null) {
 }
 
 function resetToInitialPuzzleState() {
+  const copy = wc();
   if (puzzleInitialBoard) {
     boardState = puzzleInitialBoard.map(t => [...t]);
     updateTubeSlotsVisual();
@@ -2916,12 +3220,13 @@ function resetToInitialPuzzleState() {
   });
   document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
   currentStepIdx = -1;
-  document.getElementById('heroStepNum').textContent = '已回到初始盘面';
-  document.getElementById('heroText').textContent = '准备执行第 1 步';
-  document.getElementById('heroSub').textContent = '请点击「下一步 ▶」或按键盘右箭头开始';
+  document.getElementById('heroStepNum').textContent = copy.returnedInitial;
+  document.getElementById('heroText').textContent = copy.readyStep1;
+  document.getElementById('heroSub').textContent = copy.pressNext;
 }
 
 function clearPlan() {
+  const copy = wc();
   stepAnimationToken++;
   isStepAnimating = false;
   clearPourAnimationClasses();
@@ -2929,13 +3234,13 @@ function clearPlan() {
   currentStepIdx = -1;
   puzzleInitialBoard = null;
   puzzleInitialTargets = null;
-  document.getElementById('badgeStepCount').textContent = '未求解';
-  document.getElementById('heroStepNum').textContent = '等待求解';
-  document.getElementById('heroText').textContent = '点击「⚡ 求解最短路径」';
-  document.getElementById('heroSub').textContent = '系统将规划达成目标配方的倾倒路径，并在加料后支持继续求解';
+  document.getElementById('badgeStepCount').textContent = copy.unsolved;
+  document.getElementById('heroStepNum').textContent = copy.waitingSolve;
+  document.getElementById('heroText').textContent = copy.clickSolve;
+  document.getElementById('heroSub').textContent = copy.solveHint;
   document.getElementById('timelineContainer').innerHTML = `
     <div style="text-align:center; padding: 30px 10px; color: var(--text-muted); font-size: 0.78rem;">
-      暂无步骤记录
+      ${copy.noSteps}
     </div>
   `;
   document.querySelectorAll('.tube-wrapper').forEach(w => w.classList.remove('source-highlight', 'target-highlight'));
@@ -2957,6 +3262,7 @@ function shuffleArray(arr) {
 
 // 完全符合 PvZ3 游戏机制的真正全随机关卡生成器
 function generateRandomLevel(showNoticeBanner = true) {
+  const copy = wc();
   saveHistory();
   lastClearedColor = null;
   lastClearedTube = null;
@@ -3033,8 +3339,10 @@ function generateRandomLevel(showNoticeBanner = true) {
     clearPlan();
 
     if (showNoticeBanner) {
-      const colorNames = bestPuzzle.chosenColors.map(c => `<span style="color:${COLOR_MAP[c].hex}; font-weight:700;">${COLOR_MAP[c].name}</span>`).join('、');
-      showNotice(`🎲 <b>随机关卡已生成。</b><br>颜色：${colorNames}<br>初始装水瓶：瓶 <b>${bestPuzzle.filledTubes.join(', ')}</b>；空瓶：瓶 <b>${bestPuzzle.emptyTubes.join(', ')}</b>。<br>已通过 A* 验证可解，参考步数约 ${bestPuzzle.steps} 步。`, 'success');
+      const colorNames = bestPuzzle.chosenColors
+        .map(c => `<span style="color:${COLOR_MAP[c].hex}; font-weight:700;">${COLOR_MAP[c].name}</span>`)
+        .join(uiLang === 'en' ? ', ' : '、');
+      showNotice(copy.randomGenerated(colorNames, bestPuzzle.filledTubes.join(', '), bestPuzzle.emptyTubes.join(', '), bestPuzzle.steps), 'success');
     }
   } else {
     loadSamplePuzzle();
@@ -3043,6 +3351,7 @@ function generateRandomLevel(showNoticeBanner = true) {
 
 // 随机加料功能：刚清空的瓶本轮不参与；其余未满瓶分批承接共 4 格喷料，候选不足时允许重复喷到同一瓶
 function executeRandomRefill() {
+  const copy = wc();
   if (isStepAnimating) return;
   normalizeAllTubeStorage();
   if (!validatePhysicalBoardState()) return;
@@ -3057,7 +3366,7 @@ function executeRandomRefill() {
   if (availableTubeIndices.length === 0) {
     lastClearedColor = null;
     lastClearedTube = null;
-    showNotice('⚠️ 除刚清空的瓶位外，当前没有可承接喷料的未满瓶；本轮加料视为 0 格。', 'error');
+    showNotice(copy.refillNone, 'error');
     return;
   }
 
@@ -3077,11 +3386,12 @@ function executeRandomRefill() {
   lastClearedTube = null;
 
   const tubeNames = summarizeTubeDrops(chosenTubes);
-  const excludedText = excludedTubeIdx === null ? '' : `已排除刚清空的瓶 <b>${excludedTubeIdx + 1}</b>；`;
-  showNotice(`💧 <b>加料已模拟。</b>${excludedText}本轮共加入 <b>${chosenTubes.length}</b> 格【<span style="color:${colorObj.hex}; font-weight:700;">${colorObj.name}</span>】，位置：${tubeNames}。可点击「⚡ 求解最短路径」重新规划。`, 'success');
+  const excludedText = excludedTubeIdx === null ? '' : copy.excludedTube(tubeLabel(excludedTubeIdx));
+  showNotice(copy.refillDone(chosenTubes.length, `<span style="color:${colorObj.hex}; font-weight:700;">${colorObj.name}</span>`, tubeNames).replace('{excluded}', excludedText), 'success');
 }
 
 function loadSamplePuzzle() {
+  const copy = wc();
   saveHistory();
   lastClearedColor = null;
   lastClearedTube = null;
@@ -3101,7 +3411,7 @@ function loadSamplePuzzle() {
 
   renderBoard();
   clearPlan();
-  showNotice('示例关卡已加载。可点击「求解最短路径」开始计算。', 'success');
+  showNotice(copy.sampleNotice, 'success');
 }
 
 function setupKeyboardShortcuts() {
@@ -3163,7 +3473,7 @@ function setupUIEvents() {
     lastClearedTube = null;
     renderBoard();
     clearPlan();
-    showNotice('盘面已清空。可手动录入当前关卡，或点击「🎲 生成随机关卡」。', 'success');
+    showNotice(wc().clearBoardNotice, 'success');
   };
 
   // ◀ 上一步 导航按钮（返回上一步不播放倒水，直接即时切换）
@@ -3215,6 +3525,7 @@ function setupUIEvents() {
 
 // 现场浏览器 100 局自动化对抗压测执行器
 function runBrowserSmokeTest() {
+  const copy = wc();
   const btnStart = document.getElementById('btnStartSmokeTest');
   const progFill = document.getElementById('smokeProgFill');
   const statPass = document.getElementById('statSmokePassRate');
@@ -3224,8 +3535,9 @@ function runBrowserSmokeTest() {
   const logsArea = document.getElementById('smokeLogsArea');
 
   btnStart.disabled = true;
-  btnStart.textContent = '⏳ 模拟运行中...';
-  logsArea.innerHTML = '⚡ 开始运行 100 局随机模拟...\n';
+  btnStart.textContent = copy.smokeRunning;
+  logsArea.dataset.started = 'true';
+  logsArea.innerHTML = copy.smokeStartLog;
   progFill.style.width = '0%';
 
   const TOTAL_GAMES = 100;
@@ -3320,10 +3632,10 @@ function runBrowserSmokeTest() {
         wins++;
         allSteps.push(totalSteps);
         allRefills.push(totalDrops);
-        logsArea.innerHTML += `[局 ${currentGame.toString().padStart(3, '0')}] ✅ 完成: ${totalSteps} 步 | 追加加料: ${totalDrops} 格\n`;
+        logsArea.innerHTML += `${copy.smokeLogPass(currentGame, totalSteps, totalDrops)}\n`;
       } else {
         deadlocks++;
-        logsArea.innerHTML += `[局 ${currentGame.toString().padStart(3, '0')}] ❌ 未完成: 无可行解或超时\n`;
+        logsArea.innerHTML += `${copy.smokeLogFail(currentGame)}\n`;
       }
       logsArea.scrollTop = logsArea.scrollHeight;
     }
@@ -3344,8 +3656,8 @@ function runBrowserSmokeTest() {
       setTimeout(stepBatch, 15);
     } else {
       btnStart.disabled = false;
-      btnStart.textContent = '🚀 再次运行 100 局模拟';
-      logsArea.innerHTML += `\n🎉 100 局模拟完成。完成率 ${statPass.textContent}，平均步数 ${statSteps.textContent} 步。\n`;
+      btnStart.textContent = copy.smokeRerun;
+      logsArea.innerHTML += copy.smokeDone(statPass.textContent, statSteps.textContent);
       logsArea.scrollTop = logsArea.scrollHeight;
     }
   }

@@ -2,7 +2,7 @@
 
 Static browser tools for **Plants vs. Zombies 3** puzzle solving.
 
-Live demo: `https://peteroooooooo.github.io/pvz3-game-puzzle-solver/`
+Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://peteroooooooo.github.io/pvz3-game-puzzle-solver/)
 
 ## What this repo contains
 
@@ -14,6 +14,8 @@ Live demo: `https://peteroooooooo.github.io/pvz3-game-puzzle-solver/`
 
 - PVZ3-style refill-aware water sort logic
 - A* search strategies for puzzle solving
+- Water sort benchmark: 100 runs, 100% solved, 25.3 average steps, 12.0 average refill units
+- Decoder strategy: 4-round lock target
 - Browser-only, no install required
 - Friendly for GitHub Pages deployment
 

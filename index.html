@@ -96,6 +96,11 @@
       color: var(--muted);
       line-height: 1.55;
     }
+    .tool .metric {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+    }
     .btn {
       display: inline-flex;
       align-items: center;
@@ -171,6 +176,7 @@
         <div>
           <h2 id="solverTitle"></h2>
           <p id="solverDesc"></p>
+          <p class="metric" id="solverMetric"></p>
         </div>
         <a class="btn" id="solverLink" href="./pvz3_water_sort_solver.html"></a>
       </section>
@@ -179,6 +185,7 @@
         <div>
           <h2 id="decoderTitle"></h2>
           <p id="decoderDesc"></p>
+          <p class="metric" id="decoderMetric"></p>
         </div>
         <a class="btn" id="decoderLink" href="./pvz3_decode_solver.html"></a>
       </section>
@@ -202,9 +209,11 @@
         subtitle: '两个静态网页工具',
         solverTitle: 'Water Sort Solver',
         solverDesc: '倒水求解器。',
+        solverMetric: '100 局基准：100% 通关，平均 25.3 步，平均加料 12.0 格。',
         solverLink: '打开',
         decoderTitle: 'PVZ Decoder Solver',
         decoderDesc: '卡牌反馈推演工具。',
+        decoderMetric: '默认策略：4 轮锁定目标。',
         decoderLink: '打开',
         repoTitle: 'GitHub 仓库',
         repoHint: '查看源码和说明',
@@ -215,9 +224,11 @@
         subtitle: 'Two static browser tools',
         solverTitle: 'Water Sort Solver',
         solverDesc: 'Water sort puzzle solver.',
+        solverMetric: '100-run benchmark: 100% solved, 25.3 average steps, 12.0 average refill units.',
         solverLink: 'Open',
         decoderTitle: 'PVZ Decoder Solver',
         decoderDesc: 'Card feedback decoding tool.',
+        decoderMetric: 'Default strategy: 4-round lock target.',
         decoderLink: 'Open',
         repoTitle: 'GitHub Repository',
         repoHint: 'View source and notes',
@@ -233,9 +244,11 @@
       pageSubtitle: document.getElementById('pageSubtitle'),
       solverTitle: document.getElementById('solverTitle'),
       solverDesc: document.getElementById('solverDesc'),
+      solverMetric: document.getElementById('solverMetric'),
       solverLink: document.getElementById('solverLink'),
       decoderTitle: document.getElementById('decoderTitle'),
       decoderDesc: document.getElementById('decoderDesc'),
+      decoderMetric: document.getElementById('decoderMetric'),
       decoderLink: document.getElementById('decoderLink'),
       repoTitle: document.getElementById('repoTitle'),
       repoHint: document.getElementById('repoHint'),
@@ -248,16 +261,21 @@
       root.lang = isEn ? 'en' : 'zh-CN';
       btnZh.classList.toggle('active', !isEn);
       btnEn.classList.toggle('active', isEn);
+      const toolLang = isEn ? 'en' : 'zh';
 
       document.title = copy.title;
       nodes.pageTitle.textContent = copy.title;
       nodes.pageSubtitle.textContent = copy.subtitle;
       nodes.solverTitle.textContent = copy.solverTitle;
       nodes.solverDesc.textContent = copy.solverDesc;
+      nodes.solverMetric.textContent = copy.solverMetric;
       nodes.solverLink.textContent = copy.solverLink;
+      nodes.solverLink.href = `./pvz3_water_sort_solver.html?lang=${toolLang}`;
       nodes.decoderTitle.textContent = copy.decoderTitle;
       nodes.decoderDesc.textContent = copy.decoderDesc;
+      nodes.decoderMetric.textContent = copy.decoderMetric;
       nodes.decoderLink.textContent = copy.decoderLink;
+      nodes.decoderLink.href = `./pvz3_decode_solver.html?lang=${toolLang}`;
       nodes.repoTitle.textContent = copy.repoTitle;
       nodes.repoHint.textContent = copy.repoHint;
       nodes.footText.textContent = copy.foot;
