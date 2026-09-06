@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PVZ3 Game Puzzle Solver</title>
+  <meta name="description" content="PVZ3 Game Puzzle Solver: refill-aware water sort solver and decoding helper for Plants vs. Zombies 3 puzzles.">
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(13, 20, 36, 0.92);
+      --panel-2: rgba(16, 24, 44, 0.96);
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #34d399;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(52, 211, 153, 0.10), transparent 26%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(52, 211, 153, 0.18));
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      flex: 0 0 auto;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.45rem;
+      line-height: 1.15;
+    }
+    .sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .lang {
+      display: inline-flex;
+      gap: 8px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border);
+    }
+    .lang button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .lang button.active {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--text);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .lead {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .tool-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .tool {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .tool h2 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+    .tool p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.20);
+      color: var(--text);
+      text-decoration: none;
+      background: rgba(15, 23, 42, 0.72);
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.20), rgba(52, 211, 153, 0.16));
+      border-color: rgba(56, 189, 248, 0.34);
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+    .meta {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .links {
+      display: grid;
+      gap: 10px;
+    }
+    .link-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      color: var(--text);
+      text-decoration: none;
+    }
+    .link-row:first-child { border-top: 0; padding-top: 0; }
+    .link-row small { color: var(--muted); display: block; margin-top: 4px; }
+    .foot {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    [data-lang="en"] { display: none; }
+    html.en [data-lang="zh"] { display: none; }
+    html.en [data-lang="en"] { display: block; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .tool { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark">🧪</div>
+        <div>
+          <h1>PVZ3 Game Puzzle Solver</h1>
+          <div class="sub" data-lang="zh">PVZ3 静态谜题入口页 · 中文 / English</div>
+          <div class="sub" data-lang="en">Static puzzle hub for PVZ3 · Chinese / English</div>
+        </div>
+      </div>
+      <div class="lang" role="tablist" aria-label="Language switcher">
+        <button id="btnZh" class="active" type="button">中文</button>
+        <button id="btnEn" type="button">English</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <section class="panel">
+        <p class="lead" data-lang="zh">
+          这是一个面向 Plants vs. Zombies 3 的静态网页谜题项目。它包含倒水求解、加料模拟和反馈推演两部分，适合直接放在 GitHub Pages 上公开访问。
+        </p>
+        <p class="lead" data-lang="en">
+          This is a static browser puzzle project for Plants vs. Zombies 3. It includes a refill-aware water sort solver and a feedback decoder, and is ready for public GitHub Pages hosting.
+        </p>
+
+        <div class="tool-grid">
+          <div class="tool">
+            <div>
+              <h2>PVZ3 Water Sort Solver</h2>
+              <p data-lang="zh">支持加料规则的倒水求解器，带动画和物理合法性校验。</p>
+              <p data-lang="en">Refill-aware water sort solver with animation and physical validation.</p>
+            </div>
+            <div class="actions">
+              <a class="btn primary" href="./pvz3_water_sort_solver.html">Open</a>
+            </div>
+          </div>
+
+          <div class="tool">
+            <div>
+              <h2>PVZ3 Decode Solver</h2>
+              <p data-lang="zh">配套的卡牌反馈推演工具。</p>
+              <p data-lang="en">Companion feedback / decoding solver.</p>
+            </div>
+            <div class="actions">
+              <a class="btn primary" href="./pvz3_decode_solver.html">Open</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="links">
+          <a class="link-row" href="./README.zh-CN.md">
+            <div>
+              中文说明
+              <small data-lang="zh">更适合中文读者的仓库说明</small>
+              <small data-lang="en">Repository overview in Chinese</small>
+            </div>
+            <span>→</span>
+          </a>
+          <a class="link-row" href="./README.md">
+            <div>
+              English README
+              <small data-lang="zh">英文版仓库说明</small>
+              <small data-lang="en">English repository overview</small>
+            </div>
+            <span>→</span>
+          </a>
+          <a class="link-row" href="./docs/copy-review.md">
+            <div>
+              文案审查
+              <small data-lang="zh">标题、按钮、提示文案替换建议</small>
+              <small data-lang="en">Copy review and replacement notes</small>
+            </div>
+            <span>→</span>
+          </a>
+        </div>
+
+        <div class="meta" data-lang="zh">
+          建议直接用这个首页作为 GitHub Pages 的公开入口。
+        </div>
+        <div class="meta" data-lang="en">
+          Use this page as the public GitHub Pages entry point.
+        </div>
+      </aside>
+    </div>
+
+    <div class="foot" data-lang="zh">粉丝向项目，与 PopCap、EA 或官方 Plants vs. Zombies 团队无关。</div>
+    <div class="foot" data-lang="en">Fan-made project. Not affiliated with PopCap, EA, or the official Plants vs. Zombies team.</div>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const btnZh = document.getElementById('btnZh');
+    const btnEn = document.getElementById('btnEn');
+
+    function setLang(lang) {
+      const isEn = lang === 'en';
+      root.classList.toggle('en', isEn);
+      btnZh.classList.toggle('active', !isEn);
+      btnEn.classList.toggle('active', isEn);
+      localStorage.setItem('pvz3-pages-lang', lang);
+      document.documentElement.lang = isEn ? 'en' : 'zh-CN';
+    }
+
+    btnZh.addEventListener('click', () => setLang('zh'));
+    btnEn.addEventListener('click', () => setLang('en'));
+
+    setLang(localStorage.getItem('pvz3-pages-lang') || 'zh');
+  </script>
+</body>
+</html>
