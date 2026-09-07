@@ -372,33 +372,33 @@ header {
   transform: translateX(-50%);
   z-index: 8;
   pointer-events: none;
-  color: #ffffff;
+  color: #fde047;
   font-size: 2.45rem;
   font-weight: 900;
   line-height: 1;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.95), 0 0 28px rgba(184, 210, 232, 0.55), 0 4px 10px rgba(0, 0, 0, 0.76);
+  text-shadow: 0 0 16px rgba(250, 204, 21, 0.95), 0 0 30px rgba(253, 224, 71, 0.85), 0 4px 10px rgba(0, 0, 0, 0.85);
 }
 .tube-wrapper.source-highlight .tube-glass {
-  border-left-color: rgba(255, 255, 255, 0.58) !important;
-  border-right-color: rgba(255, 255, 255, 0.58) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.66) !important;
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.50), 0 0 22px rgba(255, 255, 255, 0.22);
-}
-.tube-wrapper.target-highlight .tube-glass {
   border-left-color: #ffffff !important;
   border-right-color: #ffffff !important;
   border-bottom-color: #ffffff !important;
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.44), 0 0 34px rgba(255, 255, 255, 0.46), 0 0 58px rgba(184, 210, 232, 0.26);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.45), 0 0 32px rgba(255, 255, 255, 0.85), 0 0 55px rgba(255, 255, 255, 0.45);
+}
+.tube-wrapper.target-highlight .tube-glass {
+  border-left-color: #facc15 !important;
+  border-right-color: #facc15 !important;
+  border-bottom-color: #fde047 !important;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.44), 0 0 34px rgba(250, 204, 21, 0.88), 0 0 58px rgba(234, 179, 8, 0.55);
 }
 .tube-wrapper.source-highlight .tube-lip {
-  border-color: rgba(255, 255, 255, 0.58) !important;
-  background: rgba(71, 85, 105, 0.70);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.18);
+  border-color: #ffffff !important;
+  background: rgba(148, 163, 184, 0.85);
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.80), 0 0 36px rgba(255, 255, 255, 0.45);
 }
 .tube-wrapper.target-highlight .tube-lip {
-  border-color: #ffffff !important;
-  background: rgba(71, 85, 105, 0.84);
-  box-shadow: 0 0 22px rgba(255, 255, 255, 0.48), 0 0 38px rgba(184, 210, 232, 0.26);
+  border-color: #fde047 !important;
+  background: rgba(161, 98, 7, 0.55);
+  box-shadow: 0 0 22px rgba(250, 204, 21, 0.88), 0 0 38px rgba(234, 179, 8, 0.55);
 }
 
 .tube-wrapper.invalid-physics .tube-glass {
@@ -427,7 +427,6 @@ header {
   gap: 3px;
   box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  transition: border-color 0.2s, box-shadow 0.2s;
   cursor: pointer;
 }
 
@@ -3036,6 +3035,7 @@ function playSequentialPourAnimation(move, beforeState, afterState, onFinish) {
   boardState = beforeState.map(t => [...t]);
   updateTubeSlotsVisual();
 
+  const PRE_POUR_DELAY = 140;      // 毫秒：高光瞬间切换就绪后，给视觉一个清晰的微小顿挫(140ms)，随即开始倾倒
   const UNIT_DRAIN_DURATION = 360; // 源瓶单格消失耗时
   const FILL_DELAY = 180;          // 液体落入目标瓶的微小视觉延迟
   const UNIT_FILL_DURATION = 360;  // 目标瓶单格涌起耗时
@@ -3121,7 +3121,14 @@ function playSequentialPourAnimation(move, beforeState, afterState, onFinish) {
     window.setTimeout(runNextDrop, STEP_INTERVAL);
   }
 
-  runNextDrop();
+  // 严格按顺序执行：先让瓶位白/黄高光就绪并稳定，再开始倾倒水流
+  window.setTimeout(() => {
+    if (token !== stepAnimationToken) {
+      isStepAnimating = false;
+      return;
+    }
+    runNextDrop();
+  }, PRE_POUR_DELAY);
 }
 
 function commitStepTargetsAndRefillCue(move) {
@@ -3159,7 +3166,7 @@ function showStep(stepIdx, animate = true) {
   const activeEl = document.getElementById(`step-item-${stepIdx}`);
   if (activeEl) {
     activeEl.classList.add('active');
-    activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
   }
 
   const move = currentPlan[stepIdx];
