@@ -481,6 +481,25 @@ header {
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.4), inset 0 0 6px rgba(239, 68, 68, 0.2);
 }
 
+.slot-box.slot-locked .btn-slot-clear,
+.slot-box.slot-locked .fb-btn:disabled {
+  cursor: not-allowed;
+}
+
+.slot-box.slot-locked .btn-slot-clear {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.slot-box.slot-locked .component-half,
+.slot-box.slot-locked .slot-fusion-target {
+  cursor: not-allowed;
+}
+
+.slot-box.slot-locked .fb-btn:disabled:not(.selected) {
+  opacity: 0.38;
+}
+
 /* Plant Selector Bar at Bottom */
 .plant-selector-card {
   background: var(--bg-surface);
@@ -1487,6 +1506,10 @@ let historyRounds = [];
 let candidates = [];
 let guessesLeft = 15;
 
+// A CORRECT result is permanent in the real game. Keep it separately from the
+// current round's feedback so later recommendations and UI resets cannot erase it.
+let lockedSlots = [null, null, null, null];
+
 // Best recommended guess for next round
 let recommendedGuess = GUARANTEED_OPENING_GUESS.slice();
 
@@ -1829,8 +1852,8 @@ function applyDecodeLanguage() {
 }
 
 function resetFeedbackButtons() {
-  currentGuess.forEach(s => {
-    s.fb = null;
+  currentGuess.forEach((s, idx) => {
+    s.fb = lockedSlots[idx] ? 'CORRECT' : null;
   });
 }
 
@@ -1851,6 +1874,8 @@ function handlePlantDrop(targetSlotIdx, targetHalf, dataTransfer) {
   }
 
   if (!data || !data.plantId) return;
+  if (lockedSlots[targetSlotIdx]) return;
+  if (data.type === 'slot' && lockedSlots[data.slotIdx]) return;
 
   const targetKey = (targetHalf === 1) ? 'p1' : 'p2';
 
@@ -1878,7 +1903,8 @@ function handlePlantDrop(targetSlotIdx, targetHalf, dataTransfer) {
 }
 
 function clearSlot(slotIdx) {
-  // 如果已确认为正确，清空时一并解除锁定
+  if (lockedSlots[slotIdx]) return;
+
   currentGuess[slotIdx].p1 = null;
   currentGuess[slotIdx].p2 = null;
   currentGuess[slotIdx].fb = null;
@@ -1898,10 +1924,11 @@ function renderSlots() {
 
   currentGuess.forEach((slot, idx) => {
     const isSlotFocused = (activeSlot === idx);
-    const isConfirmedCorrect = (slot.fb === 'CORRECT');
+    const isPermanentlyLocked = Boolean(lockedSlots[idx]);
+    const isConfirmedCorrect = isPermanentlyLocked || slot.fb === 'CORRECT';
     const state = getSlotState(slot);
     const box = document.createElement('div');
-    box.className = `slot-box ${state.status === 'invalid' ? 'invalid-fusion' : ''} ${isConfirmedCorrect ? 'slot-confirmed' : ''}`;
+    box.className = `slot-box ${state.status === 'invalid' ? 'invalid-fusion' : ''} ${isConfirmedCorrect ? 'slot-confirmed' : ''} ${isPermanentlyLocked ? 'slot-locked' : ''}`;
 
     let fusionCardHtml = '';
     if (state.status === 'fused') {
@@ -1932,7 +1959,7 @@ function renderSlots() {
     box.innerHTML = `
       <div class="slot-header">
         <span data-lock-label="${isConfirmedCorrect ? (uiLang === 'en' ? ' (locked)' : ' (已锁定)') : ''}">${copy.slotLabel(idx + 1)}</span>
-        <button class="btn-slot-clear" onclick="clearSlot(${idx})" title="${copy.clearSlot(idx + 1)}">${ICON_TRASH_SVG}</button>
+        <button class="btn-slot-clear" onclick="clearSlot(${idx})" title="${copy.clearSlot(idx + 1)}" ${isPermanentlyLocked ? 'disabled aria-disabled="true"' : ''}>${ICON_TRASH_SVG}</button>
       </div>
 
       <!-- Top Target: Fused Plant Box -->
@@ -1964,16 +1991,16 @@ function renderSlots() {
 
       <!-- Feedback Picker -->
       <div class="feedback-picker">
-        <button class="fb-btn correct ${slot.fb === 'CORRECT' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'CORRECT')">
+        <button class="fb-btn correct ${slot.fb === 'CORRECT' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'CORRECT')" ${isPermanentlyLocked ? 'disabled aria-disabled="true"' : ''}>
           ${FB_SVGS['CORRECT']} ${copy.feedbackLabels.CORRECT}
         </button>
-        <button class="fb-btn wrong-slot ${slot.fb === 'WRONG_SLOT' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'WRONG_SLOT')">
+        <button class="fb-btn wrong-slot ${slot.fb === 'WRONG_SLOT' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'WRONG_SLOT')" ${isPermanentlyLocked ? 'disabled aria-disabled="true"' : ''}>
           ${FB_SVGS['WRONG_SLOT']} ${copy.feedbackLabels.WRONG_SLOT}
         </button>
-        <button class="fb-btn partial ${slot.fb === 'PARTIAL' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'PARTIAL')">
+        <button class="fb-btn partial ${slot.fb === 'PARTIAL' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'PARTIAL')" ${isPermanentlyLocked ? 'disabled aria-disabled="true"' : ''}>
           ${FB_SVGS['PARTIAL']} ${copy.feedbackLabels.PARTIAL}
         </button>
-        <button class="fb-btn all-wrong ${slot.fb === 'ALL_WRONG' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'ALL_WRONG')">
+        <button class="fb-btn all-wrong ${slot.fb === 'ALL_WRONG' ? 'selected' : ''}" onclick="setSlotFeedback(${idx}, 'ALL_WRONG')" ${isPermanentlyLocked ? 'disabled aria-disabled="true"' : ''}>
           ${FB_SVGS['ALL_WRONG']} ${copy.feedbackLabels.ALL_WRONG}
         </button>
       </div>
@@ -2008,7 +2035,7 @@ function renderSlots() {
       const halfNum = hIdx + 1;
       const plantKey = (halfNum === 1) ? 'p1' : 'p2';
 
-      if (slot[plantKey]) {
+      if (slot[plantKey] && !isPermanentlyLocked) {
         halfEl.draggable = true;
 
         halfEl.addEventListener('dragstart', (e) => {
@@ -2081,12 +2108,16 @@ function renderSlots() {
 }
 
 function selectSlotHalf(slotIdx, half) {
+  if (lockedSlots[slotIdx]) return;
+
   activeSlot = slotIdx;
   activeHalf = half;
   renderSlots();
 }
 
 function setSlotFeedback(slotIdx, fbType) {
+  if (lockedSlots[slotIdx]) return;
+
   currentGuess[slotIdx].fb = fbType;
   renderSlots();
 }
@@ -2125,6 +2156,8 @@ function renderBasePalette() {
 
     card.onclick = () => {
       const editingSlot = activeSlot;
+      if (lockedSlots[editingSlot]) return;
+
       if (activeHalf === 1) {
         currentGuess[editingSlot].p1 = p.id;
         currentGuess[editingSlot].fb = null;
@@ -2187,8 +2220,8 @@ function submitCurrentFeedback() {
     return;
   }
 
-  const guessArr = currentGuess.map(s => normalizeFused(s.p1, s.p2));
-  const fbArr = currentGuess.map(s => s.fb);
+  const guessArr = currentGuess.map((s, idx) => lockedSlots[idx] || normalizeFused(s.p1, s.p2));
+  const fbArr = currentGuess.map((s, idx) => lockedSlots[idx] ? 'CORRECT' : s.fb);
 
   // Check empty slots, single-card incomplete slots, and invalid fusions
   for (let i = 0; i < 4; i++) {
@@ -2254,8 +2287,15 @@ function submitCurrentFeedback() {
     candsAfter: candidates.length
   });
 
+  fbArr.forEach((fb, idx) => {
+    if (fb === 'CORRECT') {
+      lockedSlots[idx] = guessArr[idx];
+    }
+  });
+
   if (candidates.length === 1) {
     recommendedGuess = candidates[0];
+    lockedSlots = candidates[0].slice();
     applyRecommendedGuessToSlots();
     currentGuess.forEach(s => s.fb = 'CORRECT');
     setTimeout(() => {
@@ -2285,15 +2325,20 @@ function submitCurrentFeedback() {
   renderUI();
 }
 
-function applyRecommendedGuessToSlots(options = {}) {
-  const preserveCorrect = Boolean(options.preserveCorrect);
+function applyRecommendedGuessToSlots() {
   recommendedGuess.forEach((code, idx) => {
-    if (preserveCorrect && currentGuess[idx].fb === 'CORRECT') {
-      return;
-    }
-    currentGuess[idx].p1 = code[0];
-    currentGuess[idx].p2 = code[1];
+    const appliedCode = lockedSlots[idx] || code;
+    currentGuess[idx].p1 = appliedCode[0];
+    currentGuess[idx].p2 = appliedCode[1];
   });
+
+  if (lockedSlots[activeSlot]) {
+    const firstUnlockedSlot = lockedSlots.findIndex(code => !code);
+    if (firstUnlockedSlot !== -1) {
+      activeSlot = firstUnlockedSlot;
+      activeHalf = 1;
+    }
+  }
 }
 
 function pickEvenly(arr, limit) {
@@ -2325,7 +2370,7 @@ function addRecommendationRulesFromRound(rules, guessArr, fbArr) {
 
 function getRecommendationRules() {
   const rules = {
-    locked: [null, null, null, null],
+    locked: lockedSlots.slice(),
     discouragedAtSlot: [new Set(), new Set(), new Set(), new Set()]
   };
 
@@ -2403,7 +2448,7 @@ function isGuaranteedOpeningHistoryActive() {
          getGuessKey(historyRounds[0].guess) === getGuessKey(GUARANTEED_OPENING_GUESS);
 }
 
-function findOneRoundSeparatorGuess(cands) {
+function findOneRoundSeparatorGuess(cands, recommendationRules) {
   if (!cands || cands.length === 0) return null;
   if (cands.length === 1) return cands[0];
   if (cands.length > 256) return null;
@@ -2413,6 +2458,10 @@ function findOneRoundSeparatorGuess(cands) {
   buildCandidateSpace().forEach(g => searchByKey.set(getGuessKey(g), g));
 
   for (const g of searchByKey.values()) {
+    if (!guessMatchesLockedSlots(g, recommendationRules)) {
+      continue;
+    }
+
     const seenFeedback = new Set();
     let separatesAll = true;
 
@@ -2433,17 +2482,19 @@ function findOneRoundSeparatorGuess(cands) {
   return null;
 }
 
-function getGuaranteedPlanGuess(cands) {
+function getGuaranteedPlanGuess(cands, recommendationRules) {
   if (!isGuaranteedOpeningHistoryActive()) return null;
 
   if (historyRounds.length === 1) {
     const key = feedbackKey(historyRounds[0].fb);
     const planned = GUARANTEED_SECOND_GUESS_BY_FIRST_FEEDBACK[key];
-    return planned ? planned.slice() : null;
+    // The lookup table was generated without the game's permanent-slot lock.
+    // Never use a shortcut row that asks the player to replace a CORRECT slot.
+    return planned && guessMatchesLockedSlots(planned, recommendationRules) ? planned.slice() : null;
   }
 
   if (historyRounds.length === 2) {
-    return findOneRoundSeparatorGuess(cands);
+    return findOneRoundSeparatorGuess(cands, recommendationRules);
   }
 
   return null;
@@ -2454,10 +2505,9 @@ function calculateNextBestGuess(cands, previousGuess) {
   if (!cands || cands.length === 0) return GUARANTEED_OPENING_GUESS.slice();
   if (cands.length === 1) return cands[0];
 
-  const guaranteedPlanGuess = getGuaranteedPlanGuess(cands);
-  if (guaranteedPlanGuess) return guaranteedPlanGuess;
-
   const recommendationRules = getRecommendationRules();
+  const guaranteedPlanGuess = getGuaranteedPlanGuess(cands, recommendationRules);
+  if (guaranteedPlanGuess) return guaranteedPlanGuess;
 
   if (cands.length === 2) {
     const prevKey = previousGuess ? previousGuess.join('-') : '';
@@ -2533,6 +2583,7 @@ document.getElementById('btnResetGame').onclick = () => {
   guessesLeft = 15;
   document.getElementById('txtGuessCount').textContent = '15/15';
   historyRounds = [];
+  lockedSlots = [null, null, null, null];
   activeFeedbackMode = 'strict_exact';
   initCandidateSpace();
   recommendedGuess = GUARANTEED_OPENING_GUESS.slice();
