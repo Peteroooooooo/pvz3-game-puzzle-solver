@@ -15,7 +15,7 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 - PVZ3-style refill-aware water sort logic
 - A* search strategies for puzzle solving
 - Water sort benchmark: 100 runs, 100% solved, 25.3 average steps, 12.0 average refill units
-- Decoder strategy: 4-round lock target
+- Default strict-feedback decoder strategy: all 11,880 valid non-repeating secrets are guaranteed to finish within 4 rounds under permanent correct-slot locks
 - Browser-only, no install required
 - Friendly for GitHub Pages deployment
 
