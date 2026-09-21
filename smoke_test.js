@@ -1,106 +1,79 @@
+'use strict';
+
+const assert = require('assert');
 const fs = require('fs');
-const html = fs.readFileSync('d:/Desktop/Experiment Lab/PVZ3 tools/pvz3_water_sort_solver.html', 'utf8');
-const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/);
-// Replace top level `let ` with `var ` for VM inspection
-const code = scriptMatch[1].replace(/^(let|const) /gm, 'var ');
+const path = require('path');
+const engine = require('./water_solver_engine.js');
 
-// Mock DOM
-let mockElements = {};
-function createMockEl(id) {
-  return {
-    id,
-    classList: {
-      add: () => {},
-      remove: () => {},
-      toggle: () => {},
-      replace: () => {}
-    },
-    style: {},
-    textContent: '',
-    innerHTML: '',
-    appendChild: () => {},
-    querySelectorAll: () => [],
-    onclick: null,
-    onchange: null
-  };
+const projectDir = __dirname;
+const htmlPath = path.join(projectDir, 'pvz3_water_sort_solver.html');
+const html = fs.readFileSync(htmlPath, 'utf8');
+
+assert.ok(html.includes('<script src="./water_solver_engine.js"></script>'));
+assert.ok(html.includes('value="exact_refill" selected'));
+assert.ok(html.includes('value="static_optimal"'));
+assert.ok(html.includes('id="solverCertificate"'));
+
+const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
+assert.ok(inlineScripts.length > 0);
+for (const [, source] of inlineScripts) {
+  assert.doesNotThrow(() => new Function(source));
 }
 
-const sandbox = {
-  document: {
-    querySelectorAll: () => [],
-    getElementById: (id) => {
-      if (!mockElements[id]) mockElements[id] = createMockEl(id);
-      return mockElements[id];
-    },
-    createElement: (tag) => createMockEl('tag-' + tag)
-  },
-  window: {
-    onload: null,
-    addEventListener: () => {}
-  },
-  setInterval: () => 1,
-  clearInterval: () => {}
-};
+const sampleBoard = [
+  ['G', 'B', 'O', 'R'],
+  ['B', 'O', 'R', 'G'],
+  ['O', 'R', 'G', 'B'],
+  ['R', 'G', 'B', 'O'],
+  [], [], []
+];
+const sampleTargets = [
+  { tubeIdx: 0, color: 'G' },
+  { tubeIdx: 1, color: 'B' },
+  { tubeIdx: 2, color: 'O' },
+  { tubeIdx: 3, color: 'R' }
+];
 
-const vm = require('vm');
-const context = vm.createContext(sandbox);
-vm.runInContext(code, context);
+const staticResult = engine.solveStaticOptimal(sampleBoard, sampleTargets, {
+  timeLimitMs: 10000,
+  finalNodeLimit: 1000000
+});
+assert.strictEqual(staticResult.plan.length, 13);
+assert.strictEqual(staticResult.certificate.provenOptimal, true);
 
-// Initialize application
-sandbox.window.onload();
+const fastResult = engine.solveNextClearFast(sampleBoard, sampleTargets, {
+  timeLimitMs: 150,
+  maxStageNodes: 10000,
+  maxStageCandidates: 30,
+  stageDepthSlack: 4
+});
+assert.ok(fastResult.plan.length > 0);
+assert.ok(fastResult.plan[fastResult.plan.length - 1].clearedColor);
 
-console.log('=== Running PvZ 3 Water Sort Solver Smoke Test Suite ===');
+const policyResult = engine.solveRefillPolicy(sampleBoard, sampleTargets, {
+  timeLimitMs: 1000,
+  maxStageNodes: 7000,
+  maxStageCandidates: 24,
+  maxCandidatesEvaluated: { 4: 3, 3: 3, 2: 5 },
+  finalNodeLimit: 80000,
+  greedyNodeLimit: 5000,
+  greedyCandidateLimit: 10,
+  upperFraction: 0.7
+});
+assert.ok(policyResult.plan.length > 0);
+assert.ok(policyResult.certificate.lowerBound > 0);
 
-// Test 1: Empty board check
-console.log('Test 1: Empty board validation');
-context.solvePuzzle();
-console.log('Test 1 Passed: handled empty board without crash');
-
-// Test 2: Standard puzzle generation
-console.log('Test 2: Standard random PvZ3 puzzle generation');
-sandbox.document.getElementById('btnRandomPuzzle').onclick();
-console.log('Test 2 Passed: generated 7 tubes board with 4 target recipes');
-
-// Test 3: Solve generated puzzle
-console.log('Test 3: Planning optimal route for target recipe');
-context.solvePuzzle();
-const solution = context.currentSolution;
-console.log('Test 3 Result: Found steps =', solution.length, 'Best target tube =', context.currentPhaseTarget ? context.currentPhaseTarget.tubeIdx + 1 : 'none');
-if (!solution || solution.length === 0) {
-  throw new Error('Test 3 Failed: solver did not find solution for fresh board!');
-}
-console.log('Test 3 Passed!');
-
-// Test 4: Simulate clear and refill
-console.log('Test 4: Simulating PvZ3 clear and refill mechanics');
-const movesSpentBefore = context.userTotalMovesSpent;
-sandbox.document.getElementById('btnSimulateRefill').onclick();
-console.log(`Test 4 Passed: cleared target tube, applied refill, moves spent increased from ${movesSpentBefore} to ${context.userTotalMovesSpent}`);
-
-// Test 5: Re-solve after refill
-console.log('Test 5: Re-solving after refill');
-context.solvePuzzle();
-console.log('Test 5 Passed: step count =', context.currentSolution.length);
-
-// Test 6: Reset initial state
-console.log('Test 6: Reset to initial state and moves reset');
-sandbox.document.getElementById('btnResetToInit').onclick();
-if (context.userTotalMovesSpent !== 0) {
-  throw new Error('Test 6 Failed: userTotalMovesSpent was not reset!');
-}
-console.log('Test 6 Passed: board and moves reset successfully!');
-
-// Test 7: Moves Budget Tracker check
-console.log('Test 7: Moves Budget Tracker Verification');
-sandbox.document.getElementById('inputMovesBudget').onchange({ target: { value: '25' } });
-context.updateMovesDisplay(10);
-const badgeText = sandbox.document.getElementById('statMovesBudget').textContent;
-console.log('Badge text after reset to 0 spent and 25 budget:', badgeText);
-if (badgeText !== '剩余: 25步') {
-  throw new Error('Test 7 Failed: badge text does not reflect remaining moves!');
-}
-console.log('Test 7 Passed!');
-
-console.log('==================================================');
-console.log('🎉 ALL 7 SMOKE TESTS PASSED WITH ZERO ERRORS!');
-console.log('==================================================');
+console.log(JSON.stringify({
+  staticShortest: staticResult.plan.length,
+  staticProven: staticResult.certificate.provenOptimal,
+  nextClearSteps: policyResult.plan.length,
+  deliberateSetupSteps: policyResult.certificate.deliberateSetupSteps,
+  fullShields: policyResult.certificate.fullShieldCount,
+  refillOutcomes: policyResult.certificate.refillOutcomeCount,
+  guaranteed: policyResult.certificate.guaranteed,
+  expectedLower: policyResult.certificate.lowerBound,
+  expectedUpper: Number.isFinite(policyResult.certificate.upperBound)
+    ? policyResult.certificate.upperBound
+    : null
+}, null, 2));
+console.log('smoke_test: PASS');

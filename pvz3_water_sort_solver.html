@@ -789,6 +789,41 @@ header {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+.solver-certificate {
+  display: none;
+  padding: 11px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  background: rgba(14, 165, 233, 0.07);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.solver-certificate.visible {
+  display: block;
+}
+
+.solver-certificate.proven {
+  border-color: rgba(52, 211, 153, 0.42);
+  background: rgba(16, 185, 129, 0.09);
+}
+
+.solver-certificate .certificate-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.solver-certificate .certificate-good {
+  color: #34d399;
+}
+
+.solver-certificate .certificate-warn {
+  color: #fbbf24;
+}
+
 /* Step Action Card (Huge Banner) */
 .action-hero-card {
   background: var(--bg-elevated);
@@ -1081,7 +1116,7 @@ header {
     <div class="brand-badge">🧪</div>
     <div>
       <div class="brand-title" id="brandTitle">PVZ3 游戏谜题求解器</div>
-      <div class="brand-sub" id="brandSub">REFILL-AWARE WATER SORT · A* SEARCH</div>
+      <div class="brand-sub" id="brandSub">REFILL-AWARE WATER SORT · POLICY BOUNDS</div>
     </div>
   </div>
 
@@ -1091,7 +1126,7 @@ header {
     <button class="btn btn-subtle" id="btnSampleBoard">📋 示例关卡</button>
     <button class="btn" id="btnRandomLevel" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 600;" title="Generate a solvable random puzzle (R)">🎲 生成随机关卡</button>
     <button class="btn" id="btnRandomRefill" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(56, 189, 248, 0.25)); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.5); font-weight: 600;" title="Simulate a 4-unit refill after a recipe clear (F)">💧 模拟加料</button>
-    <button class="btn btn-primary" id="btnRunSolve">⚡ 求解最短路径</button>
+    <button class="btn btn-primary" id="btnRunSolve">⚡ 求解最优策略</button>
     <div class="lang-switch" aria-label="Language switcher">
       <button id="btnLangZh" type="button">中文</button>
       <button id="btnLangEn" type="button">English</button>
@@ -1109,8 +1144,16 @@ header {
         <span class="stat-pill"><span id="boardLabel">盘面</span>: <b id="boardShapeLabel">7 瓶 (上 3 / 下 4)</b></span>
         <span class="stat-pill"><span id="strategyLabel">算法策略</span>:
           <select id="selectAlgorithmStrategy" style="background: var(--bg-surface); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
-            <option value="exact_refill" selected>🧮 PVZ3 加料感知 A*</option>
-            <option value="classic">⚡ 基线 A* Search</option>
+            <option value="exact_refill" selected>🛡️ 满瓶屏蔽策略</option>
+            <option value="static_optimal">✅ 静态最短（可证明）</option>
+            <option value="classic">⚡ 旧版快速 A*</option>
+          </select>
+        </span>
+        <span class="stat-pill"><span id="budgetLabel">搜索预算</span>:
+          <select id="selectSearchBudget" style="background: var(--bg-surface); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
+            <option value="balanced" selected>平衡 · 4 秒</option>
+            <option value="deep">深入 · 15 秒</option>
+            <option value="proof">证明优先 · 60 秒</option>
           </select>
         </span>
       </div>
@@ -1168,9 +1211,11 @@ header {
       <!-- Big Visual Action Instruction -->
       <div class="action-hero-card" id="heroCard">
         <div class="action-step-num" id="heroStepNum">等待求解</div>
-        <div class="action-instruction" id="heroText">点击「⚡ 求解最短路径」</div>
+        <div class="action-instruction" id="heroText">点击「⚡ 求解最优策略」</div>
         <div class="action-sub" id="heroSub">系统将规划达成目标配方的倾倒路径，并在加料后支持继续求解</div>
       </div>
+
+      <div class="solver-certificate" id="solverCertificate"></div>
 
       <!-- Stepper Controls (仅保留明确的大号向左/向右导航键) -->
       <div class="stepper-controls">
@@ -1251,6 +1296,7 @@ header {
   </div>
 </div>
 
+<script src="./water_solver_engine.js"></script>
 <script>
 // ==========================================
 // 1. CONSTANTS & GAME DEFINITION
@@ -1278,14 +1324,19 @@ const WATER_COPY = {
     sample: '📋 示例关卡',
     random: '🎲 生成随机关卡',
     refill: '💧 模拟加料',
-    solve: '⚡ 求解最短路径',
+    solve: '⚡ 求解最优策略',
     langZh: '中文',
     langEn: 'English',
     boardLabel: '盘面',
     boardShape: '7 瓶 (上 3 / 下 4)',
     strategyLabel: '算法策略',
-    exactStrategy: '🧮 PVZ3 加料感知 A*',
-    classicStrategy: '⚡ 基线 A* Search',
+    exactStrategy: '🛡️ 满瓶屏蔽策略',
+    staticOptimalStrategy: '✅ 静态最短（可证明）',
+    classicStrategy: '⚡ 旧版快速 A*',
+    budgetLabel: '搜索预算',
+    budgetBalanced: '平衡 · 4 秒',
+    budgetDeep: '深入 · 15 秒',
+    budgetProof: '证明优先 · 60 秒',
     smokeOpen: '📊 100 局模拟测试',
     smokeOpenTitle: '在当前浏览器里运行 100 局随机模拟',
     undoTitle: '撤销上一步 (Ctrl+Z)',
@@ -1293,18 +1344,18 @@ const WATER_COPY = {
     sampleTitle: '加载示例关卡',
     randomTitle: '生成可解随机关卡',
     refillButtonTitle: '模拟一次 4 格加料',
-    solveTitle: '寻找当前盘面的最短路径',
+    solveTitle: '求解当前盘面的加料策略或可证明静态最短路',
     paletteLabel: '当前涂料',
     paletteTip: '数字 1~5 换色 · 左键填充单格 · 右键清空单格 · 双击填满整瓶',
     planTitle: '📋 求解步骤',
     unsolved: '未求解',
     waitingSolve: '等待求解',
-    clickSolve: '点击「⚡ 求解最短路径」',
+    clickSolve: '点击「⚡ 求解最优策略」',
     solveHint: '系统将规划达成目标配方的倾倒路径，并在加料后支持继续求解',
     prev: '上一步',
     next: '下一步',
     noSteps: '暂无步骤记录',
-    mechanicHtml: '<b>💡 求解策略说明：</b><br>1. <b>PVZ3 加料感知 A*</b>：默认策略会规划到下一次配方完成，并评估完成后的 4 格加料分支。<br>2. <b>基线 A* Search</b>：用于静态盘面的最短路径对照，不额外评估后续加料风险。<br>3. <b>加料后继续求解</b>：配方完成后，可使用顶部「💧 模拟加料」或各瓶「+加料」更新盘面，再重新求解。',
+    mechanicHtml: '<b>💡 求解策略说明：</b><br>1. <b>满瓶屏蔽策略</b>：允许在清瓶前主动多走几步制造满瓶护盾，并精确展开所有随机加料落点。<br>2. <b>静态最短</b>：忽略未来加料，对当前静态盘面给出可证明的最短路线。<br>3. <b>最优差距</b>：上下界相等时才标记「已证明最优」；否则显示当前策略与理论下界的差距。',
     smokeTitle: '📊 100 局随机模拟测试',
     smokeIntro: '将连续生成 <b>100 局随机 4 色盘面</b>。每局在配方完成后，按照已建模的 PVZ3 加料规则<b>排除刚清空的瓶位</b>，并向其余未满瓶<b>分批加入共 4 格</b>刚完成的颜色，用于评估策略成功率和平均步数。',
     smokePass: '通关胜率',
@@ -1331,11 +1382,14 @@ const WATER_COPY = {
     refillFilled: (tube, color) => `已向${tube}顶部注入 1 格【${color}】`,
     emptyBoard: '当前盘面全空，请先填入试管液体或点击顶部「示例关卡」！',
     noTarget: '请至少为一个试管指定目标配方颜色（瓶子下方的选择器）！',
+    duplicateTargets: '当前加料概率模型要求每个目标配方使用不同颜色；请先调整重复的目标颜色。',
     shortage: (color, count) => `无法推演：【${color}】全场总共只有 ${count} 格，不足以集满 4 格配方！请补齐颜色。`,
-    solvingExact: '🧮 正在评估配方完成后的 4 格加料分支，并使用 A* 继续求解...',
-    solvingClassic: '⚡ 正在运行基线 A* Search...',
-    plannedNext: steps => `🧮 已规划到下一次配方完成，共 ${steps} 步。完成后请按实际加料结果更新盘面，再继续求解。`,
-    foundPath: steps => `🎉 已找到可行最短路径，共 ${steps} 步。请点击右侧「下一步 ▶」查看操作。`,
+    solvingExact: '🛡️ 正在比较立即清瓶与满瓶屏蔽路线，并展开全部随机加料结果...',
+    solvingStatic: '✅ 正在搜索并证明当前静态盘面的最短路线...',
+    solvingClassic: '⚡ 正在运行旧版快速 A*...',
+    plannedNext: steps => `🛡️ 已规划到下一次配方完成，共 ${steps} 步。完成后请按实际加料结果更新盘面，再继续求解。`,
+    foundPath: steps => `🎉 已找到一条 ${steps} 步路线。请点击右侧「下一步 ▶」查看操作。`,
+    foundProvenPath: steps => `✅ 已找到并证明静态最短路线，共 ${steps} 步。`,
     nextClearBadge: steps => `下次消除 ${steps} 步`,
     totalStepsBadge: steps => `共 ${steps} 步`,
     readyStart: '已准备 · 点击「下一步 ▶」开始',
@@ -1352,11 +1406,11 @@ const WATER_COPY = {
     readyStep1: '准备执行第 1 步',
     pressNext: '请点击「下一步 ▶」或按键盘右箭头开始',
     clearBoardNotice: '盘面已清空。可手动录入当前关卡，或点击「🎲 生成随机关卡」。',
-    sampleNotice: '示例关卡已加载。可点击「求解最短路径」开始计算。',
+    sampleNotice: '示例关卡已加载。可点击「求解最优策略」开始计算。',
     randomGenerated: (colors, filled, empty, steps) => `🎲 <b>随机关卡已生成。</b><br>颜色：${colors}<br>初始装水瓶：<b>${filled}</b>；空瓶：<b>${empty}</b>。<br>已通过 A* 验证可解，参考步数约 ${steps} 步。`,
     refillNone: '⚠️ 除刚清空的瓶位外，当前没有可承接喷料的未满瓶；本轮加料视为 0 格。',
     excludedTube: tube => `已排除刚清空的${tube}；`,
-    refillDone: (count, colorHtml, tubes) => `💧 <b>加料已模拟。</b>{excluded}本轮共加入 <b>${count}</b> 格【${colorHtml}】，位置：${tubes}。可点击「⚡ 求解最短路径」重新规划。`,
+    refillDone: (count, colorHtml, tubes) => `💧 <b>加料已模拟。</b>{excluded}本轮共加入 <b>${count}</b> 格【${colorHtml}】，位置：${tubes}。可点击「⚡ 求解最优策略」重新规划。`,
     physicalOne: (tube, gap, bad) => `${tube} 不符合物理规律：从下往上第 ${gap} 格是空的，但第 ${bad} 格上方已经有液体。`,
     physicalPrefix: '❌ 盘面不符合物理规律：',
     physicalTail: count => `，另外还有 ${count} 个瓶子也不合法`,
@@ -1374,14 +1428,19 @@ const WATER_COPY = {
     sample: '📋 Sample board',
     random: '🎲 Random level',
     refill: '💧 Simulate refill',
-    solve: '⚡ Solve shortest path',
+    solve: '⚡ Solve optimal policy',
     langZh: '中文',
     langEn: 'English',
     boardLabel: 'Board',
     boardShape: '7 tubes (top 3 / bottom 4)',
     strategyLabel: 'Strategy',
-    exactStrategy: '🧮 PVZ3 refill-aware A*',
-    classicStrategy: '⚡ Baseline A* Search',
+    exactStrategy: '🛡️ Shield-aware refill policy',
+    staticOptimalStrategy: '✅ Proven static shortest',
+    classicStrategy: '⚡ Legacy fast A*',
+    budgetLabel: 'Search budget',
+    budgetBalanced: 'Balanced · 4 sec',
+    budgetDeep: 'Deep · 15 sec',
+    budgetProof: 'Proof-first · 60 sec',
     smokeOpen: '📊 100-run test',
     smokeOpenTitle: 'Run 100 random simulations in this browser',
     undoTitle: 'Undo previous action (Ctrl+Z)',
@@ -1389,18 +1448,18 @@ const WATER_COPY = {
     sampleTitle: 'Load sample board',
     randomTitle: 'Generate a solvable random level',
     refillButtonTitle: 'Simulate one 4-block refill',
-    solveTitle: 'Find the shortest path for the current board',
+    solveTitle: 'Solve a refill-aware policy or prove the static shortest route',
     paletteLabel: 'Current paint',
     paletteTip: 'Keys 1-5 switch color · Left click fills one slot · Right click clears one slot · Double click fills the tube',
     planTitle: '📋 Solution steps',
     unsolved: 'Unsolved',
     waitingSolve: 'Waiting',
-    clickSolve: 'Click “⚡ Solve shortest path”',
+    clickSolve: 'Click “⚡ Solve optimal policy”',
     solveHint: 'The solver plans a pouring path to the target recipe, then supports continuing after refills.',
     prev: 'Previous',
     next: 'Next',
     noSteps: 'No steps yet',
-    mechanicHtml: '<b>💡 Strategy notes:</b><br>1. <b>PVZ3 refill-aware A*</b>: the default strategy plans to the next recipe clear and evaluates the 4-block refill branches after that clear.<br>2. <b>Baseline A* Search</b>: a shortest-path reference for static boards, without extra refill-risk evaluation.<br>3. <b>Continue after refill</b>: after a recipe clears, use the top “💧 Simulate refill” button or each tube’s “+Refill” button to update the board, then solve again.',
+    mechanicHtml: '<b>💡 Strategy notes:</b><br>1. <b>Shield-aware policy</b>: may deliberately spend extra setup moves to fill shield tubes, then evaluates every modeled refill outcome.<br>2. <b>Proven static shortest</b>: ignores future refills and proves the shortest route for the current static board.<br>3. <b>Optimality gap</b>: “proven optimal” appears only when the lower and upper bounds meet; otherwise the remaining gap is shown.',
     smokeTitle: '📊 100-run random simulation',
     smokeIntro: 'This will generate <b>100 random 4-color boards</b>. After each recipe clear, the modeled PVZ3 refill rule <b>excludes the just-cleared tube</b> and then <b>adds 4 total blocks</b> of the cleared color across the remaining non-full tubes, to measure success rate and average steps.',
     smokePass: 'Clear rate',
@@ -1427,11 +1486,14 @@ const WATER_COPY = {
     refillFilled: (tube, color) => `Added 1 block of [${color}] to the top of ${tube}`,
     emptyBoard: 'The board is empty. Fill the tubes first or click “Sample board” in the top bar.',
     noTarget: 'Assign at least one target recipe color to a tube using the selector below each tube.',
+    duplicateTargets: 'The refill probability model requires distinct colors for active target recipes. Remove duplicate target colors first.',
     shortage: (color, count) => `Cannot solve: there are only ${count} blocks of [${color}] on the board, not enough to build a 4-block recipe.`,
-    solvingExact: '🧮 Evaluating the 4-block refill branches after a recipe clear, then continuing with A*...',
-    solvingClassic: '⚡ Running baseline A* Search...',
-    plannedNext: steps => `🧮 Planned through the next recipe clear in ${steps} steps. After the real refill result, update the board and solve again.`,
-    foundPath: steps => `🎉 Found a valid shortest path in ${steps} steps. Use the right-side “Next ▶” button to step through it.`,
+    solvingExact: '🛡️ Comparing immediate clears with shield-building routes and expanding every refill outcome...',
+    solvingStatic: '✅ Searching for and proving the shortest route on the current static board...',
+    solvingClassic: '⚡ Running the legacy fast A*...',
+    plannedNext: steps => `🛡️ Planned through the next recipe clear in ${steps} steps. After the real refill result, update the board and solve again.`,
+    foundPath: steps => `🎉 Found a ${steps}-step route. Use the right-side “Next ▶” button to step through it.`,
+    foundProvenPath: steps => `✅ Found and proved a ${steps}-step static shortest route.`,
     nextClearBadge: steps => `Next clear in ${steps} steps`,
     totalStepsBadge: steps => `${steps} total steps`,
     readyStart: 'Ready · click “Next ▶” to start',
@@ -1448,11 +1510,11 @@ const WATER_COPY = {
     readyStep1: 'Ready to execute step 1',
     pressNext: 'Click “Next ▶” or press the right arrow key to start',
     clearBoardNotice: 'Board cleared. Enter the current puzzle manually, or click “🎲 Random level”.',
-    sampleNotice: 'Sample board loaded. Click “Solve shortest path” to start.',
+    sampleNotice: 'Sample board loaded. Click “Solve optimal policy” to start.',
     randomGenerated: (colors, filled, empty, steps) => `🎲 <b>Random level generated.</b><br>Colors: ${colors}<br>Filled tubes: <b>${filled}</b>; empty tubes: <b>${empty}</b>.<br>Validated solvable by A*, reference path is about ${steps} steps.`,
     refillNone: '⚠️ No non-full tube can take the refill except the one that was just cleared; this refill counts as 0 blocks.',
     excludedTube: tube => `Excluded the just-cleared ${tube}; `,
-    refillDone: (count, colorHtml, tubes) => `💧 <b>Refill simulated.</b>{excluded}Added <b>${count}</b> blocks of [${colorHtml}], at: ${tubes}. Click “⚡ Solve shortest path” to replan.`,
+    refillDone: (count, colorHtml, tubes) => `💧 <b>Refill simulated.</b>{excluded}Added <b>${count}</b> blocks of [${colorHtml}], at: ${tubes}. Click “⚡ Solve optimal policy” to replan.`,
     physicalOne: (tube, gap, bad) => `${tube} violates the physical stacking rule: layer ${gap} from the bottom is empty, but layer ${bad} above it has liquid.`,
     physicalPrefix: '❌ The board violates the physical stacking rule: ',
     physicalTail: count => `, plus ${count} more invalid tube(s)`,
@@ -1507,6 +1569,7 @@ function switchWaterLanguage(lang) {
       showStep(currentStepIdx, false);
     }
   }
+  if (currentSolverAnalysis) renderSolverCertificate(currentSolverAnalysis);
   updateNavButtonStates();
 }
 
@@ -1545,6 +1608,9 @@ let lastClearedColor = null; // 记录最近一次消除达成的配方颜色（
 let lastClearedTube = null; // 记录最近一次消除的瓶位：本轮随机加料不会喷回这个刚清空的瓶
 let isStepAnimating = false;
 let stepAnimationToken = 0;
+let solverWorker = null;
+let solverRequestId = 0;
+let currentSolverAnalysis = null;
 
 function applyWaterLanguage() {
   setWaterLang(uiLang);
@@ -1555,6 +1621,7 @@ function applyWaterLanguage() {
     boardLabel: copy.boardLabel,
     boardShapeLabel: copy.boardShape,
     strategyLabel: copy.strategyLabel,
+    budgetLabel: copy.budgetLabel,
     btnUndo: copy.undo,
     btnClearBoard: copy.clear,
     btnSampleBoard: copy.sample,
@@ -1585,9 +1652,17 @@ function applyWaterLanguage() {
   syncWaterLanguageButtons();
 
   const exactOption = document.querySelector('#selectAlgorithmStrategy option[value="exact_refill"]');
+  const staticOption = document.querySelector('#selectAlgorithmStrategy option[value="static_optimal"]');
   const classicOption = document.querySelector('#selectAlgorithmStrategy option[value="classic"]');
   if (exactOption) exactOption.textContent = copy.exactStrategy;
+  if (staticOption) staticOption.textContent = copy.staticOptimalStrategy;
   if (classicOption) classicOption.textContent = copy.classicStrategy;
+  const balancedOption = document.querySelector('#selectSearchBudget option[value="balanced"]');
+  const deepOption = document.querySelector('#selectSearchBudget option[value="deep"]');
+  const proofOption = document.querySelector('#selectSearchBudget option[value="proof"]');
+  if (balancedOption) balancedOption.textContent = copy.budgetBalanced;
+  if (deepOption) deepOption.textContent = copy.budgetDeep;
+  if (proofOption) proofOption.textContent = copy.budgetProof;
 
   const paletteLabel = document.getElementById('paletteLabel');
   if (paletteLabel) paletteLabel.textContent = copy.paletteLabel;
@@ -2045,6 +2120,12 @@ function runSolve() {
     return;
   }
 
+  const uniqueTargetColors = new Set(initialTargets.map(target => target.color));
+  if (uniqueTargetColors.size !== initialTargets.length) {
+    showNotice(copy.duplicateTargets, 'error');
+    return;
+  }
+
   // 检查每种目标颜色的总格数是否不少于 4
   const colorTotals = {};
   boardState.forEach(t => {
@@ -2065,49 +2146,301 @@ function runSolve() {
     ? document.getElementById('selectAlgorithmStrategy').value
     : EXACT_REFILL_STRATEGY;
   const isExactRefillStrategy = selectedStrategy === EXACT_REFILL_STRATEGY;
+  const isStaticOptimalStrategy = selectedStrategy === 'static_optimal';
 
   showNotice(
     isExactRefillStrategy
       ? copy.solvingExact
-      : copy.solvingClassic,
+      : (isStaticOptimalStrategy ? copy.solvingStatic : copy.solvingClassic),
     'success'
   );
 
-  // 异步执行避免 UI 冻结
+  puzzleInitialBoard = JSON.parse(JSON.stringify(boardState));
+  puzzleInitialTargets = [...targetRecipes];
+
+  if (isExactRefillStrategy || isStaticOptimalStrategy) {
+    runAdvancedSolver(
+      isStaticOptimalStrategy ? 'static-optimal' : 'refill-policy',
+      boardState,
+      initialTargets,
+      getAdvancedSearchOptions()
+    );
+    return;
+  }
+
+  // 旧版快速模式仍异步让出一次绘制机会，但不再宣称具备最短性证明。
   setTimeout(() => {
-    puzzleInitialBoard = JSON.parse(JSON.stringify(boardState));
-    puzzleInitialTargets = [...targetRecipes];
-    const solution = executeAStarSearch(boardState, initialTargets, selectedStrategy);
-    if (solution && solution.length > 0) {
-      currentPlan = solution;
-      currentStepIdx = -1;
-      const remainingAfterPlan = solution[solution.length - 1].remainingTargets
-        ? solution[solution.length - 1].remainingTargets.length
-        : 0;
-      const planBadge = isExactRefillStrategy && remainingAfterPlan > 0
-        ? copy.nextClearBadge(solution.length)
-        : copy.totalStepsBadge(solution.length);
-      document.getElementById('badgeStepCount').textContent = planBadge;
-      renderTimeline(solution);
+    const solution = executeAStarSearch(boardState, initialTargets, 'classic');
+    finishSolverResult({
+      kind: 'legacy',
+      plan: solution || [],
+      certificate: { provenOptimal: false },
+      stats: {}
+    }, selectedStrategy);
+  }, 30);
+}
 
-      // 保持停留在初始开局状态，绝对不自动倒出第 1 步！
-      document.getElementById('heroStepNum').textContent = planBadge;
-      document.getElementById('heroText').textContent = copy.readyStart;
-      const firstMove = solution[0];
-      const firstColorObj = COLOR_MAP[firstMove.color] || { name: firstMove.color };
-      document.getElementById('heroSub').textContent = copy.firstPreview(firstMove.from + 1, firstMove.to + 1, firstMove.amount, firstColorObj.name);
-      updateNavButtonStates();
+function getAdvancedSearchOptions() {
+  const budget = document.getElementById('selectSearchBudget')
+    ? document.getElementById('selectSearchBudget').value
+    : 'balanced';
 
-      if (isExactRefillStrategy && remainingAfterPlan > 0) {
-        showNotice(copy.plannedNext(solution.length), 'success');
-      } else {
-        showNotice(copy.foundPath(solution.length), 'success');
+  if (budget === 'proof') {
+    return {
+      timeLimitMs: 60000,
+      maxStageNodes: 250000,
+      maxStageCandidates: 1200,
+      stageDepthSlack: 24,
+      maxCandidatesEvaluated: { 4: 120, 3: 160, 2: 300 },
+      finalNodeLimit: 1500000,
+      greedyNodeLimit: 30000,
+      greedyCandidateLimit: 80,
+      greedyDepthSlack: 8,
+      upperFraction: 0.35
+    };
+  }
+
+  if (budget === 'deep') {
+    return {
+      timeLimitMs: 15000,
+      maxStageNodes: 70000,
+      maxStageCandidates: 240,
+      stageDepthSlack: 8,
+      maxCandidatesEvaluated: { 4: 24, 3: 30, 2: 60 },
+      finalNodeLimit: 600000,
+      greedyNodeLimit: 16000,
+      greedyCandidateLimit: 36,
+      greedyDepthSlack: 6,
+      upperFraction: 0.5
+    };
+  }
+
+  return {
+    timeLimitMs: 4000,
+    maxStageNodes: 20000,
+    maxStageCandidates: 60,
+    stageDepthSlack: 5,
+    maxCandidatesEvaluated: { 4: 6, 3: 5, 2: 10 },
+    finalNodeLimit: 180000,
+    greedyNodeLimit: 7000,
+    greedyCandidateLimit: 14,
+    greedyDepthSlack: 4,
+    upperFraction: 0.7
+  };
+}
+
+function cancelActiveSolver() {
+  solverRequestId++;
+  if (solverWorker) {
+    solverWorker.terminate();
+    solverWorker = null;
+  }
+  const solveButton = document.getElementById('btnRunSolve');
+  if (solveButton) solveButton.disabled = false;
+}
+
+function runAdvancedSolver(mode, tubes, targets, options) {
+  cancelActiveSolver();
+  const requestId = ++solverRequestId;
+  const solveButton = document.getElementById('btnRunSolve');
+  if (solveButton) solveButton.disabled = true;
+
+  const runOnMainThread = () => {
+    setTimeout(() => {
+      if (requestId !== solverRequestId) return;
+      try {
+        const engine = window.PVZ3WaterSolverEngine;
+        if (!engine) throw new Error('PVZ3WaterSolverEngine is unavailable');
+        const result = mode === 'static-optimal'
+          ? engine.solveStaticOptimal(tubes, targets, options)
+          : engine.solveRefillPolicy(tubes, targets, options);
+        finishSolverResult(result, mode === 'static-optimal' ? 'static_optimal' : EXACT_REFILL_STRATEGY);
+      } catch (error) {
+        handleSolverError(error);
+      }
+    }, 30);
+  };
+
+  if (typeof Worker === 'undefined') {
+    runOnMainThread();
+    return;
+  }
+
+  try {
+    const worker = new Worker('./water_solver_worker.js');
+    solverWorker = worker;
+    let fellBack = false;
+    worker.onmessage = event => {
+      if (requestId !== solverRequestId) return;
+      solverWorker = null;
+      worker.terminate();
+      if (event.data && event.data.error) {
+        handleSolverError(new Error(event.data.error));
+        return;
+      }
+      finishSolverResult(
+        event.data.result,
+        mode === 'static-optimal' ? 'static_optimal' : EXACT_REFILL_STRATEGY
+      );
+    };
+    worker.onerror = () => {
+      if (requestId !== solverRequestId || fellBack) return;
+      fellBack = true;
+      solverWorker = null;
+      worker.terminate();
+      runOnMainThread();
+    };
+    worker.postMessage({ requestId, mode, tubes, targets, options });
+  } catch (error) {
+    runOnMainThread();
+  }
+}
+
+function decorateSolverPlan(plan) {
+  const copy = wc();
+  return (plan || []).map(move => {
+    const decorated = {
+      ...move,
+      remainingTargets: move.remainingTargets ? move.remainingTargets.map(target => ({ ...target })) : [],
+      afterState: move.afterState ? move.afterState.map(tube => [...tube]) : null
+    };
+    if (decorated.clearedColor && Number.isInteger(decorated.clearedTube)) {
+      const color = COLOR_MAP[decorated.clearedColor];
+      decorated.note = copy.clearedSub(
+        copy.tube(decorated.clearedTube + 1),
+        color ? color.name : decorated.clearedColor
+      );
+    }
+    return decorated;
+  });
+}
+
+function formatBound(value, digits = 2) {
+  if (!Number.isFinite(value)) return '—';
+  const rounded = Number(value.toFixed(digits));
+  return String(rounded);
+}
+
+function renderSolverCertificate(result) {
+  const panel = document.getElementById('solverCertificate');
+  if (!panel) return;
+  if (!result || !result.certificate) {
+    panel.className = 'solver-certificate';
+    panel.innerHTML = '';
+    return;
+  }
+
+  const cert = result.certificate;
+  const elapsed = result.stats && Number.isFinite(result.stats.elapsedMs)
+    ? `${(result.stats.elapsedMs / 1000).toFixed(2)}s`
+    : '—';
+  const isEnglish = uiLang === 'en';
+  const lines = [];
+
+  if (result.kind === 'static-optimal') {
+    lines.push(`<div class="certificate-title ${cert.provenOptimal ? 'certificate-good' : 'certificate-warn'}">${
+      cert.provenOptimal
+        ? (isEnglish ? '✓ Shortest path proven' : '✓ 已证明静态最短')
+        : (isEnglish ? 'Proof incomplete' : '最短性证明尚未完成')
+    }</div>`);
+    lines.push(isEnglish
+      ? `Bounds: ${formatBound(cert.lowerBound)} – ${formatBound(cert.upperBound)} steps · Search ${elapsed}`
+      : `最优范围：${formatBound(cert.lowerBound)}～${formatBound(cert.upperBound)} 步 · 搜索 ${elapsed}`);
+  } else if (result.kind === 'legacy') {
+    lines.push(`<div class="certificate-title certificate-warn">${isEnglish ? 'Legacy heuristic route' : '旧版启发式路线'}</div>`);
+    lines.push(isEnglish ? 'No optimality certificate is available.' : '该模式不提供最短性或全局策略证明。');
+  } else {
+    const guaranteeText = cert.guaranteed === true
+      ? (isEnglish ? '✓ Every modeled refill branch has a continuation' : '✓ 所有已建模加料分支均有后续解')
+      : (isEnglish ? 'Guaranteed-clear proof is still incomplete' : '必胜证明尚未完成');
+    lines.push(`<div class="certificate-title ${cert.guaranteed === true ? 'certificate-good' : 'certificate-warn'}">${guaranteeText}</div>`);
+
+    if (Number.isFinite(cert.upperBound)) {
+      const gapText = cert.provenOptimal
+        ? (isEnglish ? 'global expected optimum proven' : '已证明全局期望最优')
+        : (isEnglish
+          ? `remaining gap ≤ ${formatBound(cert.absoluteGap)} steps`
+          : `剩余最优差距 ≤ ${formatBound(cert.absoluteGap)} 步`);
+      lines.push(isEnglish
+        ? `Expected bounds: ${formatBound(cert.lowerBound)} – ${formatBound(cert.upperBound)} steps · ${gapText}`
+        : `期望步数范围：${formatBound(cert.lowerBound)}～${formatBound(cert.upperBound)} 步 · ${gapText}`);
+      if (Number.isFinite(cert.worstCaseUpper)) {
+        lines.push(isEnglish
+          ? `Constructed policy worst case: ≤ ${formatBound(cert.worstCaseUpper, 0)} steps`
+          : `已构造策略的最坏情况：≤ ${formatBound(cert.worstCaseUpper, 0)} 步`);
       }
     } else {
-      document.getElementById('badgeStepCount').textContent = uiLang === 'en' ? 'No solution' : '无可行解';
-      showNotice(copy.noSolution, 'error');
+      lines.push(isEnglish
+        ? `Rigorous lower bound: ${formatBound(cert.lowerBound)} steps; no complete upper policy was certified within this budget.`
+        : `严格下界：${formatBound(cert.lowerBound)} 步；本次预算内尚未完成整棵策略上界。`);
     }
-  }, 30);
+
+    if (Number.isFinite(cert.fullShieldCount)) {
+      const setup = Number.isFinite(cert.deliberateSetupSteps) ? cert.deliberateSetupSteps : 0;
+      lines.push(isEnglish
+        ? `Next clear: ${cert.nextClearSteps} steps (${setup} deliberate setup) · ${cert.fullShieldCount} full shields · ${cert.refillOutcomeCount} distinct refill outcomes`
+        : `下次清瓶：${cert.nextClearSteps} 步（主动布局 ${setup} 步）· ${cert.fullShieldCount} 个满瓶护盾 · ${cert.refillOutcomeCount} 个不同加料结果`);
+    }
+    lines.push(isEnglish ? `Search ${elapsed}` : `搜索耗时 ${elapsed}`);
+  }
+
+  panel.className = `solver-certificate visible${cert.provenOptimal ? ' proven' : ''}`;
+  panel.innerHTML = lines.join('<br>');
+}
+
+function finishSolverResult(result, strategy) {
+  const copy = wc();
+  const solveButton = document.getElementById('btnRunSolve');
+  if (solveButton) solveButton.disabled = false;
+  currentSolverAnalysis = result;
+
+  const solution = decorateSolverPlan(result && result.plan ? result.plan : []);
+  if (!solution || solution.length === 0) {
+    document.getElementById('badgeStepCount').textContent = uiLang === 'en' ? 'No solution' : '无可行解';
+    renderSolverCertificate(result);
+    showNotice(copy.noSolution, 'error');
+    return;
+  }
+
+  currentPlan = solution;
+  currentStepIdx = -1;
+  const remainingAfterPlan = solution[solution.length - 1].remainingTargets
+    ? solution[solution.length - 1].remainingTargets.length
+    : 0;
+  const isRefillPlan = strategy === EXACT_REFILL_STRATEGY && remainingAfterPlan > 0;
+  const planBadge = isRefillPlan
+    ? copy.nextClearBadge(solution.length)
+    : copy.totalStepsBadge(solution.length);
+  document.getElementById('badgeStepCount').textContent = planBadge;
+  renderTimeline(solution);
+  renderSolverCertificate(result);
+
+  document.getElementById('heroStepNum').textContent = planBadge;
+  document.getElementById('heroText').textContent = copy.readyStart;
+  const firstMove = solution[0];
+  const firstColorObj = COLOR_MAP[firstMove.color] || { name: firstMove.color };
+  document.getElementById('heroSub').textContent = copy.firstPreview(
+    firstMove.from + 1,
+    firstMove.to + 1,
+    firstMove.amount,
+    firstColorObj.name
+  );
+  updateNavButtonStates();
+
+  if (isRefillPlan) {
+    showNotice(copy.plannedNext(solution.length), 'success');
+  } else if (result.certificate && result.certificate.provenOptimal) {
+    showNotice(copy.foundProvenPath(solution.length), 'success');
+  } else {
+    showNotice(copy.foundPath(solution.length), 'success');
+  }
+}
+
+function handleSolverError(error) {
+  const solveButton = document.getElementById('btnRunSolve');
+  if (solveButton) solveButton.disabled = false;
+  console.error(error);
+  showNotice(`${wc().noSolution}<br><span style="font-family:var(--font-mono);font-size:0.72rem;">${String(error.message || error)}</span>`, 'error');
 }
 
 // 序列化状态用于去重 Hash (包含瓶子内容与剩余目标)
@@ -3312,6 +3645,7 @@ function resetToInitialPuzzleState() {
 
 function clearPlan() {
   const copy = wc();
+  cancelActiveSolver();
   stepAnimationToken++;
   isStepAnimating = false;
   clearPourAnimationClasses();
@@ -3319,6 +3653,7 @@ function clearPlan() {
   currentStepIdx = -1;
   puzzleInitialBoard = null;
   puzzleInitialTargets = null;
+  currentSolverAnalysis = null;
   document.getElementById('badgeStepCount').textContent = copy.unsolved;
   document.getElementById('heroStepNum').textContent = copy.waitingSolve;
   document.getElementById('heroText').textContent = copy.clickSolve;
@@ -3328,6 +3663,7 @@ function clearPlan() {
       ${copy.noSteps}
     </div>
   `;
+  renderSolverCertificate(null);
   document.querySelectorAll('.tube-wrapper').forEach(w => w.classList.remove('source-highlight', 'target-highlight'));
   updateNavButtonStates();
 }
@@ -3675,7 +4011,14 @@ function runBrowserSmokeTest() {
         targets.forEach((c, idx) => { if (c) activeTargets.push({ tubeIdx: idx, color: c }); });
         if (activeTargets.length === 0) break;
 
-        const plan = executeAStarSearch(tubes, activeTargets, strategy);
+        const plan = strategy === EXACT_REFILL_STRATEGY && window.PVZ3WaterSolverEngine
+          ? window.PVZ3WaterSolverEngine.solveNextClearFast(tubes, activeTargets, {
+            timeLimitMs: 35,
+            maxStageNodes: 2500,
+            maxStageCandidates: 12,
+            stageDepthSlack: 3
+          }).plan
+          : executeAStarSearch(tubes, activeTargets, strategy === 'static_optimal' ? 'classic' : strategy);
         if (!plan || plan.length === 0) break;
 
         let stepExecuted = false;
@@ -3689,9 +4032,11 @@ function runBrowserSmokeTest() {
           }
 
           let justClearedColor = null;
+          let justClearedTube = null;
           for (let t = 0; t < TUBE_COUNT; t++) {
             if (targets[t] && tubes[t].length === CAPACITY && tubes[t].every(c => c === targets[t])) {
               justClearedColor = targets[t];
+              justClearedTube = t;
               tubes[t] = [];
               targets[t] = null;
               clearedCount++;
@@ -3700,7 +4045,7 @@ function runBrowserSmokeTest() {
           }
 
           if (justClearedColor) {
-            const refillDrops = planRandomRefillDrops(tubes, justClearedColor, t);
+            const refillDrops = planRandomRefillDrops(tubes, justClearedColor, justClearedTube);
             refillDrops.forEach(tubeIdx => {
               tubes[tubeIdx].push(justClearedColor);
             });
