@@ -13,6 +13,19 @@ assert.ok(html.includes('<script src="./water_solver_engine.js"></script>'));
 assert.ok(html.includes('value="exact_refill" selected'));
 assert.ok(html.includes('value="static_optimal"'));
 assert.ok(html.includes('id="solverCertificate"'));
+assert.ok(html.includes('id="btnAutoPlay"'));
+assert.ok(html.includes('id="inputAutoPlaySeconds"'));
+assert.ok(html.includes('value="2" min="0.1" max="60" step="0.1"'));
+assert.ok(html.includes('function runAutoPlayStep()'));
+assert.ok(html.includes('completedMove.clearedColor'));
+
+const autoPlayStart = html.indexOf('function runAutoPlayStep()');
+const autoPlayEnd = html.indexOf('function updateNavButtonStates()', autoPlayStart);
+assert.ok(autoPlayStart >= 0 && autoPlayEnd > autoPlayStart);
+assert.ok(
+  !html.slice(autoPlayStart, autoPlayEnd).includes('executeRandomRefill'),
+  'automatic step playback must never trigger refill simulation'
+);
 
 const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
 assert.ok(inlineScripts.length > 0);

@@ -251,6 +251,22 @@ header {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.strategy-advice {
+  flex: 1 0 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  background: rgba(14, 165, 233, 0.06);
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.strategy-advice b {
+  color: #7dd3fc;
 }
 
 .stat-pill {
@@ -869,11 +885,59 @@ header {
   color: var(--text-muted);
 }
 
-/* Stepper Navigation (大号双向导航键) */
+/* Playback settings and step navigation */
+.playback-settings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 11px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.playback-interval-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.playback-interval-input {
+  width: 68px;
+  padding: 5px 7px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 6px;
+  outline: none;
+  background: var(--bg-elevated);
+  color: #7dd3fc;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.playback-interval-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.12);
+}
+
+.playback-hint {
+  flex: 1;
+  min-width: 180px;
+  color: var(--text-muted);
+  font-size: 0.69rem;
+  line-height: 1.4;
+}
+
 .stepper-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: 1fr 0.9fr 1fr;
+  gap: 8px;
 }
 
 .step-nav-btn {
@@ -915,6 +979,23 @@ header {
 .step-nav-btn.primary:hover {
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
   background: linear-gradient(135deg, #059669, #047857);
+}
+
+.step-nav-btn.play-toggle {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.2));
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #7dd3fc;
+}
+
+.step-nav-btn.play-toggle:hover {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.32), rgba(99, 102, 241, 0.32));
+  border-color: rgba(125, 211, 252, 0.65);
+}
+
+.step-nav-btn.play-toggle.is-playing {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 88, 12, 0.25));
+  border-color: rgba(251, 191, 36, 0.55);
+  color: #fbbf24;
 }
 
 .step-nav-btn .nav-arrow {
@@ -1144,22 +1225,25 @@ header {
         <span class="stat-pill"><span id="boardLabel">盘面</span>: <b id="boardShapeLabel">7 瓶 (上 3 / 下 4)</b></span>
         <span class="stat-pill"><span id="strategyLabel">算法策略</span>:
           <select id="selectAlgorithmStrategy" style="background: var(--bg-surface); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
-            <option value="exact_refill" selected>🛡️ 满瓶屏蔽策略</option>
-            <option value="static_optimal">✅ 静态最短（可证明）</option>
-            <option value="classic">⚡ 旧版快速 A*</option>
+            <option value="exact_refill" selected>🛡️ 加料策略（实机推荐）</option>
+            <option value="static_optimal">✅ 静态最短（仅无加料）</option>
+            <option value="classic">⚡ 旧版快速（仅应急）</option>
           </select>
         </span>
         <span class="stat-pill"><span id="budgetLabel">搜索预算</span>:
           <select id="selectSearchBudget" style="background: var(--bg-surface); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
-            <option value="balanced" selected>平衡 · 4 秒</option>
-            <option value="deep">深入 · 15 秒</option>
-            <option value="proof">证明优先 · 60 秒</option>
+            <option value="balanced" selected>平衡 · 4 秒（默认）</option>
+            <option value="deep">深入 · 15 秒（推荐）</option>
+            <option value="proof">最强 · 60 秒（结果优先）</option>
           </select>
         </span>
       </div>
 
       <div class="control-right">
         <button class="btn btn-subtle" id="btnOpenSmokeTest" style="font-size: 0.74rem; padding: 4px 10px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Run 100 random puzzle simulations in this browser">📊 100 局模拟测试</button>
+      </div>
+      <div class="strategy-advice" id="strategyAdvice">
+        <b>实机推荐：</b>选择「加料策略」。60 秒搜索最充分，15 秒性价比最高，4 秒最快；静态最短只适用于不考虑后续加料，旧版快速仅作应急。
       </div>
     </div>
 
@@ -1217,11 +1301,24 @@ header {
 
       <div class="solver-certificate" id="solverCertificate"></div>
 
-      <!-- Stepper Controls (仅保留明确的大号向左/向右导航键) -->
+      <div class="playback-settings">
+        <label class="playback-interval-control" for="inputAutoPlaySeconds">
+          <span id="playbackIntervalLabel">每步播放时间</span>
+          <input class="playback-interval-input" id="inputAutoPlaySeconds" type="number" value="2" min="0.1" max="60" step="0.1" inputmode="decimal" aria-describedby="playbackHint">
+          <span id="playbackSecondsUnit">秒</span>
+        </label>
+        <span class="playback-hint" id="playbackHint">播放到末步后自动停止；模拟加料仍由用户手动操作。</span>
+      </div>
+
+      <!-- Stepper Controls -->
       <div class="stepper-controls">
         <button class="step-nav-btn" id="btnPrevStep">
           <span class="nav-arrow">◀</span>
           <span id="prevStepText">上一步</span>
+        </button>
+        <button class="step-nav-btn play-toggle" id="btnAutoPlay" type="button" aria-pressed="false">
+          <span id="autoPlayIcon" aria-hidden="true">▶</span>
+          <span id="autoPlayText">播放</span>
         </button>
         <button class="step-nav-btn primary" id="btnNextStep">
           <span id="nextStepText">下一步</span>
@@ -1330,13 +1427,14 @@ const WATER_COPY = {
     boardLabel: '盘面',
     boardShape: '7 瓶 (上 3 / 下 4)',
     strategyLabel: '算法策略',
-    exactStrategy: '🛡️ 满瓶屏蔽策略',
-    staticOptimalStrategy: '✅ 静态最短（可证明）',
-    classicStrategy: '⚡ 旧版快速 A*',
+    exactStrategy: '🛡️ 加料策略（实机推荐）',
+    staticOptimalStrategy: '✅ 静态最短（仅无加料）',
+    classicStrategy: '⚡ 旧版快速（仅应急）',
     budgetLabel: '搜索预算',
-    budgetBalanced: '平衡 · 4 秒',
-    budgetDeep: '深入 · 15 秒',
-    budgetProof: '证明优先 · 60 秒',
+    budgetBalanced: '平衡 · 4 秒（默认）',
+    budgetDeep: '深入 · 15 秒（推荐）',
+    budgetProof: '最强 · 60 秒（结果优先）',
+    strategyAdviceHtml: '<b>实机推荐：</b>选择「加料策略」。<b>追求最好结果：</b>60 秒搜索最充分；<b>日常推荐：</b>15 秒性价比最高；4 秒最快。静态最短只适用于不考虑后续加料，旧版快速仅作应急且没有最优证明。',
     smokeOpen: '📊 100 局模拟测试',
     smokeOpenTitle: '在当前浏览器里运行 100 局随机模拟',
     undoTitle: '撤销上一步 (Ctrl+Z)',
@@ -1354,8 +1452,15 @@ const WATER_COPY = {
     solveHint: '系统将规划达成目标配方的倾倒路径，并在加料后支持继续求解',
     prev: '上一步',
     next: '下一步',
+    play: '播放',
+    pause: '暂停',
+    playTitle: '按设定时间自动播放后续步骤',
+    pauseTitle: '暂停自动播放',
+    playbackIntervalLabel: '每步播放时间',
+    playbackSecondsUnit: '秒',
+    playbackHint: '播放到末步后自动停止；模拟加料仍由用户手动操作。',
     noSteps: '暂无步骤记录',
-    mechanicHtml: '<b>💡 求解策略说明：</b><br>1. <b>满瓶屏蔽策略</b>：允许在清瓶前主动多走几步制造满瓶护盾，并精确展开所有随机加料落点。<br>2. <b>静态最短</b>：忽略未来加料，对当前静态盘面给出可证明的最短路线。<br>3. <b>最优差距</b>：上下界相等时才标记「已证明最优」；否则显示当前策略与理论下界的差距。',
+    mechanicHtml: '<b>💡 三种策略怎么选：</b><br>1. <b>加料策略（实机推荐）</b>：把清瓶后的随机 4 格加料纳入整体规划；会比较满瓶护盾、四个空格锁定等布局，并展开所有建模加料结果。<br>2. <b>静态最短（仅无加料）</b>：只优化当前盘面到清瓶的步数；可证明这一段最短，但不管清瓶后的加料是否好处理。<br>3. <b>旧版快速（仅应急）</b>：最快给出一条可行路线，但不优化加料布局，也没有最短性证明。<br>4. <b>预算</b>：15 秒适合日常；60 秒搜索最充分、最可能得到更小步数或更紧差距；4 秒只在想尽快出结果时使用。上下界相等时才标记「已证明最优」。',
     smokeTitle: '📊 100 局随机模拟测试',
     smokeIntro: '将连续生成 <b>100 局随机 4 色盘面</b>。每局在配方完成后，按照已建模的 PVZ3 加料规则<b>排除刚清空的瓶位</b>，并向其余未满瓶<b>分批加入共 4 格</b>刚完成的颜色，用于评估策略成功率和平均步数。',
     smokePass: '通关胜率',
@@ -1388,11 +1493,11 @@ const WATER_COPY = {
     solvingStatic: '✅ 正在搜索并证明当前静态盘面的最短路线...',
     solvingClassic: '⚡ 正在运行旧版快速 A*...',
     plannedNext: steps => `🛡️ 已规划到下一次配方完成，共 ${steps} 步。完成后请按实际加料结果更新盘面，再继续求解。`,
-    foundPath: steps => `🎉 已找到一条 ${steps} 步路线。请点击右侧「下一步 ▶」查看操作。`,
+    foundPath: steps => `🎉 已找到一条 ${steps} 步路线。可点击右侧「播放」自动执行，或用「下一步 ▶」逐步查看。`,
     foundProvenPath: steps => `✅ 已找到并证明静态最短路线，共 ${steps} 步。`,
     nextClearBadge: steps => `下次消除 ${steps} 步`,
     totalStepsBadge: steps => `共 ${steps} 步`,
-    readyStart: '已准备 · 点击「下一步 ▶」开始',
+    readyStart: '已准备 · 点击「播放」或「下一步 ▶」开始',
     firstPreview: (from, to, amount, color) => `第 1 步预告：从 瓶 ${from} 倒入 瓶 ${to} (${amount} 格 ${color})`,
     stepCount: (idx, total) => `步骤 ${idx} / ${total}`,
     heroPour: (from, to, amount, color) => `瓶 <b>${from}</b> ➔ 瓶 <b>${to}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(倾倒 ${amount} 格 ${color})</span>`,
@@ -1404,7 +1509,7 @@ const WATER_COPY = {
     clearNote: '✨配方消除',
     returnedInitial: '已回到初始盘面',
     readyStep1: '准备执行第 1 步',
-    pressNext: '请点击「下一步 ▶」或按键盘右箭头开始',
+    pressNext: '请点击「播放」、点击「下一步 ▶」或按键盘右箭头开始',
     clearBoardNotice: '盘面已清空。可手动录入当前关卡，或点击「🎲 生成随机关卡」。',
     sampleNotice: '示例关卡已加载。可点击「求解最优策略」开始计算。',
     randomGenerated: (colors, filled, empty, steps) => `🎲 <b>随机关卡已生成。</b><br>颜色：${colors}<br>初始装水瓶：<b>${filled}</b>；空瓶：<b>${empty}</b>。<br>已通过 A* 验证可解，参考步数约 ${steps} 步。`,
@@ -1434,13 +1539,14 @@ const WATER_COPY = {
     boardLabel: 'Board',
     boardShape: '7 tubes (top 3 / bottom 4)',
     strategyLabel: 'Strategy',
-    exactStrategy: '🛡️ Shield-aware refill policy',
-    staticOptimalStrategy: '✅ Proven static shortest',
-    classicStrategy: '⚡ Legacy fast A*',
+    exactStrategy: '🛡️ Refill policy (recommended)',
+    staticOptimalStrategy: '✅ Static shortest (no refill)',
+    classicStrategy: '⚡ Legacy fast (emergency only)',
     budgetLabel: 'Search budget',
-    budgetBalanced: 'Balanced · 4 sec',
-    budgetDeep: 'Deep · 15 sec',
-    budgetProof: 'Proof-first · 60 sec',
+    budgetBalanced: 'Balanced · 4 sec (default)',
+    budgetDeep: 'Deep · 15 sec (recommended)',
+    budgetProof: 'Strongest · 60 sec (quality first)',
+    strategyAdviceHtml: '<b>For the live game:</b> choose “Refill policy.” <b>Best search quality:</b> 60 seconds; <b>best everyday tradeoff:</b> 15 seconds; 4 seconds is fastest. Static shortest ignores future refills, while legacy fast is an emergency fallback with no optimality proof.',
     smokeOpen: '📊 100-run test',
     smokeOpenTitle: 'Run 100 random simulations in this browser',
     undoTitle: 'Undo previous action (Ctrl+Z)',
@@ -1458,8 +1564,15 @@ const WATER_COPY = {
     solveHint: 'The solver plans a pouring path to the target recipe, then supports continuing after refills.',
     prev: 'Previous',
     next: 'Next',
+    play: 'Play',
+    pause: 'Pause',
+    playTitle: 'Automatically play the remaining steps at the selected interval',
+    pauseTitle: 'Pause automatic playback',
+    playbackIntervalLabel: 'Time per step',
+    playbackSecondsUnit: 'sec',
+    playbackHint: 'Playback stops after the last step. Refill simulation always remains manual.',
     noSteps: 'No steps yet',
-    mechanicHtml: '<b>💡 Strategy notes:</b><br>1. <b>Shield-aware policy</b>: may deliberately spend extra setup moves to fill shield tubes, then evaluates every modeled refill outcome.<br>2. <b>Proven static shortest</b>: ignores future refills and proves the shortest route for the current static board.<br>3. <b>Optimality gap</b>: “proven optimal” appears only when the lower and upper bounds meet; otherwise the remaining gap is shown.',
+    mechanicHtml: '<b>💡 Choosing among the three strategies:</b><br>1. <b>Refill policy (recommended for live play)</b>: optimizes across the next 4-block refill, comparing full-tube shields, deterministic four-slot layouts, and every modeled refill outcome.<br>2. <b>Static shortest (no refill)</b>: proves the shortest route to the next clear, but does not consider whether the resulting refill is easy to solve.<br>3. <b>Legacy fast (emergency only)</b>: finds a feasible route quickly, without refill-layout optimization or a shortest-path proof.<br>4. <b>Budget</b>: 15 seconds is the everyday choice; 60 seconds searches most thoroughly and has the best chance of improving the step count or bound; use 4 seconds only for the quickest response. “Proven optimal” appears only when the lower and upper bounds meet.',
     smokeTitle: '📊 100-run random simulation',
     smokeIntro: 'This will generate <b>100 random 4-color boards</b>. After each recipe clear, the modeled PVZ3 refill rule <b>excludes the just-cleared tube</b> and then <b>adds 4 total blocks</b> of the cleared color across the remaining non-full tubes, to measure success rate and average steps.',
     smokePass: 'Clear rate',
@@ -1492,11 +1605,11 @@ const WATER_COPY = {
     solvingStatic: '✅ Searching for and proving the shortest route on the current static board...',
     solvingClassic: '⚡ Running the legacy fast A*...',
     plannedNext: steps => `🛡️ Planned through the next recipe clear in ${steps} steps. After the real refill result, update the board and solve again.`,
-    foundPath: steps => `🎉 Found a ${steps}-step route. Use the right-side “Next ▶” button to step through it.`,
+    foundPath: steps => `🎉 Found a ${steps}-step route. Use “Play” to run it automatically, or “Next ▶” to step through it.`,
     foundProvenPath: steps => `✅ Found and proved a ${steps}-step static shortest route.`,
     nextClearBadge: steps => `Next clear in ${steps} steps`,
     totalStepsBadge: steps => `${steps} total steps`,
-    readyStart: 'Ready · click “Next ▶” to start',
+    readyStart: 'Ready · click “Play” or “Next ▶” to start',
     firstPreview: (from, to, amount, color) => `Step 1 preview: pour ${amount} ${amount === 1 ? 'block' : 'blocks'} of ${color} from Tube ${from} to Tube ${to}`,
     stepCount: (idx, total) => `Step ${idx} / ${total}`,
     heroPour: (from, to, amount, color) => `Tube <b>${from}</b> ➔ Tube <b>${to}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(pour ${amount} ${amount === 1 ? 'block' : 'blocks'} of ${color})</span>`,
@@ -1508,7 +1621,7 @@ const WATER_COPY = {
     clearNote: '✨Recipe clear',
     returnedInitial: 'Returned to the initial board',
     readyStep1: 'Ready to execute step 1',
-    pressNext: 'Click “Next ▶” or press the right arrow key to start',
+    pressNext: 'Click “Play”, click “Next ▶”, or press the right arrow key to start',
     clearBoardNotice: 'Board cleared. Enter the current puzzle manually, or click “🎲 Random level”.',
     sampleNotice: 'Sample board loaded. Click “Solve optimal policy” to start.',
     randomGenerated: (colors, filled, empty, steps) => `🎲 <b>Random level generated.</b><br>Colors: ${colors}<br>Filled tubes: <b>${filled}</b>; empty tubes: <b>${empty}</b>.<br>Validated solvable by A*, reference path is about ${steps} steps.`,
@@ -1556,6 +1669,7 @@ function syncWaterLanguageButtons() {
 function switchWaterLanguage(lang) {
   const next = lang === 'en' ? 'en' : 'zh';
   if (next === uiLang) return;
+  stopAutoPlay();
   setWaterLang(next);
   const url = new URL(window.location.href);
   url.searchParams.set('lang', uiLang);
@@ -1608,6 +1722,8 @@ let lastClearedColor = null; // 记录最近一次消除达成的配方颜色（
 let lastClearedTube = null; // 记录最近一次消除的瓶位：本轮随机加料不会喷回这个刚清空的瓶
 let isStepAnimating = false;
 let stepAnimationToken = 0;
+let isAutoPlaying = false;
+let autoPlayTimer = null;
 let solverWorker = null;
 let solverRequestId = 0;
 let currentSolverAnalysis = null;
@@ -1636,6 +1752,10 @@ function applyWaterLanguage() {
     heroSub: copy.solveHint,
     prevStepText: copy.prev,
     nextStepText: copy.next,
+    autoPlayText: isAutoPlaying ? copy.pause : copy.play,
+    playbackIntervalLabel: copy.playbackIntervalLabel,
+    playbackSecondsUnit: copy.playbackSecondsUnit,
+    playbackHint: copy.playbackHint,
     paletteLabel: copy.paletteLabel,
     smokeTitle: copy.smokeTitle,
     smokePassLabel: copy.smokePass,
@@ -1682,6 +1802,8 @@ function applyWaterLanguage() {
   if (btnSolve) btnSolve.title = copy.solveTitle;
   const btnOpenSmoke = document.getElementById('btnOpenSmokeTest');
   if (btnOpenSmoke) btnOpenSmoke.title = copy.smokeOpenTitle;
+  const strategyAdvice = document.getElementById('strategyAdvice');
+  if (strategyAdvice) strategyAdvice.innerHTML = copy.strategyAdviceHtml;
   const mechanicCard = document.getElementById('mechanicCard');
   if (mechanicCard) mechanicCard.innerHTML = copy.mechanicHtml;
   const smokeIntro = document.getElementById('smokeIntro');
@@ -1692,6 +1814,7 @@ function applyWaterLanguage() {
   if (timeline && !currentPlan) {
     timeline.innerHTML = `<div style="text-align:center; padding: 30px 10px; color: var(--text-muted); font-size: 0.78rem;">${copy.noSteps}</div>`;
   }
+  syncAutoPlayControls();
 }
 
 // ==========================================
@@ -3276,7 +3399,10 @@ function renderTimeline(moves) {
       <span style="font-size:0.7rem; color:var(--accent-emerald);">${m.note ? copy.clearNote : ''}</span>
     `;
 
-    item.onclick = () => showStep(idx);
+    item.onclick = () => {
+      stopAutoPlay();
+      showStep(idx);
+    };
     container.appendChild(item);
   });
 }
@@ -3489,7 +3615,7 @@ function commitStepTargetsAndRefillCue(move) {
   }
 }
 
-function showStep(stepIdx, animate = true) {
+function showStep(stepIdx, animate = true, onComplete = null) {
   const copy = wc();
   if (!currentPlan || stepIdx < 0 || stepIdx >= currentPlan.length) return;
   if (isStepAnimating) return;
@@ -3522,23 +3648,103 @@ function showStep(stepIdx, animate = true) {
   if (srcTube) srcTube.classList.add('source-highlight');
   if (dstTube) dstTube.classList.add('target-highlight');
 
-  if (animate && afterState) {
-    // 播放逐格液体减少与增加动画：源瓶从上到下逐格消失，目标瓶从下到上逐格涌起
-    playSequentialPourAnimation(move, beforeState, afterState, () => {
+  const finishStepDisplay = () => {
+    if (afterState) {
       boardState = afterState.map(t => [...t]);
       updateTubeSlotsVisual();
-      commitStepTargetsAndRefillCue(move);
-      updateNavButtonStates();
-    });
-  } else if (afterState) {
-    boardState = afterState.map(t => [...t]);
-    updateTubeSlotsVisual();
+    }
     commitStepTargetsAndRefillCue(move);
     updateNavButtonStates();
+    if (typeof onComplete === 'function') onComplete();
+  };
+
+  if (animate && afterState) {
+    // 播放逐格液体减少与增加动画：源瓶从上到下逐格消失，目标瓶从下到上逐格涌起
+    playSequentialPourAnimation(move, beforeState, afterState, finishStepDisplay);
   } else {
-    commitStepTargetsAndRefillCue(move);
-    updateNavButtonStates();
+    finishStepDisplay();
   }
+}
+
+function normalizeAutoPlaySeconds() {
+  const input = document.getElementById('inputAutoPlaySeconds');
+  if (!input) return 2;
+  const parsed = Number(input.value);
+  const seconds = Number.isFinite(parsed) && parsed > 0
+    ? Math.min(60, Math.max(0.1, parsed))
+    : 2;
+  input.value = String(seconds);
+  return seconds;
+}
+
+function syncAutoPlayControls() {
+  const button = document.getElementById('btnAutoPlay');
+  if (!button) return;
+  const copy = wc();
+  const hasNextStep = !!(currentPlan && currentPlan.length > 0
+    && currentStepIdx < currentPlan.length - 1
+    && (currentStepIdx < 0 || !currentPlan[currentStepIdx].clearedColor));
+  button.disabled = !isAutoPlaying && (!hasNextStep || isStepAnimating);
+  button.classList.toggle('is-playing', isAutoPlaying);
+  button.setAttribute('aria-pressed', isAutoPlaying ? 'true' : 'false');
+  button.title = isAutoPlaying ? copy.pauseTitle : copy.playTitle;
+  const icon = document.getElementById('autoPlayIcon');
+  const text = document.getElementById('autoPlayText');
+  if (icon) icon.textContent = isAutoPlaying ? '⏸' : '▶';
+  if (text) text.textContent = isAutoPlaying ? copy.pause : copy.play;
+}
+
+function stopAutoPlay() {
+  if (autoPlayTimer !== null) {
+    window.clearTimeout(autoPlayTimer);
+    autoPlayTimer = null;
+  }
+  isAutoPlaying = false;
+  updateNavButtonStates();
+}
+
+function runAutoPlayStep() {
+  autoPlayTimer = null;
+  if (!isAutoPlaying || !currentPlan || isStepAnimating) return;
+  if (currentStepIdx >= currentPlan.length - 1) {
+    stopAutoPlay();
+    return;
+  }
+
+  const targetIntervalMs = normalizeAutoPlaySeconds() * 1000;
+  const startedAt = window.performance.now();
+  showStep(currentStepIdx + 1, true, () => {
+    if (!isAutoPlaying || !currentPlan) return;
+    const completedMove = currentPlan[currentStepIdx];
+    if ((completedMove && completedMove.clearedColor)
+      || currentStepIdx >= currentPlan.length - 1) {
+      stopAutoPlay();
+      return;
+    }
+    const elapsedMs = window.performance.now() - startedAt;
+    autoPlayTimer = window.setTimeout(
+      runAutoPlayStep,
+      Math.max(0, targetIntervalMs - elapsedMs)
+    );
+  });
+}
+
+function toggleAutoPlay() {
+  if (isAutoPlaying) {
+    stopAutoPlay();
+    return;
+  }
+  if (!currentPlan || currentPlan.length === 0
+    || currentStepIdx >= currentPlan.length - 1
+    || (currentStepIdx >= 0 && currentPlan[currentStepIdx].clearedColor)
+    || isStepAnimating) {
+    updateNavButtonStates();
+    return;
+  }
+  normalizeAutoPlaySeconds();
+  isAutoPlaying = true;
+  updateNavButtonStates();
+  runAutoPlayStep();
 }
 
 function updateNavButtonStates() {
@@ -3549,11 +3755,13 @@ function updateNavButtonStates() {
   if (!currentPlan || currentPlan.length === 0) {
     btnPrev.disabled = true;
     btnNext.disabled = true;
+    syncAutoPlayControls();
     return;
   }
 
-  btnPrev.disabled = isStepAnimating || (currentStepIdx === -1);
-  btnNext.disabled = isStepAnimating || (currentStepIdx === currentPlan.length - 1);
+  btnPrev.disabled = isAutoPlaying || isStepAnimating || (currentStepIdx === -1);
+  btnNext.disabled = isAutoPlaying || isStepAnimating || (currentStepIdx === currentPlan.length - 1);
+  syncAutoPlayControls();
 }
 
 function updateTubeSlotsVisual() {
@@ -3621,6 +3829,7 @@ function updateTubeTargetsVisual(remainingTargets, justClearedTubeIdx = null) {
 
 function resetToInitialPuzzleState() {
   const copy = wc();
+  stopAutoPlay();
   if (puzzleInitialBoard) {
     boardState = puzzleInitialBoard.map(t => [...t]);
     updateTubeSlotsVisual();
@@ -3645,6 +3854,7 @@ function resetToInitialPuzzleState() {
 
 function clearPlan() {
   const copy = wc();
+  stopAutoPlay();
   cancelActiveSolver();
   stepAnimationToken++;
   isStepAnimating = false;
@@ -3773,6 +3983,7 @@ function generateRandomLevel(showNoticeBanner = true) {
 // 随机加料功能：刚清空的瓶本轮不参与；其余未满瓶分批承接共 4 格喷料，候选不足时允许重复喷到同一瓶
 function executeRandomRefill() {
   const copy = wc();
+  stopAutoPlay();
   if (isStepAnimating) return;
   normalizeAllTubeStorage();
   if (!validatePhysicalBoardState()) return;
@@ -3837,6 +4048,12 @@ function loadSamplePuzzle() {
 
 function setupKeyboardShortcuts() {
   window.addEventListener('keydown', (e) => {
+    const tagName = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+    if (tagName === 'input' || tagName === 'select' || tagName === 'textarea'
+      || (e.target && e.target.isContentEditable)) {
+      return;
+    }
+
     // 撤销 Ctrl+Z
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
@@ -3867,10 +4084,12 @@ function setupKeyboardShortcuts() {
 
     // 键盘左/右方向键与按钮完全对齐
     if (e.key === 'ArrowRight' && currentPlan) {
+      stopAutoPlay();
       if (currentStepIdx < currentPlan.length - 1) {
         showStep(currentStepIdx + 1, true);
       }
     } else if (e.key === 'ArrowLeft' && currentPlan) {
+      stopAutoPlay();
       if (currentStepIdx > 0) {
         showStep(currentStepIdx - 1, false);
       } else if (currentStepIdx === 0) {
@@ -3906,6 +4125,7 @@ function setupUIEvents() {
   const btnPrev = document.getElementById('btnPrevStep');
   if (btnPrev) {
     btnPrev.onclick = () => {
+      stopAutoPlay();
       if (!currentPlan) return;
       if (currentStepIdx > 0) {
         showStep(currentStepIdx - 1, false);
@@ -3915,10 +4135,20 @@ function setupUIEvents() {
     };
   }
 
+  const btnAutoPlay = document.getElementById('btnAutoPlay');
+  if (btnAutoPlay) btnAutoPlay.onclick = toggleAutoPlay;
+
+  const autoPlaySeconds = document.getElementById('inputAutoPlaySeconds');
+  if (autoPlaySeconds) {
+    autoPlaySeconds.onchange = normalizeAutoPlaySeconds;
+    autoPlaySeconds.onblur = normalizeAutoPlaySeconds;
+  }
+
   // 下一步 ▶ 导航按钮（向前推演播放逐格倒水动画）
   const btnNext = document.getElementById('btnNextStep');
   if (btnNext) {
     btnNext.onclick = () => {
+      stopAutoPlay();
       if (!currentPlan) return;
       if (currentStepIdx < currentPlan.length - 1) {
         showStep(currentStepIdx + 1, true);
@@ -3946,6 +4176,7 @@ function setupUIEvents() {
     btnStartSmoke.onclick = runBrowserSmokeTest;
   }
 
+  normalizeAutoPlaySeconds();
   updateNavButtonStates();
 }
 
