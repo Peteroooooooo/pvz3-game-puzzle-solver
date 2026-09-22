@@ -249,7 +249,7 @@ function runSuite() {
   const cache = new Map();
   const policyResult = engine.solveRefillPolicy(SAMPLE_BOARD, SAMPLE_TARGETS, {
     timeLimitMs: 0,
-    maxStageNodes: 5000,
+    maxStageNodes: 8000,
     maxStageCandidates: 30,
     stageDepthSlack: 4,
     maxCandidatesEvaluated: { 4: 2, 3: 2, 2: 3 },
@@ -283,6 +283,17 @@ const report = runSuite();
 assert.strictEqual(report.baseline.wins, TEST_SEEDS.length, 'baseline must clear every seed');
 assert.strictEqual(report.shield.wins, TEST_SEEDS.length, 'shield strategy must clear every seed');
 assert.strictEqual(report.policy.wins, TEST_SEEDS.length, 'bounded policy must clear every seed');
+assert.strictEqual(
+  report.policyCertificate.refillOutcomeCount,
+  1,
+  'policy should lock the first refill to one possible outcome'
+);
+assert.strictEqual(
+  report.policyCertificate.eligibleRefillTubes,
+  REFILL_COUNT,
+  'locked refill should leave exactly one eligible tube per refill drop'
+);
+assert.strictEqual(report.policyCertificate.nextClearSteps, 10);
 assert.ok(report.shield.averageRefillBranches < report.baseline.averageRefillBranches);
 assert.ok(
   report.policy.averageSteps < report.baseline.averageSteps,
@@ -304,6 +315,8 @@ assert.ok(
   report.policy.averageSteps <= report.policyCertificate.upperBound + 0.05,
   'seeded mean is inconsistent with the certified expected upper bound'
 );
+assert.ok(report.policy.averageSteps < 19.25, 'locked-refill policy regressed on fixed seeds');
+assert.ok(report.policy.maxSteps <= 20, 'locked-refill worst case regressed on fixed seeds');
 
 console.log(JSON.stringify(report, null, 2));
 console.log('seeded_simulation_test: PASS');

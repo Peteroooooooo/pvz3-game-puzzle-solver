@@ -16,7 +16,7 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 ## Highlights
 
 - PVZ3-style refill-aware water sort logic
-- Shield-aware policy search compares immediate clears with deliberate full-tube setup and enumerates every modeled refill outcome
+- Shield-aware policy search protects deterministic-refill layouts (especially exactly four eligible tubes), then compares their full downstream cost against immediate clears and other setups
 - Static mode performs complete state search and proves the shortest route; the built-in sample improves from the legacy 15 steps to a proven 13 steps
 - Refill mode reports guaranteed-policy status, expected-step lower/upper bounds, and the remaining optimality gap; global expected optimality is shown only when the bounds meet
 - 4-second, 15-second, and 60-second search budgets run inside a Web Worker
@@ -32,7 +32,7 @@ node water_solver_engine_test.js
 node seeded_simulation_test.js
 ```
 
-Across 2,048 fixed refill seeds on the built-in sample, both the immediate-clear baseline and the bounded policy clear 100% of runs. The bounded policy reduces the mean from 20.844 to 20.598 moves (0.246 moves, about 1.18%) and the observed maximum from 23 to 22. Blindly maximizing full-tube shields instead increases the mean to 23 moves, so the policy balances setup cost against future refill risk.
+Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 100% of runs. The policy spends one extra setup move before the first clear to leave exactly four refill-eligible tubes, locking that refill to one outcome. It averages 19.208 moves with an observed maximum of 20. That is 1.635 moves (7.85%) below the 20.844-move immediate-clear baseline, whose maximum is 23, and 1.390 moves (6.75%) below the previous bounded policy's 20.598 mean, whose maximum was 22. Blindly maximizing full-tube shields averages 23 moves, so deterministic refill is prioritized only when its evaluated downstream cost is actually lower.
 
 ## Docs
 

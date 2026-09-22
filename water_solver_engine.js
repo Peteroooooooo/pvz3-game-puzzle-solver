@@ -397,11 +397,20 @@
         timeLimitMs,
         maxStageNodes: options.maxStageNodes || 30000,
         maxStageCandidates: options.maxStageCandidates || 80,
+        maxLockedCandidates: Number.isFinite(options.maxLockedCandidates)
+          ? Math.max(0, Math.floor(options.maxLockedCandidates))
+          : 16,
         stageDepthSlack: Number.isFinite(options.stageDepthSlack) ? options.stageDepthSlack : 5,
         maxCandidatesEvaluated: options.maxCandidatesEvaluated || { 4: 10, 3: 7, 2: 14 },
+        maxLockedCandidatesEvaluated: Number.isFinite(options.maxLockedCandidatesEvaluated)
+          ? Math.max(0, Math.floor(options.maxLockedCandidatesEvaluated))
+          : 4,
         finalNodeLimit: options.finalNodeLimit || 250000,
         greedyNodeLimit: options.greedyNodeLimit || 9000,
         greedyCandidateLimit: options.greedyCandidateLimit || 18,
+        greedyLockedCandidateLimit: Number.isFinite(options.greedyLockedCandidateLimit)
+          ? Math.max(0, Math.floor(options.greedyLockedCandidateLimit))
+          : 4,
         greedyDepthSlack: Number.isFinite(options.greedyDepthSlack) ? options.greedyDepthSlack : 4,
         upperFraction: Number.isFinite(options.upperFraction) ? options.upperFraction : 0.55,
         includePolicy: options.includePolicy === true
@@ -487,6 +496,9 @@
     const refillCount = context.options.refillCount;
     const maxNodes = overrides.maxNodes || context.options.maxStageNodes;
     const maxCandidates = overrides.maxCandidates || context.options.maxStageCandidates;
+    const maxLockedCandidates = Number.isFinite(overrides.maxLockedCandidates)
+      ? Math.max(0, Math.floor(overrides.maxLockedCandidates))
+      : context.options.maxLockedCandidates;
     const depthSlack = Number.isFinite(overrides.depthSlack)
       ? overrides.depthSlack
       : context.options.stageDepthSlack;
@@ -504,6 +516,7 @@
     const seen = new Map([[canonicalStateKey(start.tubes, start.targets), 0]]);
     const terminalSeen = new Map();
     const candidates = [];
+    const lockedCandidates = [];
     const truncation = {
       minDiscardedDepth: Infinity,
       minUnexpandedClearDepth: Infinity,
@@ -573,7 +586,16 @@
             clearedColor: next.record.clearedColor
           };
           candidate.layout = analyzeClearLayout(candidate, { capacity, refillCount, quick: true });
-          insertRankedCandidate(candidates, candidate, maxCandidates, truncation);
+          if (candidate.layout.outcomeCount === 1 && maxLockedCandidates > 0) {
+            insertRankedCandidate(
+              lockedCandidates,
+              candidate,
+              maxLockedCandidates,
+              truncation
+            );
+          } else {
+            insertRankedCandidate(candidates, candidate, maxCandidates, truncation);
+          }
           context.stats.macroCandidates++;
           continue;
         }
@@ -586,6 +608,7 @@
       }
     }
 
+    candidates.push(...lockedCandidates);
     for (const candidate of candidates) {
       candidate.layout = analyzeClearLayout(candidate, { capacity, refillCount });
     }
@@ -731,15 +754,20 @@
     const enumeration = enumerateFirstClearCandidates(state.tubes, state.targets, context, {
       maxNodes: context.options.greedyNodeLimit,
       maxCandidates: context.options.greedyCandidateLimit,
+      maxLockedCandidates: context.options.greedyLockedCandidateLimit,
       depthSlack: context.options.greedyDepthSlack,
       deadline: context.upperDeadline
     });
 
     let best = null;
-    const tryLimit = Math.min(4, enumeration.candidates.length);
+    const bestLocked = enumeration.candidates.find(candidate => candidate.layout.outcomeCount === 1);
+    const greedyCandidates = bestLocked
+      ? [bestLocked, ...enumeration.candidates.filter(candidate => candidate !== bestLocked)]
+      : enumeration.candidates;
+    const tryLimit = Math.min(4, greedyCandidates.length);
     for (let candidateIndex = 0; candidateIndex < tryLimit; candidateIndex++) {
       if (isExpired(context, context.upperDeadline)) break;
-      const candidate = enumeration.candidates[candidateIndex];
+      const candidate = greedyCandidates[candidateIndex];
       const outcomes = enumerateRefillOutcomes(
         candidate.tubes,
         candidate.clearedColor,
@@ -854,14 +882,27 @@
 
     const enumeration = enumerateFirstClearCandidates(state.tubes, state.targets, context);
     const evaluationLimit = getCandidateEvaluationLimit(targetCount, context);
+    const lockedEvaluationLimit = context.options.maxLockedCandidatesEvaluated;
     let evaluated = 0;
+    let bonusLockedEvaluated = 0;
     let evaluatedLower = Infinity;
     let unevaluatedLower = Infinity;
     let allEvaluatedCandidatesExact = true;
+    const lockedCandidates = enumeration.candidates.filter(
+      candidate => candidate.layout.outcomeCount === 1
+    );
+    const generalCandidates = enumeration.candidates.filter(
+      candidate => candidate.layout.outcomeCount !== 1
+    );
+    const evaluationCandidates = [...lockedCandidates, ...generalCandidates];
 
-    for (let candidateIndex = 0; candidateIndex < enumeration.candidates.length; candidateIndex++) {
-      const candidate = enumeration.candidates[candidateIndex];
-      if (evaluated >= evaluationLimit || isExpired(context)) {
+    for (let candidateIndex = 0; candidateIndex < evaluationCandidates.length; candidateIndex++) {
+      const candidate = evaluationCandidates[candidateIndex];
+      const isLocked = candidate.layout.outcomeCount === 1;
+      const hasEvaluationSlot = isLocked
+        ? bonusLockedEvaluated < lockedEvaluationLimit
+        : evaluated < evaluationLimit;
+      if (!hasEvaluationSlot || isExpired(context)) {
         unevaluatedLower = Math.min(
           unevaluatedLower,
           candidate.depth + minimumDecisionMoves(candidate.targets, candidate.clearedColor)
@@ -870,7 +911,8 @@
         continue;
       }
 
-      evaluated++;
+      if (isLocked) bonusLockedEvaluated++;
+      else evaluated++;
       const outcomes = enumerateRefillOutcomes(
         candidate.tubes,
         candidate.clearedColor,
