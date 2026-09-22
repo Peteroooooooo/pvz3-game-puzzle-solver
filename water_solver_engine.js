@@ -11,6 +11,8 @@
   const DEFAULT_CAPACITY = 4;
   const DEFAULT_REFILL_COUNT = 4;
   const EPSILON = 1e-9;
+  const SEARCH_TUBE_CODE = Symbol('searchTubeCode');
+  const SEARCH_TARGET_COLORS = Symbol('searchTargetColors');
 
   function nowMs() {
     return typeof performance !== 'undefined' && performance.now
@@ -22,8 +24,28 @@
     return tubes.map(tube => [...tube]);
   }
 
+  function tagSearchTube(tube) {
+    tube[SEARCH_TUBE_CODE] = tube.join('');
+    return tube;
+  }
+
+  function tagSearchTubes(tubes) {
+    for (const tube of tubes) {
+      if (tube[SEARCH_TUBE_CODE] === undefined) tagSearchTube(tube);
+    }
+    return tubes;
+  }
+
   function cloneTargets(targets) {
     return targets.map(target => ({ tubeIdx: target.tubeIdx, color: target.color }));
+  }
+
+  function targetColorsByTube(targets, tubeCount, cache = false) {
+    if (targets[SEARCH_TARGET_COLORS]) return targets[SEARCH_TARGET_COLORS];
+    const colors = new Array(tubeCount).fill(null);
+    for (const target of targets) colors[target.tubeIdx] = target.color;
+    if (cache) targets[SEARCH_TARGET_COLORS] = colors;
+    return colors;
   }
 
   function cloneMovePlan(plan) {
@@ -57,26 +79,91 @@
     return { tubes: nextTubes, targets: nextTargets };
   }
 
-  function tubeCode(tube) {
-    return tube.join('');
+  // Search states are immutable. Reuse them when no target is already complete,
+  // and copy only the outer tube array when normalization must clear a target.
+  function normalizeSearchState(tubes, targets, capacity = DEFAULT_CAPACITY) {
+    tagSearchTubes(tubes);
+    targetColorsByTube(targets, tubes.length, true);
+    let completed = null;
+    for (const target of targets) {
+      const tube = tubes[target.tubeIdx] || [];
+      if (tube.length === capacity && tube.every(color => color === target.color)) {
+        if (!completed) completed = new Set();
+        completed.add(target.tubeIdx);
+      }
+    }
+    if (!completed) return { tubes, targets };
+
+    const nextTubes = tubes.slice();
+    for (const tubeIdx of completed) nextTubes[tubeIdx] = tagSearchTube([]);
+    const nextTargets = targets.filter(target => !completed.has(target.tubeIdx));
+    targetColorsByTube(nextTargets, tubes.length, true);
+    return {
+      tubes: nextTubes,
+      targets: nextTargets
+    };
   }
 
-  function orderedStateKey(tubes, targets) {
-    const targetPart = normalizeTargets(targets)
+  function tubeCode(tube) {
+    return tube[SEARCH_TUBE_CODE] === undefined
+      ? tube.join('')
+      : tube[SEARCH_TUBE_CODE];
+  }
+
+  function orderedStateKeyNormalized(tubes, targets) {
+    const targetPart = targets
       .map(target => `${target.tubeIdx}:${target.color}`)
       .join(',');
     return `${tubes.map(tubeCode).join('|')}#${targetPart}`;
   }
 
-  function canonicalStateKey(tubes, targets) {
-    const normalizedTargets = normalizeTargets(targets);
-    const targetByTube = new Map(normalizedTargets.map(target => [target.tubeIdx, target.color]));
+  function orderedStateKey(tubes, targets) {
+    return orderedStateKeyNormalized(tubes, normalizeTargets(targets));
+  }
+
+  function canonicalStateKeyNormalized(tubes, targets) {
     const fixed = [];
     const free = [];
+    let targetIndex = 0;
 
     for (let index = 0; index < tubes.length; index++) {
-      if (targetByTube.has(index)) {
-        fixed.push(`${index}:${targetByTube.get(index)}:${tubeCode(tubes[index])}`);
+      while (targetIndex < targets.length && targets[targetIndex].tubeIdx < index) targetIndex++;
+      if (targetIndex < targets.length && targets[targetIndex].tubeIdx === index) {
+        let targetColor = targets[targetIndex].color;
+        while (targetIndex + 1 < targets.length && targets[targetIndex + 1].tubeIdx === index) {
+          targetIndex++;
+          targetColor = targets[targetIndex].color;
+        }
+        fixed.push(`${index}:${targetColor}:${tubeCode(tubes[index])}`);
+        targetIndex++;
+      } else {
+        free.push(tubeCode(tubes[index]));
+      }
+    }
+
+    free.sort();
+    return `${fixed.join('|')}#${free.join('|')}`;
+  }
+
+  function canonicalStateKey(tubes, targets) {
+    return canonicalStateKeyNormalized(tubes, normalizeTargets(targets));
+  }
+
+  // At a clear boundary the just-cleared tube has a special refill role, while
+  // every other non-target tube remains interchangeable. Pin only that tube and
+  // canonicalize the rest so equivalent terminal layouts are evaluated once.
+  function refillTerminalStateKey(tubes, targets, excludedTubeIdx) {
+    const fixed = [];
+    const free = [];
+    let targetIndex = 0;
+
+    for (let index = 0; index < tubes.length; index++) {
+      while (targetIndex < targets.length && targets[targetIndex].tubeIdx < index) targetIndex++;
+      if (targetIndex < targets.length && targets[targetIndex].tubeIdx === index) {
+        fixed.push(`${index}:${targets[targetIndex].color}:${tubeCode(tubes[index])}`);
+        targetIndex++;
+      } else if (index === excludedTubeIdx) {
+        fixed.push(`x:${index}:${tubeCode(tubes[index])}`);
       } else {
         free.push(tubeCode(tubes[index]));
       }
@@ -138,33 +225,103 @@
     return { color, amount };
   }
 
-  function generateLegalMoves(tubes, targets, capacity = DEFAULT_CAPACITY) {
+  function generateLegalMovesNormalized(
+    tubes,
+    targets,
+    capacity = DEFAULT_CAPACITY,
+    pruneSymmetricNoOps = false,
+    previousMove = null
+  ) {
     const moves = [];
-    const targetByTube = new Map(normalizeTargets(targets).map(target => [target.tubeIdx, target.color]));
+    const targetColors = targetColorsByTube(
+      targets,
+      tubes.length,
+      pruneSymmetricNoOps
+    );
 
     for (let from = 0; from < tubes.length; from++) {
       const source = tubes[from];
       const run = getTopRun(source);
       if (!run) continue;
 
-      const equivalentDestinations = new Set();
+      const equivalentDestinations = [];
       for (let to = 0; to < tubes.length; to++) {
         if (to === from) continue;
         const destination = tubes[to];
         if (destination.length >= capacity) continue;
         if (destination.length > 0 && destination[destination.length - 1] !== run.color) continue;
 
-        const role = targetByTube.has(to) ? `target:${to}:${targetByTube.get(to)}` : 'free';
+        // Moving an entire monochrome free tube into an empty free tube only
+        // swaps two interchangeable tube identities. Its canonical state is
+        // unchanged, so the search can skip constructing that child entirely.
+        if (pruneSymmetricNoOps
+          && targetColors[from] === null
+          && targetColors[to] === null
+          && destination.length === 0
+          && run.amount === source.length) {
+          continue;
+        }
+
+        const role = targetColors[to] !== null
+          ? `target:${to}:${targetColors[to]}`
+          : 'free';
         const symmetryKey = `${role}:${tubeCode(destination)}`;
-        if (equivalentDestinations.has(symmetryKey)) continue;
-        equivalentDestinations.add(symmetryKey);
+        if (equivalentDestinations.includes(symmetryKey)) continue;
+        equivalentDestinations.push(symmetryKey);
 
         const amount = Math.min(run.amount, capacity - destination.length);
+        if (pruneSymmetricNoOps
+          && previousMove
+          && from === previousMove.to
+          && to === previousMove.from
+          && run.color === previousMove.color
+          && amount === previousMove.amount) {
+          continue;
+        }
         if (amount > 0) moves.push({ from, to, color: run.color, amount });
       }
     }
 
     return moves;
+  }
+
+  function generateLegalMoves(tubes, targets, capacity = DEFAULT_CAPACITY) {
+    return generateLegalMovesNormalized(tubes, normalizeTargets(targets), capacity, false);
+  }
+
+  // Lean immutable transition for the search hot path. It copies only the two
+  // changed tubes and does not allocate animation snapshots for discarded nodes.
+  function applySearchMove(tubes, targets, move, capacity = DEFAULT_CAPACITY) {
+    const source = tubes[move.from];
+    const destination = tubes[move.to];
+    const nextTubes = tubes.slice();
+    nextTubes[move.from] = tagSearchTube(source.slice(0, source.length - move.amount));
+    const nextDestination = destination.slice();
+    for (let count = 0; count < move.amount; count++) nextDestination.push(move.color);
+    nextTubes[move.to] = tagSearchTube(nextDestination);
+
+    let clearedColor = null;
+    const targetColor = targetColorsByTube(targets, tubes.length, true)[move.to];
+    if (targetColor !== null) {
+      if (nextDestination.length === capacity
+        && nextDestination.every(color => color === targetColor)) {
+        clearedColor = targetColor;
+      }
+    }
+
+    if (!clearedColor) {
+      return { tubes: nextTubes, targets, clearedTube: null, clearedColor: null };
+    }
+
+    nextTubes[move.to] = tagSearchTube([]);
+    const nextTargets = targets.filter(target => target.tubeIdx !== move.to);
+    targetColorsByTube(nextTargets, tubes.length, true);
+    return {
+      tubes: nextTubes,
+      targets: nextTargets,
+      clearedTube: move.to,
+      clearedColor
+    };
   }
 
   function applyMoveAndClear(tubes, targets, move, capacity = DEFAULT_CAPACITY) {
@@ -242,17 +399,32 @@
   ) {
     const capacity = options.capacity || DEFAULT_CAPACITY;
     const refillCount = options.refillCount || DEFAULT_REFILL_COUNT;
-    const targets = options.targets || [];
+    const rawTargets = options.targets || [];
+    const targets = options.targetsNormalized === true
+      ? rawTargets
+      : normalizeTargets(rawTargets);
+    const searchOptimized = options.searchOptimized === true;
     const byState = new Map();
 
     function addOutcome(tubes, weight) {
-      const key = canonicalStateKey(tubes, targets);
+      const key = canonicalStateKeyNormalized(tubes, targets);
       const previous = byState.get(key);
       if (previous) {
         previous.probability += weight;
       } else {
-        byState.set(key, { tubes: cloneTubes(tubes), probability: weight });
+        const storedTubes = searchOptimized ? tubes.slice() : cloneTubes(tubes);
+        if (searchOptimized) tagSearchTubes(storedTubes);
+        byState.set(key, { tubes: storedTubes, probability: weight });
       }
+    }
+
+    function appendDrops(tubes, picked) {
+      const next = tubes.slice();
+      for (const tubeIdx of picked) {
+        const nextTube = [...tubes[tubeIdx], refillColor];
+        next[tubeIdx] = searchOptimized ? tagSearchTube(nextTube) : nextTube;
+      }
+      return next;
     }
 
     function visit(tubes, dropsLeft, weight) {
@@ -267,16 +439,24 @@
         return;
       }
 
-      const pickCount = Math.min(available.length, dropsLeft);
-      const combinations = combinationCount(available.length, pickCount);
-      forEachCombination(available, pickCount, picked => {
-        const next = cloneTubes(tubes);
-        for (const tubeIdx of picked) next[tubeIdx].push(refillColor);
-        visit(next, dropsLeft - picked.length, weight / combinations);
-      });
+      if (available.length >= dropsLeft) {
+        const combinations = combinationCount(available.length, dropsLeft);
+        forEachCombination(available, dropsLeft, picked => {
+          addOutcome(appendDrops(tubes, picked), weight / combinations);
+        });
+        return;
+      }
+
+      // Every available tube must receive one drop before any can receive a
+      // second one, so this round has exactly one possible choice.
+      visit(
+        appendDrops(tubes, available),
+        dropsLeft - available.length,
+        weight
+      );
     }
 
-    visit(cloneTubes(tubesAfterClear), refillCount, 1);
+    visit(tubesAfterClear, refillCount, 1);
     return [...byState.values()];
   }
 
@@ -298,13 +478,152 @@
     return colors.size;
   }
 
-  function structuralScore(tubes, targets, capacity = DEFAULT_CAPACITY) {
-    const targetByTube = new Map(normalizeTargets(targets).map(target => [target.tubeIdx, target.color]));
+  function targetCompletionLowerBound(tubes, target, capacity, includeBlockers) {
+    const tube = tubes[target.tubeIdx] || [];
+    let correctPrefix = 0;
+    while (correctPrefix < tube.length && tube[correctPrefix] === target.color) {
+      correctPrefix++;
+    }
+
+    let runsToRemove = 0;
+    let previousColor = null;
+    for (let index = correctPrefix; index < tube.length; index++) {
+      if (tube[index] !== previousColor) {
+        runsToRemove++;
+        previousColor = tube[index];
+      }
+    }
+    const finalFill = correctPrefix < capacity ? 1 : 0;
+    if (!includeBlockers) return runsToRemove + finalFill;
+
+    const needed = Math.max(0, capacity - correctPrefix);
+    let freeTargetColor = 0;
+    for (let index = correctPrefix; index < tube.length; index++) {
+      if (tube[index] === target.color) freeTargetColor++;
+    }
+
+    const exposureCost = new Array(needed + 1).fill(Infinity);
+    exposureCost[Math.min(needed, freeTargetColor)] = 0;
+    for (let tubeIdx = 0; tubeIdx < tubes.length; tubeIdx++) {
+      if (tubeIdx === target.tubeIdx) continue;
+      const source = tubes[tubeIdx];
+      const options = [{ units: 0, blockers: 0 }];
+      let exposedUnits = 0;
+      let blockerRuns = 0;
+      for (let index = source.length - 1; index >= 0;) {
+        const color = source[index];
+        let runLength = 0;
+        while (index >= 0 && source[index] === color) {
+          runLength++;
+          index--;
+        }
+        if (color === target.color) {
+          exposedUnits += runLength;
+          options.push({ units: exposedUnits, blockers: blockerRuns });
+        } else {
+          blockerRuns++;
+        }
+      }
+
+      const previousCosts = [...exposureCost];
+      for (let have = 0; have <= needed; have++) {
+        if (!Number.isFinite(previousCosts[have])) continue;
+        for (const option of options) {
+          const nextHave = Math.min(needed, have + option.units);
+          exposureCost[nextHave] = Math.min(
+            exposureCost[nextHave],
+            previousCosts[have] + option.blockers
+          );
+        }
+      }
+    }
+
+    const blockerLower = Number.isFinite(exposureCost[needed])
+      ? exposureCost[needed]
+      : 0;
+    return runsToRemove + blockerLower + finalFill;
+  }
+
+  function admissibleNextClearLowerBound(tubes, targets, capacity = DEFAULT_CAPACITY) {
+    if (targets.length === 0) return 0;
+    let best = Infinity;
+    for (const target of targets) {
+      best = Math.min(
+        best,
+        targetCompletionLowerBound(tubes, target, capacity, false)
+      );
+    }
+    return Number.isFinite(best) ? best : 1;
+  }
+
+  // Admissible lower bound: a target tube must remove every color run above
+  // its correct bottom prefix, then receive at least one final target-color
+  // pour if that prefix is not already full. Taking the maximum across targets
+  // never overestimates because a single pour may help two targets at once.
+  function admissibleMoveLowerBound(tubes, targets, capacity = DEFAULT_CAPACITY) {
+    let bound = minimumDecisionMoves(targets);
+    for (const target of targets) {
+      bound = Math.max(
+        bound,
+        targetCompletionLowerBound(tubes, target, capacity, targets.length === 1)
+      );
+    }
+    return bound;
+  }
+
+  function compareSearchNodes(left, right) {
+    return left.priority - right.priority
+      || left.depth - right.depth
+      || left.order - right.order;
+  }
+
+  function heapPush(heap, node) {
+    let index = heap.length;
+    heap.push(node);
+    while (index > 0) {
+      const parent = (index - 1) >> 1;
+      if (compareSearchNodes(heap[parent], node) <= 0) break;
+      heap[index] = heap[parent];
+      index = parent;
+    }
+    heap[index] = node;
+  }
+
+  function heapPop(heap) {
+    if (heap.length === 0) return null;
+    const first = heap[0];
+    const last = heap.pop();
+    if (heap.length === 0) return first;
+
+    let index = 0;
+    while (true) {
+      const left = index * 2 + 1;
+      if (left >= heap.length) break;
+      const right = left + 1;
+      let best = left;
+      if (right < heap.length && compareSearchNodes(heap[right], heap[left]) < 0) {
+        best = right;
+      }
+      if (compareSearchNodes(last, heap[best]) <= 0) break;
+      heap[index] = heap[best];
+      index = best;
+    }
+    heap[index] = last;
+    return first;
+  }
+
+  function structuralScore(
+    tubes,
+    targets,
+    capacity = DEFAULT_CAPACITY,
+    cacheTargets = false
+  ) {
+    const targetColors = targetColorsByTube(targets, tubes.length, cacheTargets);
     let score = countColorTransitions(tubes) * 5;
 
     for (let index = 0; index < tubes.length; index++) {
       const tube = tubes[index];
-      const targetColor = targetByTube.get(index);
+      const targetColor = targetColors[index];
       if (targetColor) {
         for (const color of tube) {
           if (color !== targetColor) score += 12;
@@ -346,7 +665,12 @@
       const estimatedOutcomeCount = eligibleCount >= refillCount
         ? combinationCount(eligibleCount, refillCount)
         : Math.max(1, eligibleCount);
-      const currentStructure = structuralScore(candidate.tubes, candidate.targets, capacity);
+      const currentStructure = structuralScore(
+        candidate.tubes,
+        candidate.targets,
+        capacity,
+        options.searchOptimized === true
+      );
       return {
         fullShieldCount,
         eligibleCount,
@@ -360,10 +684,21 @@
       candidate.tubes,
       candidate.clearedColor,
       candidate.clearedTube,
-      { capacity, refillCount, targets: candidate.targets }
+      {
+        capacity,
+        refillCount,
+        targets: candidate.targets,
+        targetsNormalized: options.targetsNormalized === true,
+        searchOptimized: options.searchOptimized === true
+      }
     );
     const expectedStructure = outcomes.reduce(
-      (sum, outcome) => sum + outcome.probability * structuralScore(outcome.tubes, candidate.targets, capacity),
+      (sum, outcome) => sum + outcome.probability * structuralScore(
+        outcome.tubes,
+        candidate.targets,
+        capacity,
+        options.searchOptimized === true
+      ),
       0
     );
 
@@ -376,21 +711,32 @@
     };
   }
 
-  function reconstructPath(endNode) {
-    const records = [];
+  function reconstructRawPath(endNode) {
+    const moves = [];
     let current = endNode;
-    while (current && current.record) {
-      records.push(current.record);
+    while (current && current.move) {
+      moves.push(current.move);
       current = current.parent;
     }
-    records.reverse();
+    moves.reverse();
+    return moves;
+  }
+
+  function materializeMovePlan(tubes, targets, rawMoves, capacity = DEFAULT_CAPACITY) {
+    let state = normalizeState(tubes, targets, capacity);
+    const records = [];
+    for (const move of rawMoves) {
+      const next = applyMoveAndClear(state.tubes, state.targets, move, capacity);
+      records.push(next.record);
+      state = { tubes: next.tubes, targets: next.targets };
+    }
     return records;
   }
 
   function makeSearchContext(options = {}) {
     const startedAt = nowMs();
     const timeLimitMs = Number.isFinite(options.timeLimitMs) ? options.timeLimitMs : 4000;
-    return {
+    const context = {
       options: {
         capacity: options.capacity || DEFAULT_CAPACITY,
         refillCount: options.refillCount || DEFAULT_REFILL_COUNT,
@@ -434,6 +780,23 @@
       finalMemo: new Map(),
       policyEntries: new Map()
     };
+
+    const incumbentEntries = options.initialIncumbent
+      && options.initialIncumbent.policy
+      && Array.isArray(options.initialIncumbent.policy.entries)
+      ? options.initialIncumbent.policy.entries
+      : [];
+    for (const entry of incumbentEntries) {
+      if (!entry || !entry.canonicalKey || !Number.isFinite(entry.upperBound)) continue;
+      context.greedyMemo.set(entry.canonicalKey, {
+        upper: entry.upperBound,
+        worstUpper: entry.worstCaseUpper,
+        plan: cloneMovePlan(entry.plan),
+        orderedKey: entry.orderedKey,
+        complete: true
+      });
+    }
+    return context;
   }
 
   function rememberPolicyEntry(context, key, state, result, source) {
@@ -447,7 +810,7 @@
 
     const entry = {
       canonicalKey: key,
-      orderedKey: orderedStateKey(state.tubes, state.targets),
+      orderedKey: orderedStateKeyNormalized(state.tubes, state.targets),
       tubes: cloneTubes(state.tubes),
       targets: cloneTargets(state.targets),
       plan: cloneMovePlan(result.plan),
@@ -465,26 +828,53 @@
   }
 
   function isExpired(context, deadline = context.deadline) {
-    return nowMs() >= deadline;
+    return Number.isFinite(deadline) && nowMs() >= deadline;
   }
 
   function insertRankedCandidate(candidates, candidate, limit, truncation) {
-    if (!Number.isFinite(limit) || candidates.length < limit) {
+    if (!Number.isFinite(limit)) {
       candidates.push(candidate);
       return;
     }
-
-    let worstIndex = 0;
-    for (let index = 1; index < candidates.length; index++) {
-      if (candidates[index].layout.rank > candidates[worstIndex].layout.rank) worstIndex = index;
+    if (limit <= 0) {
+      truncation.minDiscardedDepth = Math.min(truncation.minDiscardedDepth, candidate.depth);
+      truncation.discardedCandidates++;
+      return;
     }
 
-    if (candidate.layout.rank < candidates[worstIndex].layout.rank) {
+    if (candidates.length < limit) {
+      let index = candidates.length;
+      candidates.push(candidate);
+      while (index > 0) {
+        const parent = (index - 1) >> 1;
+        if (candidates[parent].layout.rank >= candidate.layout.rank) break;
+        candidates[index] = candidates[parent];
+        index = parent;
+      }
+      candidates[index] = candidate;
+      return;
+    }
+
+    if (candidate.layout.rank < candidates[0].layout.rank) {
       truncation.minDiscardedDepth = Math.min(
         truncation.minDiscardedDepth,
-        candidates[worstIndex].depth
+        candidates[0].depth
       );
-      candidates[worstIndex] = candidate;
+      let index = 0;
+      while (true) {
+        const left = index * 2 + 1;
+        if (left >= candidates.length) break;
+        const right = left + 1;
+        let worstChild = left;
+        if (right < candidates.length
+          && candidates[right].layout.rank > candidates[left].layout.rank) {
+          worstChild = right;
+        }
+        if (candidates[worstChild].layout.rank <= candidate.layout.rank) break;
+        candidates[index] = candidates[worstChild];
+        index = worstChild;
+      }
+      candidates[index] = candidate;
     } else {
       truncation.minDiscardedDepth = Math.min(truncation.minDiscardedDepth, candidate.depth);
     }
@@ -504,16 +894,19 @@
       : context.options.stageDepthSlack;
     const deadline = overrides.deadline || context.deadline;
 
-    const start = normalizeState(tubes, targets, capacity);
+    const start = normalizeSearchState(tubes, targets, capacity);
     const rootNode = {
       tubes: start.tubes,
       targets: start.targets,
       depth: 0,
       parent: null,
-      record: null
+      move: null,
+      key: canonicalStateKeyNormalized(start.tubes, start.targets),
+      priority: admissibleNextClearLowerBound(start.tubes, start.targets, capacity),
+      order: 0
     };
-    const queue = [rootNode];
-    const seen = new Map([[canonicalStateKey(start.tubes, start.targets), 0]]);
+    const frontier = [rootNode];
+    const seen = new Map([[rootNode.key, 0]]);
     const terminalSeen = new Map();
     const candidates = [];
     const lockedCandidates = [];
@@ -524,16 +917,16 @@
       reason: null
     };
 
-    let head = 0;
     let expanded = 0;
+    let order = 1;
     let shortestClearDepth = Infinity;
 
-    while (head < queue.length) {
+    while (frontier.length > 0) {
       if (expanded >= maxNodes) {
         truncation.reason = 'node-limit';
         truncation.minUnexpandedClearDepth = Math.min(
           truncation.minUnexpandedClearDepth,
-          queue[head].depth + 1
+          frontier[0].priority
         );
         break;
       }
@@ -541,51 +934,72 @@
         truncation.reason = 'time-limit';
         truncation.minUnexpandedClearDepth = Math.min(
           truncation.minUnexpandedClearDepth,
-          queue[head].depth + 1
+          frontier[0].priority
         );
         break;
       }
 
-      const current = queue[head++];
-      if (Number.isFinite(shortestClearDepth) && current.depth + 1 > shortestClearDepth + depthSlack) {
+      const current = heapPop(frontier);
+      if (seen.get(current.key) !== current.depth) continue;
+      if (Number.isFinite(shortestClearDepth)
+        && current.priority > shortestClearDepth + depthSlack) {
         truncation.reason = truncation.reason || 'depth-slack';
         truncation.minUnexpandedClearDepth = Math.min(
           truncation.minUnexpandedClearDepth,
-          current.depth + 1
+          current.priority
         );
-        continue;
+        break;
       }
 
       expanded++;
       context.stats.deterministicNodes++;
-      const moves = generateLegalMoves(current.tubes, current.targets, capacity);
+      const moves = generateLegalMovesNormalized(
+        current.tubes,
+        current.targets,
+        capacity,
+        true,
+        current.move
+      );
       for (const move of moves) {
-        const next = applyMoveAndClear(current.tubes, current.targets, move, capacity);
+        const next = applySearchMove(current.tubes, current.targets, move, capacity);
         const depth = current.depth + 1;
         const nextNode = {
           tubes: next.tubes,
           targets: next.targets,
           depth,
           parent: current,
-          record: next.record
+          move,
+          key: null,
+          priority: 0,
+          order: order++
         };
 
-        if (next.record.clearedColor) {
+        if (next.clearedColor) {
           shortestClearDepth = Math.min(shortestClearDepth, depth);
-          const terminalKey = `${next.record.clearedTube}:${next.record.clearedColor}#${orderedStateKey(next.tubes, next.targets)}`;
+          const terminalKey = `${next.clearedTube}:${next.clearedColor}#${refillTerminalStateKey(
+            next.tubes,
+            next.targets,
+            next.clearedTube
+          )}`;
           const previousDepth = terminalSeen.get(terminalKey);
           if (previousDepth !== undefined && previousDepth <= depth) continue;
           terminalSeen.set(terminalKey, depth);
 
           const candidate = {
             depth,
-            moves: reconstructPath(nextNode),
+            endNode: nextNode,
             tubes: next.tubes,
             targets: next.targets,
-            clearedTube: next.record.clearedTube,
-            clearedColor: next.record.clearedColor
+            clearedTube: next.clearedTube,
+            clearedColor: next.clearedColor
           };
-          candidate.layout = analyzeClearLayout(candidate, { capacity, refillCount, quick: true });
+          candidate.layout = analyzeClearLayout(candidate, {
+            capacity,
+            refillCount,
+            quick: true,
+            targetsNormalized: true,
+            searchOptimized: true
+          });
           if (candidate.layout.outcomeCount === 1 && maxLockedCandidates > 0) {
             insertRankedCandidate(
               lockedCandidates,
@@ -600,20 +1014,35 @@
           continue;
         }
 
-        const key = canonicalStateKey(next.tubes, next.targets);
+        const key = canonicalStateKeyNormalized(next.tubes, next.targets);
         const previousDepth = seen.get(key);
         if (previousDepth !== undefined && previousDepth <= depth) continue;
         seen.set(key, depth);
-        queue.push(nextNode);
+        nextNode.key = key;
+        nextNode.priority = depth + admissibleNextClearLowerBound(
+          next.tubes,
+          next.targets,
+          capacity
+        );
+        heapPush(frontier, nextNode);
       }
     }
 
     candidates.push(...lockedCandidates);
     for (const candidate of candidates) {
-      candidate.layout = analyzeClearLayout(candidate, { capacity, refillCount });
+      candidate.layout = analyzeClearLayout(candidate, {
+        capacity,
+        refillCount,
+        targetsNormalized: true,
+        searchOptimized: true
+      });
     }
     candidates.sort((a, b) => a.layout.rank - b.layout.rank || a.depth - b.depth);
-    const exhaustive = head >= queue.length
+    for (const candidate of candidates) {
+      candidate.moves = reconstructRawPath(candidate.endNode);
+      delete candidate.endNode;
+    }
+    const exhaustive = frontier.length === 0
       && !truncation.reason
       && truncation.discardedCandidates === 0;
     let unseenClearLower = Infinity;
@@ -641,15 +1070,33 @@
 
   function shortestFinalClear(tubes, targets, context, deadline = context.deadline) {
     const capacity = context.options.capacity;
-    const start = normalizeState(tubes, targets, capacity);
-    const key = canonicalStateKey(start.tubes, start.targets);
+    const start = normalizeSearchState(tubes, targets, capacity);
+    const key = canonicalStateKeyNormalized(start.tubes, start.targets);
+    const orderedKey = orderedStateKeyNormalized(start.tubes, start.targets);
     const cached = context.finalMemo.get(key);
     if (cached) {
       context.stats.cacheHits++;
-      return cached;
+      if (!cached.moves || cached.orderedKey === orderedKey) return cached;
+      const remappedMoves = remapPolicyPlan({
+        canonicalKey: key,
+        orderedKey: cached.orderedKey,
+        tubes: cached.tubes,
+        targets: cached.targets,
+        plan: cached.moves
+      }, start.tubes, start.targets, capacity);
+      if (remappedMoves) return { ...cached, moves: remappedMoves, orderedKey };
     }
     if (start.targets.length === 0) {
-      const complete = { found: true, distance: 0, moves: [], proven: true, lower: 0 };
+      const complete = {
+        found: true,
+        distance: 0,
+        moves: [],
+        proven: true,
+        lower: 0,
+        orderedKey,
+        tubes: start.tubes,
+        targets: start.targets
+      };
       context.finalMemo.set(key, complete);
       return complete;
     }
@@ -659,48 +1106,73 @@
       targets: start.targets,
       depth: 0,
       parent: null,
-      record: null
+      move: null,
+      key,
+      priority: admissibleMoveLowerBound(start.tubes, start.targets, capacity),
+      order: 0
     };
-    const queue = [rootNode];
-    const seen = new Set([key]);
-    let head = 0;
+    const frontier = [rootNode];
+    const bestDepth = new Map([[key, 0]]);
     let expanded = 0;
+    let order = 1;
 
-    while (head < queue.length) {
+    while (frontier.length > 0) {
       if (expanded >= context.options.finalNodeLimit || isExpired(context, deadline)) {
-        const lower = head < queue.length ? queue[head].depth + 1 : start.targets.length;
+        const lower = frontier.length > 0
+          ? frontier[0].priority
+          : admissibleMoveLowerBound(start.tubes, start.targets, capacity);
         return { found: false, distance: Infinity, moves: null, proven: false, lower };
       }
 
-      const current = queue[head++];
+      const current = heapPop(frontier);
+      if (bestDepth.get(current.key) !== current.depth) continue;
+      if (current.targets.length === 0) {
+        const result = {
+          found: true,
+          distance: current.depth,
+          moves: reconstructRawPath(current),
+          proven: true,
+          lower: current.depth,
+          orderedKey,
+          tubes: start.tubes,
+          targets: start.targets
+        };
+        context.finalMemo.set(key, result);
+        return result;
+      }
+
       expanded++;
       context.stats.staticNodes++;
-      const moves = generateLegalMoves(current.tubes, current.targets, capacity);
+      const moves = generateLegalMovesNormalized(
+        current.tubes,
+        current.targets,
+        capacity,
+        true,
+        current.move
+      );
       for (const move of moves) {
-        const next = applyMoveAndClear(current.tubes, current.targets, move, capacity);
+        const next = applySearchMove(current.tubes, current.targets, move, capacity);
         const nextNode = {
           tubes: next.tubes,
           targets: next.targets,
           depth: current.depth + 1,
           parent: current,
-          record: next.record
+          move,
+          key: null,
+          priority: 0,
+          order: order++
         };
-        if (next.targets.length === 0) {
-          const result = {
-            found: true,
-            distance: nextNode.depth,
-            moves: reconstructPath(nextNode),
-            proven: true,
-            lower: nextNode.depth
-          };
-          context.finalMemo.set(key, result);
-          return result;
-        }
-
-        const nextKey = canonicalStateKey(next.tubes, next.targets);
-        if (seen.has(nextKey)) continue;
-        seen.add(nextKey);
-        queue.push(nextNode);
+        const nextKey = canonicalStateKeyNormalized(next.tubes, next.targets);
+        const previousDepth = bestDepth.get(nextKey);
+        if (previousDepth !== undefined && previousDepth <= nextNode.depth) continue;
+        bestDepth.set(nextKey, nextNode.depth);
+        nextNode.key = nextKey;
+        nextNode.priority = nextNode.depth + admissibleMoveLowerBound(
+          next.tubes,
+          next.targets,
+          capacity
+        );
+        heapPush(frontier, nextNode);
       }
     }
 
@@ -718,9 +1190,9 @@
   function greedyPolicyValue(tubes, targets, context, wantPlan = false) {
     const capacity = context.options.capacity;
     const refillCount = context.options.refillCount;
-    const state = normalizeState(tubes, targets, capacity);
-    const key = canonicalStateKey(state.tubes, state.targets);
-    const orderedKey = orderedStateKey(state.tubes, state.targets);
+    const state = normalizeSearchState(tubes, targets, capacity);
+    const key = canonicalStateKeyNormalized(state.tubes, state.targets);
+    const orderedKey = orderedStateKeyNormalized(state.tubes, state.targets);
     const cached = context.greedyMemo.get(key);
     if (cached && (!wantPlan || cached.orderedKey === orderedKey)) {
       context.stats.cacheHits++;
@@ -772,21 +1244,59 @@
         candidate.tubes,
         candidate.clearedColor,
         candidate.clearedTube,
-        { capacity, refillCount, targets: candidate.targets }
+        {
+          capacity,
+          refillCount,
+          targets: candidate.targets,
+          targetsNormalized: true,
+          searchOptimized: true
+        }
       );
       context.stats.chanceOutcomes += outcomes.length;
+
+      const preparedOutcomes = outcomes.map(outcome => {
+        const outcomeState = normalizeSearchState(
+          outcome.tubes,
+          candidate.targets,
+          capacity
+        );
+        return {
+          ...outcome,
+          state: outcomeState,
+          lower: admissibleMoveLowerBound(
+            outcomeState.tubes,
+            outcomeState.targets,
+            capacity
+          )
+        };
+      });
+      let remainingLower = preparedOutcomes.reduce(
+        (sum, outcome) => sum + outcome.probability * outcome.lower,
+        0
+      );
+      if (best && candidate.depth + remainingLower > best.upper + EPSILON) continue;
 
       let expected = candidate.depth;
       let worst = candidate.depth;
       let complete = true;
-      for (const outcome of outcomes) {
-        const child = greedyPolicyValue(outcome.tubes, candidate.targets, context, false);
+      for (const outcome of preparedOutcomes) {
+        remainingLower -= outcome.probability * outcome.lower;
+        const child = greedyPolicyValue(
+          outcome.state.tubes,
+          outcome.state.targets,
+          context,
+          false
+        );
         if (!child.complete || !Number.isFinite(child.upper)) {
           complete = false;
           break;
         }
         expected += outcome.probability * child.upper;
         worst = Math.max(worst, candidate.depth + child.worstUpper);
+        if (best && expected + remainingLower > best.upper + EPSILON) {
+          complete = false;
+          break;
+        }
       }
 
       if (complete && (!best || expected < best.upper - EPSILON || (
@@ -821,9 +1331,9 @@
   function solvePolicyState(tubes, targets, context, wantPlan = false) {
     const capacity = context.options.capacity;
     const refillCount = context.options.refillCount;
-    const state = normalizeState(tubes, targets, capacity);
-    const key = canonicalStateKey(state.tubes, state.targets);
-    const orderedKey = orderedStateKey(state.tubes, state.targets);
+    const state = normalizeSearchState(tubes, targets, capacity);
+    const key = canonicalStateKeyNormalized(state.tubes, state.targets);
+    const orderedKey = orderedStateKeyNormalized(state.tubes, state.targets);
     const cached = context.valueMemo.get(key);
     if (cached && (!wantPlan || cached.orderedKey === orderedKey)) {
       context.stats.cacheHits++;
@@ -917,18 +1427,58 @@
         candidate.tubes,
         candidate.clearedColor,
         candidate.clearedTube,
-        { capacity, refillCount, targets: candidate.targets }
+        {
+          capacity,
+          refillCount,
+          targets: candidate.targets,
+          targetsNormalized: true,
+          searchOptimized: true
+        }
       );
       context.stats.chanceOutcomes += outcomes.length;
+
+      const preparedOutcomes = outcomes.map(outcome => {
+        const outcomeState = normalizeSearchState(
+          outcome.tubes,
+          candidate.targets,
+          capacity
+        );
+        return {
+          ...outcome,
+          state: outcomeState,
+          lower: admissibleMoveLowerBound(
+            outcomeState.tubes,
+            outcomeState.targets,
+            capacity
+          )
+        };
+      });
+      let remainingOutcomeLower = preparedOutcomes.reduce(
+        (sum, outcome) => sum + outcome.probability * outcome.lower,
+        0
+      );
+      const initialCandidateLower = candidate.depth + remainingOutcomeLower;
+      if (Number.isFinite(bestUpper) && initialCandidateLower > bestUpper + EPSILON) {
+        unevaluatedLower = Math.min(unevaluatedLower, initialCandidateLower);
+        allEvaluatedCandidatesExact = false;
+        continue;
+      }
 
       let candidateLower = candidate.depth;
       let candidateUpper = candidate.depth;
       let candidateWorst = candidate.depth;
       let completeUpper = true;
       let exactChildren = true;
+      let prunedByBound = false;
 
-      for (const outcome of outcomes) {
-        const child = solvePolicyState(outcome.tubes, candidate.targets, context, false);
+      for (const outcome of preparedOutcomes) {
+        remainingOutcomeLower -= outcome.probability * outcome.lower;
+        const child = solvePolicyState(
+          outcome.state.tubes,
+          outcome.state.targets,
+          context,
+          false
+        );
         candidateLower += outcome.probability * child.lower;
         exactChildren = exactChildren && child.proven;
         if (Number.isFinite(child.upper)) {
@@ -937,7 +1487,17 @@
         } else {
           completeUpper = false;
         }
+
+        const runningLower = candidateLower + remainingOutcomeLower;
+        if (Number.isFinite(bestUpper) && runningLower > bestUpper + EPSILON) {
+          unevaluatedLower = Math.min(unevaluatedLower, runningLower);
+          allEvaluatedCandidatesExact = false;
+          prunedByBound = true;
+          break;
+        }
       }
+
+      if (prunedByBound) continue;
 
       evaluatedLower = Math.min(evaluatedLower, candidateLower);
       allEvaluatedCandidatesExact = allEvaluatedCandidatesExact && exactChildren;
@@ -992,17 +1552,20 @@
     return result;
   }
 
-  function solveRefillPolicy(initialTubes, initialTargets, options = {}) {
+  function solveRefillPolicyOnce(initialTubes, initialTargets, options = {}) {
     const context = makeSearchContext(options);
     const capacity = context.options.capacity;
     const start = normalizeState(initialTubes, initialTargets, capacity);
 
     const greedy = greedyPolicyValue(start.tubes, start.targets, context, true);
+    context.stats.greedyElapsedMs = nowMs() - context.startedAt;
+    context.stats.greedyUpper = greedy.upper;
     if (greedy.complete) {
-      context.greedyMemo.set(canonicalStateKey(start.tubes, start.targets), greedy);
+      context.greedyMemo.set(canonicalStateKeyNormalized(start.tubes, start.targets), greedy);
     }
     const solved = solvePolicyState(start.tubes, start.targets, context, true);
-    const plan = solved.plan || greedy.plan || [];
+    const rawPlan = solved.plan || greedy.plan || [];
+    const plan = materializeMovePlan(start.tubes, start.targets, rawPlan, capacity);
     const selected = solved.selectedCandidate || greedy.selectedCandidate || null;
     const elapsedMs = nowMs() - context.startedAt;
     const gap = Number.isFinite(solved.upper)
@@ -1051,6 +1614,132 @@
     return result;
   }
 
+  function isBetterPolicyResult(candidate, incumbent) {
+    if (!incumbent) return true;
+    const candidateUpper = candidate.certificate.upperBound;
+    const incumbentUpper = incumbent.certificate.upperBound;
+    if (candidateUpper < incumbentUpper - EPSILON) return true;
+    if (candidateUpper > incumbentUpper + EPSILON) return false;
+    const candidateWorst = candidate.certificate.worstCaseUpper;
+    const incumbentWorst = incumbent.certificate.worstCaseUpper;
+    if (candidateWorst < incumbentWorst - EPSILON) return true;
+    if (candidateWorst > incumbentWorst + EPSILON) return false;
+    return candidate.plan.length < incumbent.plan.length;
+  }
+
+  function mergePolicyEntries(first, second) {
+    const merged = new Map();
+    for (const result of [first, second]) {
+      const entries = result && result.policy && Array.isArray(result.policy.entries)
+        ? result.policy.entries
+        : [];
+      for (const entry of entries) {
+        const previous = merged.get(entry.canonicalKey);
+        if (!previous
+          || entry.upperBound < previous.upperBound - EPSILON
+          || (Math.abs(entry.upperBound - previous.upperBound) <= EPSILON
+            && entry.worstCaseUpper < previous.worstCaseUpper)) {
+          merged.set(entry.canonicalKey, entry);
+        }
+      }
+    }
+    return [...merged.values()].sort((a, b) => a.canonicalKey.localeCompare(b.canonicalKey));
+  }
+
+  function solveRefillPolicy(initialTubes, initialTargets, options = {}) {
+    const warmOptions = options.warmStartOptions;
+    const totalLimitMs = Number.isFinite(options.timeLimitMs) ? options.timeLimitMs : 4000;
+    if (!warmOptions || totalLimitMs <= 0) {
+      return solveRefillPolicyOnce(initialTubes, initialTargets, options);
+    }
+
+    const portfolioStartedAt = nowMs();
+    const configuredWarmLimit = Number.isFinite(warmOptions.timeLimitMs)
+      ? warmOptions.timeLimitMs
+      : Math.min(4000, totalLimitMs);
+    const warmLimitMs = Math.max(1, Math.min(totalLimitMs, configuredWarmLimit));
+    const warmResult = solveRefillPolicyOnce(initialTubes, initialTargets, {
+      ...warmOptions,
+      timeLimitMs: warmLimitMs,
+      includePolicy: true,
+      warmStartOptions: undefined,
+      initialIncumbent: undefined
+    });
+
+    const elapsedAfterWarm = nowMs() - portfolioStartedAt;
+    const remainingMs = Math.max(0, totalLimitMs - elapsedAfterWarm);
+    if (remainingMs < 10) {
+      warmResult.stats = {
+        ...warmResult.stats,
+        warmStartElapsedMs: elapsedAfterWarm,
+        portfolioElapsedMs: elapsedAfterWarm
+      };
+      if (options.includePolicy !== true) delete warmResult.policy;
+      return warmResult;
+    }
+
+    const fullResult = solveRefillPolicyOnce(initialTubes, initialTargets, {
+      ...options,
+      timeLimitMs: remainingMs,
+      warmStartOptions: undefined,
+      initialIncumbent: warmResult
+    });
+    const chosen = isBetterPolicyResult(fullResult, warmResult)
+      ? fullResult
+      : warmResult;
+    const result = {
+      ...chosen,
+      plan: chosen.plan.map(move => ({
+        ...move,
+        remainingTargets: cloneTargets(move.remainingTargets || []),
+        afterState: cloneTubes(move.afterState || [])
+      })),
+      certificate: { ...chosen.certificate },
+      stats: { ...chosen.stats }
+    };
+
+    const combinedLower = Math.min(
+      result.certificate.upperBound,
+      Math.max(
+        warmResult.certificate.lowerBound,
+        fullResult.certificate.lowerBound
+      )
+    );
+    const combinedGap = Number.isFinite(result.certificate.upperBound)
+      ? Math.max(0, result.certificate.upperBound - combinedLower)
+      : Infinity;
+    result.certificate.lowerBound = combinedLower;
+    result.certificate.absoluteGap = combinedGap;
+    result.certificate.relativeGap = Number.isFinite(combinedGap) && combinedLower > EPSILON
+      ? combinedGap / combinedLower
+      : null;
+    result.certificate.provenOptimal = result.certificate.provenOptimal
+      || (Number.isFinite(result.certificate.upperBound) && combinedGap <= EPSILON);
+
+    const counterKeys = [
+      'deterministicNodes',
+      'staticNodes',
+      'macroCandidates',
+      'chanceOutcomes',
+      'policyStates',
+      'cacheHits',
+      'greedyStates'
+    ];
+    for (const key of counterKeys) {
+      result.stats[key] = (warmResult.stats[key] || 0) + (fullResult.stats[key] || 0);
+    }
+    result.stats.warmStartElapsedMs = warmResult.stats.elapsedMs;
+    result.stats.fullSearchElapsedMs = fullResult.stats.elapsedMs;
+    result.stats.elapsedMs = nowMs() - portfolioStartedAt;
+
+    if (options.includePolicy === true) {
+      result.policy = { entries: mergePolicyEntries(warmResult, fullResult) };
+    } else {
+      delete result.policy;
+    }
+    return result;
+  }
+
   function solveStaticOptimal(initialTubes, initialTargets, options = {}) {
     const context = makeSearchContext({
       ...options,
@@ -1078,61 +1767,79 @@
       targets: start.targets,
       depth: 0,
       parent: null,
-      record: null
+      move: null,
+      key: canonicalStateKeyNormalized(start.tubes, start.targets),
+      priority: admissibleMoveLowerBound(start.tubes, start.targets, capacity),
+      order: 0
     };
-    const queue = [rootNode];
-    const seen = new Set([canonicalStateKey(start.tubes, start.targets)]);
-    let head = 0;
+    const frontier = [rootNode];
+    const bestDepth = new Map([[rootNode.key, 0]]);
     let expanded = 0;
-    let lowerBound = minimumDecisionMoves(start.targets);
+    let order = 1;
+    let lowerBound = rootNode.priority;
+    let stoppedByLimit = false;
 
-    while (head < queue.length) {
+    while (frontier.length > 0) {
       if (expanded >= context.options.finalNodeLimit || isExpired(context)) {
-        if (head < queue.length) {
-          lowerBound = Infinity;
-          for (let index = head; index < queue.length; index++) {
-            lowerBound = Math.min(
-              lowerBound,
-              queue[index].depth + Math.max(1, minimumDecisionMoves(queue[index].targets))
-            );
-          }
-          if (!Number.isFinite(lowerBound)) lowerBound = minimumDecisionMoves(start.targets);
-        }
+        lowerBound = frontier[0].priority;
+        stoppedByLimit = true;
         break;
       }
 
-      const current = queue[head++];
+      const current = heapPop(frontier);
+      if (bestDepth.get(current.key) !== current.depth) continue;
+      if (current.targets.length === 0) {
+        const plan = materializeMovePlan(
+          start.tubes,
+          start.targets,
+          reconstructRawPath(current),
+          capacity
+        );
+        return {
+          kind: 'static-optimal',
+          plan,
+          certificate: {
+            provenOptimal: true,
+            lowerBound: plan.length,
+            upperBound: plan.length,
+            absoluteGap: 0
+          },
+          stats: { ...context.stats, elapsedMs: nowMs() - context.startedAt }
+        };
+      }
+
       expanded++;
       context.stats.staticNodes++;
-      const moves = generateLegalMoves(current.tubes, current.targets, capacity);
+      const moves = generateLegalMovesNormalized(
+        current.tubes,
+        current.targets,
+        capacity,
+        true,
+        current.move
+      );
       for (const move of moves) {
-        const next = applyMoveAndClear(current.tubes, current.targets, move, capacity);
+        const next = applySearchMove(current.tubes, current.targets, move, capacity);
         const node = {
           tubes: next.tubes,
           targets: next.targets,
           depth: current.depth + 1,
           parent: current,
-          record: next.record
+          move,
+          key: null,
+          priority: 0,
+          order: order++
         };
-        if (next.targets.length === 0) {
-          const plan = reconstructPath(node);
-          return {
-            kind: 'static-optimal',
-            plan,
-            certificate: {
-              provenOptimal: true,
-              lowerBound: plan.length,
-              upperBound: plan.length,
-              absoluteGap: 0
-            },
-            stats: { ...context.stats, elapsedMs: nowMs() - context.startedAt }
-          };
-        }
-
-        const key = canonicalStateKey(next.tubes, next.targets);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        queue.push(node);
+        const key = canonicalStateKeyNormalized(next.tubes, next.targets);
+        const previousDepth = bestDepth.get(key);
+        if (previousDepth !== undefined && previousDepth <= node.depth) continue;
+        bestDepth.set(key, node.depth);
+        node.key = key;
+        node.priority = node.depth + admissibleMoveLowerBound(
+          next.tubes,
+          next.targets,
+          capacity
+        );
+        heapPush(frontier, node);
       }
     }
 
@@ -1146,7 +1853,7 @@
         absoluteGap: Infinity
       },
       stats: { ...context.stats, elapsedMs: nowMs() - context.startedAt },
-      error: head >= queue.length ? 'no-solution' : 'search-limit'
+      error: stoppedByLimit ? 'search-limit' : 'no-solution'
     };
   }
 
@@ -1163,7 +1870,14 @@
     const selected = enumeration.candidates[0] || null;
     return {
       kind: 'fast-next-clear',
-      plan: selected ? selected.moves : [],
+      plan: selected
+        ? materializeMovePlan(
+          state.tubes,
+          state.targets,
+          selected.moves,
+          context.options.capacity
+        )
+        : [],
       certificate: {
         provenOptimal: false,
         shortestClearDepth: enumeration.shortestClearDepth,

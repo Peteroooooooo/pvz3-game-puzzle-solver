@@ -1232,9 +1232,9 @@ header {
         </span>
         <span class="stat-pill"><span id="budgetLabel">搜索预算</span>:
           <select id="selectSearchBudget" style="background: var(--bg-surface); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
-            <option value="balanced" selected>平衡 · 4 秒（默认）</option>
-            <option value="deep">深入 · 15 秒（推荐）</option>
-            <option value="proof">最强 · 60 秒（结果优先）</option>
+            <option value="balanced" selected>平衡 · 最多 4 秒（默认）</option>
+            <option value="deep">深入 · 最多 15 秒（推荐）</option>
+            <option value="proof">最强 · 最多 60 秒（结果优先）</option>
           </select>
         </span>
       </div>
@@ -1243,7 +1243,7 @@ header {
         <button class="btn btn-subtle" id="btnOpenSmokeTest" style="font-size: 0.74rem; padding: 4px 10px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Run 100 random puzzle simulations in this browser">📊 100 局模拟测试</button>
       </div>
       <div class="strategy-advice" id="strategyAdvice">
-        <b>实机推荐：</b>选择「加料策略」。60 秒搜索最充分，15 秒性价比最高，4 秒最快；静态最短只适用于不考虑后续加料，旧版快速仅作应急。
+        <b>实机推荐：</b>选择「加料策略」。时间是搜索上限，搜索完成会提前返回；60 秒最充分，15 秒性价比最高，4 秒最快。
       </div>
     </div>
 
@@ -1431,10 +1431,10 @@ const WATER_COPY = {
     staticOptimalStrategy: '✅ 静态最短（仅无加料）',
     classicStrategy: '⚡ 旧版快速（仅应急）',
     budgetLabel: '搜索预算',
-    budgetBalanced: '平衡 · 4 秒（默认）',
-    budgetDeep: '深入 · 15 秒（推荐）',
-    budgetProof: '最强 · 60 秒（结果优先）',
-    strategyAdviceHtml: '<b>实机推荐：</b>选择「加料策略」。<b>追求最好结果：</b>60 秒搜索最充分；<b>日常推荐：</b>15 秒性价比最高；4 秒最快。静态最短只适用于不考虑后续加料，旧版快速仅作应急且没有最优证明。',
+    budgetBalanced: '平衡 · 最多 4 秒（默认）',
+    budgetDeep: '深入 · 最多 15 秒（推荐）',
+    budgetProof: '最强 · 最多 60 秒（结果优先）',
+    strategyAdviceHtml: '<b>实机推荐：</b>选择「加料策略」。时间是搜索上限，完成后会提前返回。<b>追求最好结果：</b>60 秒最充分；<b>日常推荐：</b>15 秒性价比最高；4 秒最快。静态最短只适用于不考虑后续加料。',
     smokeOpen: '📊 100 局模拟测试',
     smokeOpenTitle: '在当前浏览器里运行 100 局随机模拟',
     undoTitle: '撤销上一步 (Ctrl+Z)',
@@ -1543,10 +1543,10 @@ const WATER_COPY = {
     staticOptimalStrategy: '✅ Static shortest (no refill)',
     classicStrategy: '⚡ Legacy fast (emergency only)',
     budgetLabel: 'Search budget',
-    budgetBalanced: 'Balanced · 4 sec (default)',
-    budgetDeep: 'Deep · 15 sec (recommended)',
-    budgetProof: 'Strongest · 60 sec (quality first)',
-    strategyAdviceHtml: '<b>For the live game:</b> choose “Refill policy.” <b>Best search quality:</b> 60 seconds; <b>best everyday tradeoff:</b> 15 seconds; 4 seconds is fastest. Static shortest ignores future refills, while legacy fast is an emergency fallback with no optimality proof.',
+    budgetBalanced: 'Balanced · up to 4 sec (default)',
+    budgetDeep: 'Deep · up to 15 sec (recommended)',
+    budgetProof: 'Strongest · up to 60 sec (quality first)',
+    strategyAdviceHtml: '<b>For the live game:</b> choose “Refill policy.” The time is a maximum; completed searches return early. <b>Best search quality:</b> 60 seconds; <b>best everyday tradeoff:</b> 15 seconds; 4 seconds is fastest. Static shortest ignores future refills.',
     smokeOpen: '📊 100-run test',
     smokeOpenTitle: 'Run 100 random simulations in this browser',
     undoTitle: 'Undo previous action (Ctrl+Z)',
@@ -2307,6 +2307,18 @@ function getAdvancedSearchOptions() {
   const budget = document.getElementById('selectSearchBudget')
     ? document.getElementById('selectSearchBudget').value
     : 'balanced';
+  const fastIncumbent = {
+    timeLimitMs: 4000,
+    maxStageNodes: 8000,
+    maxStageCandidates: 30,
+    stageDepthSlack: 4,
+    maxCandidatesEvaluated: { 4: 2, 3: 2, 2: 3 },
+    finalNodeLimit: 180000,
+    greedyNodeLimit: 3000,
+    greedyCandidateLimit: 10,
+    greedyDepthSlack: 3,
+    upperFraction: 0.7
+  };
 
   if (budget === 'proof') {
     return {
@@ -2319,7 +2331,8 @@ function getAdvancedSearchOptions() {
       greedyNodeLimit: 30000,
       greedyCandidateLimit: 80,
       greedyDepthSlack: 8,
-      upperFraction: 0.35
+      upperFraction: 0.35,
+      warmStartOptions: fastIncumbent
     };
   }
 
@@ -2334,22 +2347,12 @@ function getAdvancedSearchOptions() {
       greedyNodeLimit: 16000,
       greedyCandidateLimit: 36,
       greedyDepthSlack: 6,
-      upperFraction: 0.5
+      upperFraction: 0.5,
+      warmStartOptions: fastIncumbent
     };
   }
 
-  return {
-    timeLimitMs: 4000,
-    maxStageNodes: 20000,
-    maxStageCandidates: 60,
-    stageDepthSlack: 5,
-    maxCandidatesEvaluated: { 4: 6, 3: 5, 2: 10 },
-    finalNodeLimit: 180000,
-    greedyNodeLimit: 7000,
-    greedyCandidateLimit: 14,
-    greedyDepthSlack: 4,
-    upperFraction: 0.7
-  };
+  return fastIncumbent;
 }
 
 function cancelActiveSolver() {
