@@ -39,6 +39,10 @@ node seeded_simulation_test.js
 
 Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 100% of runs. The policy spends one extra setup move before the first clear to leave exactly four refill-eligible tubes, locking that refill to one outcome. It averages 19.208 moves with an observed maximum of 20. That is 1.635 moves (7.85%) below the 20.844-move immediate-clear baseline, whose maximum is 23, and 1.390 moves (6.75%) below the previous bounded policy's 20.598 mean, whose maximum was 22. Blindly maximizing full-tube shields averages 23 moves, so deterministic refill is prioritized only when its evaluated downstream cost is actually lower.
 
+## Feedback decoder
+
+Enter the displayed recommendation in the game, then select each slot's feedback. The submit button shows which feedback is missing and generates the next recommendation once all fields are ready. Click a base card to open the nearby five-card picker. **Undo last round** restores that round's cards, feedback, candidate set, confirmed slots, feedback model, and attempts. A unique answer ends the flow inline without a popup or further submissions; game-confirmed slots remain distinct from deduced answers. Calculation details stay collapsed unless feedback conflicts with history. Feedback icons are static transparent cutouts from the supplied game screenshot.
+
 ## Screenshot import
 
 Drop a still game screenshot anywhere on the page, paste an image, or click **Import screenshot**. The original appears beside a compact seven-bottle preview on desktop and above it on phones. Click a layer or recipe to edit just that field. Check yellow items and assign values to **Please confirm** items, then click **Load board**. If detection fails, drag around the complete seven-tube game area. Recognition starts automatically when you release, without another click on **Recognize again**. Solving remains manual, and Undo restores the previous configuration.

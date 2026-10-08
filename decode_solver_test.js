@@ -23,6 +23,7 @@ function mockElement(id) {
     appendChild() {},
     addEventListener() {},
     querySelectorAll() { return []; },
+    matches() { return false; },
     setAttribute() {},
     getBoundingClientRect() { return { left: 0, width: 100 }; }
   };
@@ -224,5 +225,63 @@ for (const state of afterSecondProbe) {
 
 assert.strictEqual(Object.values(completedAt).reduce((sum, count) => sum + count, 0), 11880);
 assert.deepStrictEqual(completedAt, { 1: 1, 2: 47, 3: 5451, 4: 6381 });
+
+// Exercise the actual submit/undo state transitions, including completion.
+// Rendering is tested in the browser; keep this harness focused on game state.
+context.renderUI = () => context.updateRoundControls();
+context.updateCandidateCountUI = () => {};
+let alertCount = 0;
+context.alert = () => alertCount++;
+const plain = value => JSON.parse(JSON.stringify(value));
+context.historyRounds = [];
+context.undoRounds = [];
+context.lockedSlots = [null,null,null,null];
+context.candidates = allSecrets;
+context.activeFeedbackMode = 'strict_exact';
+context.guessesLeft = 15;
+setCurrentGuess(opening, [null,null,null,null]);
+context.updateRoundControls();
+assert.strictEqual(elements.get('btnSubmitFeedback').disabled,true,'missing feedback disables submission');
+assert.match(elements.get('btnSubmitFeedback').textContent,/1、2、3、4/);
+setCurrentGuess(opening,screenshotFeedback);
+context.recommendedGuess = opening.slice();
+context.updateRoundControls();
+assert.strictEqual(elements.get('btnSubmitFeedback').disabled,false);
+context.submitCurrentFeedback();
+assert.strictEqual(context.candidates.length,56);
+assert.strictEqual(context.guessesLeft,14);
+assert.deepStrictEqual(plain(context.lockedSlots),[null,null,'PC',null]);
+context.undoLastRound();
+assert.strictEqual(context.candidates,allSecrets,'undo restores the original candidate set without recomputation');
+assert.strictEqual(context.guessesLeft,15);
+assert.strictEqual(context.historyRounds.length,0);
+assert.deepStrictEqual(plain(context.currentGuess.map(s=>s.fb)),screenshotFeedback);
+assert.deepStrictEqual(plain(context.lockedSlots),[null,null,null,null]);
+context.submitCurrentFeedback();
+const secret=['CW','WK','PC','PK'];
+let rounds=0;
+while(!context.isAnswerDetermined() && rounds++<4) {
+  const guess=plain(context.currentGuess.map(s=>context.normalizeFused(s.p1,s.p2)));
+  const feedback=plain(context.evaluateFeedback(guess,secret,'strict_exact'));
+  setCurrentGuess(guess,feedback);
+  context.submitCurrentFeedback();
+}
+assert.strictEqual(context.isAnswerDetermined(),true);
+assert.deepStrictEqual(plain(context.currentGuess.map(s=>context.normalizeFused(s.p1,s.p2))),secret);
+const finalRoundCount=context.historyRounds.length, finalAttempts=context.guessesLeft;
+assert.strictEqual(elements.get('btnSubmitFeedback').disabled,true);
+context.submitCurrentFeedback();
+assert.strictEqual(context.historyRounds.length,finalRoundCount,'completed boards cannot submit again');
+assert.strictEqual(context.guessesLeft,finalAttempts,'completed boards cannot spend another attempt');
+assert.strictEqual(alertCount,0,'completion must never open an alert');
+assert.ok(context.currentGuess.every((s,i)=>s.fb===(context.lockedSlots[i]?'CORRECT':null)),'deduced cards must not manufacture correct feedback');
+context.undoLastRound();
+assert.strictEqual(context.isAnswerDetermined(),false,'completion can be undone');
+assert.strictEqual(context.guessesLeft,finalAttempts+1);
+context.undoLastRound();
+context.undoLastRound();
+assert.strictEqual(context.historyRounds.length,0,'successive undo reaches the opening');
+assert.strictEqual(context.guessesLeft,15);
+console.log('Decoder submit, completion and undo tests passed.');
 
 console.log('Decoder regression and exhaustive 11,880-secret tests passed.');
