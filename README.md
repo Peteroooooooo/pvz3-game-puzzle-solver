@@ -18,9 +18,10 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 ## Highlights
 
 - PVZ3-style refill-aware water sort logic
-- Local PNG, JPG, and WebP screenshot import with seven-tube liquid and recipe recognition, review, cropping, corrections, and undo
+- Local PNG, JPG, and WebP screenshot import by file picker, page-wide drag and drop, or clipboard paste, with seven-tube recognition, visual corrections, cropping, and undo
+- Screenshot-derived recipe icons, source/receiver arrows, a compact responsive board, and a mobile current-step bar; strategy and search budget stay directly accessible
 - Shield-aware policy search protects deterministic-refill layouts (especially exactly four eligible tubes), then compares their full downstream cost against immediate clears and other setups
-- Static mode performs complete state search and proves the shortest route; the built-in sample improves from the legacy 15 steps to a proven 13 steps
+- Static mode performs complete state search and proves the shortest route; the benchmark sample improves from the legacy 15 steps to a proven 13 steps
 - Refill mode reports guaranteed-policy status, expected-step lower/upper bounds, and the remaining optimality gap; global expected optimality is shown only when the bounds meet
 - 4-second, 15-second, and 60-second search budgets run inside a Web Worker
 - Default strict-feedback decoder strategy: all 11,880 valid non-repeating secrets are guaranteed to finish within 4 rounds under permanent correct-slot locks
@@ -40,7 +41,9 @@ Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 10
 
 ## Screenshot import
 
-Click **Import screenshot** and select a still game screenshot. Review the numbered bottles and the four layers displayed from top to bottom. Check yellow fields and assign values to **Please confirm** fields, then click **Load board**. If detection fails, drag around the complete seven-tube game area and recognize again. Solving remains manual, and Undo restores the previous configuration.
+Drop a still game screenshot anywhere on the page, paste an image, or click **Import screenshot**. The original appears beside a compact seven-bottle preview on desktop and above it on phones. Click a layer or recipe to edit just that field. Check yellow items and assign values to **Please confirm** items, then click **Load board**. If detection fails, drag around the complete seven-tube game area and recognize again. Solving remains manual, and Undo restores the previous configuration.
+
+The top-bar **Random refill** button keeps the existing refill behavior. Recipe colors are edited by clicking the icon below a bottle. The 100-run simulation lives under **More**; strategy explanations, full steps, and search details can be expanded as needed. The five transparent recipe icons are static screenshot cutouts, with no image processing during display.
 
 Images stay in the browser. The working image is limited to a 960-pixel longest edge. Recognition uses color segmentation, morphological closing, connected components, normalized bottle geometry, and compact recipe templates, with no vision model or new dependencies. HTTP/GitHub Pages runs recognition in an on-demand worker that terminates afterward; direct HTML opening uses a bounded local fallback. Closing the preview releases its images. There is no idle scanning.
 

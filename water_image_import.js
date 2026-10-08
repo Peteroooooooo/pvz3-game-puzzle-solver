@@ -3,25 +3,27 @@
   const MAX_EDGE = 960;
   const copy = {
     zh: {
-      button: '📷 从图片导入', title: '从游戏截图导入', choose: '选择图片', crop: '框选游戏区域', retry: '重新识别',
-      cancel: '取消', apply: '载入盘面', hint: '本地识别，不上传图片。按上排、下排从左到右编号；黄色项目请对照截图核对。',
+      button: '📷 图片导入', title: '从游戏截图导入', choose: '选择图片', crop: '框选游戏区域', retry: '重新识别',
+      cancel: '取消', apply: '载入盘面', hint: '可拖入或粘贴截图。点击识别结果修改颜色或配方；黄色项目请对照原图核对。',
       loading: '正在读取图片…', recognizing: '正在识别…', cropHint: '在截图上拖动框选包含全部七瓶的区域，然后重新识别。',
       cropReady: '已选择区域，点击「重新识别」。', failed: '未能定位上排 3 瓶、下排 4 瓶。请框选完整游戏区域后重试。',
-      invalid: '请选择可读取的 PNG、JPG 或 WebP 图片。', unknown: '请确认', empty: '空', free: '自由中转', target: '目标配方',
+      invalid: '请选择可读取的 PNG、JPG 或 WebP 图片。', unknown: '请确认', empty: '空', free: '无配方', target: '目标配方',
       tube: n => `瓶 ${n}`, layer: n => `第 ${n} 层`, colors: ['番茄红', '橙汁橙', '豌豆绿', '水波蓝', '葡萄紫'],
-      ready: (ms, n) => `已识别七瓶 · ${ms} ms${n ? ` · ${n} 项待核对` : ''}。核对后载入盘面。`,
+      shortColors: ['红', '橙', '绿', '蓝', '紫'], confirm: '确认', drop: '松开图片，识别盘面',
+      ready: (ms, n) => `已识别 7 瓶${n ? ` · ${n} 项待核对` : ' · 可以载入盘面'}。`,
       resolve: '请先选择标为「请确认」的格子或配方。', gap: '液体必须从瓶底连续填充，请修正中间的空格。',
       duplicate: '目标配方颜色不能重复，请核对配方。', imported: '截图配置已载入，可直接修改或求解；撤销可恢复原盘面。',
       timeout: '识别超时。请缩小到游戏区域后重试。', error: '图片识别失败，请换图或框选游戏区域后重试。', close: '关闭', preview: '截图预览，可框选游戏区域'
     },
     en: {
       button: '📷 Import screenshot', title: 'Import game screenshot', choose: 'Choose image', crop: 'Select game area', retry: 'Recognize again',
-      cancel: 'Cancel', apply: 'Load board', hint: 'Processed locally; no upload. Tubes are numbered left to right, top row first. Check yellow fields against the screenshot.',
+      cancel: 'Cancel', apply: 'Load board', hint: 'Drop or paste a screenshot. Click a layer or recipe to edit it. Check yellow fields against the original.',
       loading: 'Reading image…', recognizing: 'Recognizing…', cropHint: 'Drag around all seven tubes, then recognize again.',
       cropReady: 'Area selected. Click “Recognize again”.', failed: 'Could not locate 3 upper and 4 lower tubes. Select the complete game area and retry.',
-      invalid: 'Choose a readable PNG, JPG or WebP image.', unknown: 'Please confirm', empty: 'Empty', free: 'Free transfer', target: 'Target recipe',
+      invalid: 'Choose a readable PNG, JPG or WebP image.', unknown: 'Please confirm', empty: 'Empty', free: 'No recipe', target: 'Target recipe',
       tube: n => `Tube ${n}`, layer: n => `Layer ${n}`, colors: ['Tomato Red', 'Juice Orange', 'Pea Green', 'Wave Blue', 'Grape Purple'],
-      ready: (ms, n) => `7 tubes recognized · ${ms} ms${n ? ` · ${n} fields to check` : ''}. Review, then load the board.`,
+      shortColors: ['Red', 'Orange', 'Green', 'Blue', 'Purple'], confirm: 'Confirm', drop: 'Drop to recognize the board',
+      ready: (ms, n) => `7 tubes recognized${n ? ` · ${n} fields to check` : ' · Ready to load'}.`,
       resolve: 'Choose a value for each “Please confirm” field.', gap: 'Liquid must be continuous from the bottom. Correct any gaps.',
       duplicate: 'Target recipe colors must be distinct. Check the targets.', imported: 'Screenshot loaded. Edit or solve the board; Undo restores the previous board.',
       timeout: 'Recognition timed out. Select the game area and retry.', error: 'Recognition failed. Try another image or select the game area.', close: 'Close', preview: 'Screenshot preview; drag to select the game area'
@@ -33,12 +35,15 @@
   const input = document.getElementById('waterImageFile');
   const preview = document.getElementById('waterImagePreview');
   const cards = document.getElementById('waterImageCards');
+  const editor = document.getElementById('waterImageEditor');
+  const dropOverlay = document.getElementById('waterImageDropOverlay');
   const status = document.getElementById('waterImageStatus');
   const apply = document.getElementById('waterImageApply');
   const retry = document.getElementById('waterImageRetry');
   const cropButton = document.getElementById('waterImageCrop');
   let imageCanvas = null, result = null, roi = null, cropMode = false, drag = null;
   let worker = null, generation = 0, cancelJob = null, enginePromise = null, busy = false, drawFrame = null;
+  let dragDepth = 0;
   const text = () => copy[document.documentElement.lang.startsWith('en') ? 'en' : 'zh'];
 
   function translate() {
@@ -49,6 +54,8 @@
     }
     document.getElementById('waterImageClose').setAttribute('aria-label', t.close);
     preview.setAttribute('aria-label', t.preview);
+    dropOverlay.textContent = t.drop;
+    editor.hidden = true; editor.replaceChildren();
     if (result) { renderCards(); updateReady(); }
   }
 
@@ -64,6 +71,7 @@
     if (drawFrame !== null) { cancelAnimationFrame(drawFrame); drawFrame = null; }
     if (imageCanvas) { imageCanvas.width = 0; imageCanvas.height = 0; imageCanvas = null; }
     preview.width = 0; preview.height = 0; cards.replaceChildren();
+    editor.hidden = true; editor.replaceChildren();
     apply.disabled = true; retry.disabled = true; cropButton.disabled = true;
     preview.classList.remove('selecting');
   }
@@ -171,17 +179,58 @@
     result.bottles.forEach((bottle, index) => {
       const card = document.createElement('fieldset'), legend = document.createElement('legend');
       legend.textContent = t.tube(index + 1); card.appendChild(legend);
+      const glass = document.createElement('div'); glass.className = 'image-mini-glass';
       for (let level = 3; level >= 0; level--) {
-        const label = document.createElement('label'); label.append(t.layer(level + 1));
         const slot = bottle.slots[level];
-        const select = dropdown(slot.color, slot.uncertain, false, value => { slot.color = value; slot.uncertain = false; });
-        select.dataset.tube = index; select.dataset.layer = level; label.appendChild(select); card.appendChild(label);
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'image-mini-slot';
+        button.dataset.tube = index; button.dataset.layer = level;
+        const colorIndex = colorIds.indexOf(slot.color);
+        button.textContent = colorIndex < 0 ? (slot.uncertain ? '?' : t.empty) : t.shortColors[colorIndex];
+        if (slot.uncertain) button.classList.add('needs-review');
+        if (colorIndex >= 0) { button.style.backgroundColor = colors[colorIndex]; button.style.color = '#061018'; }
+        button.setAttribute('aria-label', `${t.tube(index + 1)} · ${t.layer(level + 1)} · ${colorIndex < 0 ? button.textContent : t.colors[colorIndex]}`);
+        button.onclick = () => editField(index, level);
+        glass.appendChild(button);
       }
-      const label = document.createElement('label'); label.append(t.target);
-      const select = dropdown(bottle.target, bottle.targetUncertain, true, value => { bottle.target = value; bottle.targetUncertain = false; });
-      select.dataset.tube = index; select.dataset.target = 'true'; label.appendChild(select); card.appendChild(label);
+      card.appendChild(glass);
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'image-mini-target';
+      button.dataset.tube = index; button.dataset.target = 'true';
+      if (bottle.targetUncertain) button.classList.add('needs-review');
+      if (bottle.target) {
+        const icon = document.createElement('img'); icon.src = `./assets/water-recipes/${bottle.target}.png`; icon.alt = '';
+        button.appendChild(icon);
+      }
+      const label = bottle.target ? t.shortColors[colorIds.indexOf(bottle.target)] : bottle.targetUncertain ? t.unknown : t.free;
+      button.append(document.createTextNode(label));
+      button.setAttribute('aria-label', `${t.tube(index + 1)} · ${t.target} · ${label}`);
+      button.onclick = () => editField(index, null);
+      card.appendChild(button);
       cards.appendChild(card);
     });
+  }
+
+  function editField(index, level) {
+    if (!result) return;
+    const t = text(), bottle = result.bottles[index], isTarget = level === null;
+    const value = isTarget ? bottle.target : bottle.slots[level].color;
+    const uncertain = isTarget ? bottle.targetUncertain : bottle.slots[level].uncertain;
+    editor.replaceChildren(); editor.hidden = false;
+    const label = document.createElement('label'); label.htmlFor = 'waterImageField';
+    label.textContent = `${t.tube(index + 1)} · ${isTarget ? t.target : t.layer(level + 1)}`;
+    const commit = color => {
+      if (isTarget) { bottle.target = color; bottle.targetUncertain = false; }
+      else { bottle.slots[level].color = color; bottle.slots[level].uncertain = false; }
+      editor.hidden = true; editor.replaceChildren(); renderCards(); updateReady(); draw();
+      const selector = isTarget ? `[data-tube="${index}"][data-target]` : `[data-tube="${index}"][data-layer="${level}"]`;
+      cards.querySelector(selector).focus({ preventScroll: true });
+    };
+    const select = dropdown(value, uncertain, isTarget, commit); select.id = 'waterImageField';
+    const confirm = document.createElement('button'); confirm.type = 'button'; confirm.className = 'btn btn-primary';
+    confirm.textContent = t.confirm;
+    confirm.onclick = () => { if (select.value !== '?') commit(select.value || null); };
+    editor.append(label, select, confirm);
+    editor.scrollIntoView({ block: 'nearest' }); select.focus({ preventScroll: true });
   }
 
   function updateReady() {
@@ -194,6 +243,7 @@
     if (!imageCanvas) return;
     cancel(); const requestId = generation;
     result = null; cards.replaceChildren(); apply.disabled = true; busy = true;
+    editor.hidden = true; editor.replaceChildren();
     retry.disabled = true; cropButton.disabled = true; status.textContent = text().recognizing;
     cropMode = false; preview.classList.remove('selecting'); draw();
     const area = roi || { x: 0, y: 0, width: imageCanvas.width, height: imageCanvas.height };
@@ -219,6 +269,8 @@
 
   async function openFile(file) {
     if (!file) return;
+    const recipeDialog = document.getElementById('waterTargetDialog');
+    if (recipeDialog.open) recipeDialog.close();
     release(); const requestId = generation;
     window.dispatchEvent(new Event('water-image-open'));
     translate(); if (!dialog.open) dialog.showModal();
@@ -283,18 +335,56 @@
   dialog.addEventListener('close', release);
   apply.onclick = () => {
     if (!result || busy) return;
-    const unresolved = [...cards.querySelectorAll('select')].find(select => select.value === '?');
-    if (unresolved) { status.textContent = text().resolve; unresolved.focus(); return; }
+    for (let index = 0; index < result.bottles.length; index++) {
+      const bottle = result.bottles[index];
+      const level = bottle.slots.findIndex(slot => slot.color === null && slot.uncertain);
+      if (level >= 0 || (bottle.target === null && bottle.targetUncertain)) {
+        status.textContent = text().resolve; editField(index, level >= 0 ? level : null); return;
+      }
+    }
     const tubes = result.bottles.map(b => b.slots.map(s => s.color));
-    for (const tube of tubes) {
+    for (let index = 0; index < tubes.length; index++) {
+      const tube = tubes[index];
       while (tube.length && tube[tube.length - 1] === null) tube.pop();
-      if (tube.some(c => c === null)) { status.textContent = text().gap; return; }
+      const gap = tube.findIndex(c => c === null);
+      if (gap >= 0) { status.textContent = text().gap; editField(index, gap); return; }
     }
     const targets = result.bottles.map(b => b.target), activeTargets = targets.filter(Boolean);
-    if (new Set(activeTargets).size !== activeTargets.length) { status.textContent = text().duplicate; return; }
+    if (new Set(activeTargets).size !== activeTargets.length) {
+      status.textContent = text().duplicate;
+      editField(targets.findIndex((color, index) => color && targets.indexOf(color) !== index), null); return;
+    }
     window.dispatchEvent(new CustomEvent('water-image-import', { detail: { tubes, targets, message: text().imported } }));
     dialog.close();
   };
+  const hasFiles = event => Array.from(event.dataTransfer?.types || []).includes('Files');
+  document.addEventListener('dragenter', event => {
+    if (!hasFiles(event)) return;
+    event.preventDefault(); dragDepth++; dropOverlay.hidden = false;
+  });
+  document.addEventListener('dragover', event => {
+    if (!hasFiles(event)) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = 'copy';
+  });
+  document.addEventListener('dragleave', () => {
+    if (dragDepth > 0 && --dragDepth === 0) dropOverlay.hidden = true;
+  });
+  document.addEventListener('drop', event => {
+    if (!hasFiles(event)) return;
+    event.preventDefault(); dragDepth = 0; dropOverlay.hidden = true;
+    const files = Array.from(event.dataTransfer.files);
+    const file = files.find(item => /\.(png|jpe?g|webp)$/i.test(item.name)) || files[0];
+    if (file) openFile(file);
+  });
+  document.addEventListener('paste', event => {
+    if (event.target.closest?.('input, textarea, [contenteditable="true"]')) return;
+    const item = Array.from(event.clipboardData?.items || []).find(value => /^image\/(png|jpeg|webp)$/.test(value.type));
+    if (!item) return;
+    const blob = item.getAsFile(); if (!blob) return;
+    event.preventDefault();
+    const extension = item.type === 'image/jpeg' ? 'jpg' : item.type.split('/')[1];
+    openFile(new File([blob], `screenshot.${extension}`, { type: item.type }));
+  });
   new MutationObserver(translate).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
   translate();
 })();

@@ -36,7 +36,7 @@
   --radius-sm: 6px;
 
   --tube-width: 66px;
-  --tube-height: 200px;
+  --tube-height: 160px;
 }
 
 * {
@@ -45,6 +45,8 @@
   padding: 0;
   user-select: none;
 }
+
+[hidden] { display: none !important; }
 
 body {
   background-color: var(--bg-base);
@@ -63,7 +65,9 @@ body {
 
 /* Header */
 header {
-  height: 64px;
+  min-height: 64px;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 0 28px;
   display: flex;
   align-items: center;
@@ -110,7 +114,8 @@ header {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Button System */
@@ -202,7 +207,7 @@ header {
   width: 100%;
   padding: 20px 28px 40px;
   display: grid;
-  grid-template-columns: 1fr 390px;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 24px;
   align-items: start;
 }
@@ -224,8 +229,8 @@ header {
 
 .board-tools-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 228px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
 }
 
@@ -244,15 +249,14 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .control-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -293,7 +297,7 @@ header {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 28px 24px 34px;
+  padding: 20px 18px 26px;
   position: relative;
   overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -302,15 +306,15 @@ header {
 .bench-stand {
   display: flex;
   flex-direction: column;
-  gap: 80px;
+  gap: 32px;
   position: relative;
-  padding: 14px 0 24px;
+  padding: 26px 0 12px;
 }
 
 .shelf-row {
   display: flex;
   justify-content: center;
-  gap: 56px;
+  gap: clamp(6px, 2vw, 28px);
   position: relative;
   z-index: 2;
 }
@@ -333,15 +337,17 @@ header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   position: relative;
-  width: 106px;
+  width: calc((100% - 3 * clamp(6px, 2vw, 28px)) / 4);
+  max-width: 106px;
+  min-width: 0;
 }
 
 .tube-header-box {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
   padding: 0 4px;
   gap: 6px;
@@ -358,23 +364,6 @@ header {
   border: 1px solid var(--border-subtle);
 }
 
-.tube-add-refill-btn {
-  font-family: var(--font-main);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.28);
-  padding: 2px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.tube-add-refill-btn:hover {
-  background: rgba(56, 189, 248, 0.28);
-  color: #ffffff;
-}
-
 /* 试管高亮：禁止任何倾斜/位移变形，仅保留发光边框呼吸感 */
 .tube-wrapper.source-highlight {
   transform: none !important;
@@ -382,19 +371,32 @@ header {
 .tube-wrapper.target-highlight {
   transform: none !important;
 }
-.tube-wrapper.target-highlight::before {
-  content: '↓';
+.tube-wrapper.source-highlight::before {
+  content: '↑';
   position: absolute;
-  top: -44px;
+  top: -30px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 8;
   pointer-events: none;
-  color: #fde047;
-  font-size: 2.45rem;
+  color: #ffffff;
+  font-size: 1.9rem;
   font-weight: 900;
   line-height: 1;
-  text-shadow: 0 0 16px rgba(250, 204, 21, 0.95), 0 0 30px rgba(253, 224, 71, 0.85), 0 4px 10px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.75);
+}
+.tube-wrapper.target-highlight .tube-glass::after {
+  content: '↓';
+  position: absolute;
+  bottom: -29px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  color: #fde047;
+  font-size: 1.9rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.75);
 }
 .tube-wrapper.source-highlight .tube-glass {
   border-left-color: #ffffff !important;
@@ -432,7 +434,7 @@ header {
 }
 
 .tube-glass {
-  width: var(--tube-width);
+  width: min(var(--tube-width), 88%);
   height: var(--tube-height);
   background: rgba(15, 23, 42, 0.65);
   border: 2px solid rgba(255, 255, 255, 0.12);
@@ -460,7 +462,8 @@ header {
 }
 
 .liquid-slot {
-  height: 42px;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.02);
@@ -633,64 +636,37 @@ header {
   align-items: center;
   gap: 6px;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 24px;
 }
 
 .target-status-chip {
   font-family: var(--font-main);
   font-size: 0.7rem;
   font-weight: 700;
-  padding: 5px 9px;
+  padding: 4px;
   border-radius: 6px;
   border: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
   color: var(--text-secondary);
   cursor: pointer;
   display: flex;
+  flex-direction: column;
+  gap: 3px;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
   width: 100%;
-  min-height: 38px;
+  min-height: 76px;
   text-align: center;
   line-height: 1.12;
   white-space: normal;
   overflow-wrap: anywhere;
 }
+.recipe-icon { width: 44px; height: 44px; object-fit: contain; flex: none; }
+.recipe-free { display: grid; place-items: center; width: 44px; height: 44px; font-size: 1.6rem; color: var(--text-secondary); }
 .target-status-chip:hover {
   transform: translateY(-1px);
   filter: brightness(1.15);
-}
-
-.target-dots-picker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid var(--border-subtle);
-  padding: 4px 8px;
-  border-radius: 14px;
-}
-
-.target-dot-btn {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  padding: 0;
-  flex-shrink: 0;
-  outline: none;
-}
-.target-dot-btn:hover {
-  transform: scale(1.25);
-}
-.target-dot-btn.selected {
-  border-color: #ffffff !important;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8) !important;
-  transform: scale(1.2);
 }
 
 /* Color Palette Side Panel */
@@ -698,13 +674,12 @@ header {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   align-self: start;
-  position: sticky;
-  top: 20px;
+  position: static;
 }
 
 @media (max-width: 980px) {
@@ -721,9 +696,9 @@ header {
 }
 
 .palette-swatches {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .color-chip-btn {
@@ -1206,19 +1181,80 @@ header {
 .image-import canvas { display: block; width: 100%; height: auto; border-radius: 8px; }
 .image-import canvas.selecting { cursor: crosshair; touch-action: none; }
 .image-import-status { min-height: 1.5em; color: #7dd3fc; }
-.image-import-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.image-import-body { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 14px; align-items: start; }
+.image-import-body canvas { margin-top: 12px; position: sticky; top: 0; }
+.image-import-cards { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.image-import-cards fieldset:nth-child(-n+3) { grid-column: span 4; }
+.image-import-cards fieldset:nth-child(n+4) { grid-column: span 3; }
 .image-import-cards fieldset { min-width: 0; padding: 8px; border: 1px solid var(--border-subtle); border-radius: 8px; }
 .image-import-cards legend { font-size: 0.85rem; padding: 0 5px; }
-.image-import-cards label { display: flex; flex-direction: column; gap: 3px; margin: 5px 0; font-size: 0.72rem; color: var(--text-secondary); }
-.image-import-cards select { width: 100%; padding: 6px 4px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-base); color: var(--text-primary); font: inherit; }
-.image-import-cards select.needs-review { outline: 2px solid #fbbf24; outline-offset: -1px; }
+.image-mini-glass { display: flex; flex-direction: column; gap: 2px; width: 52px; margin: 0 auto 6px; padding: 3px; border: 2px solid #64748b; border-top: 0; border-radius: 0 0 12px 12px; }
+.image-mini-slot { height: 25px; border: 0; border-radius: 3px; cursor: pointer; font: inherit; font-size: 0.7rem; color: #fff; background: var(--bg-elevated); }
+.image-mini-slot:last-child { border-radius: 3px 3px 8px 8px; }
+.image-mini-target { display: flex; align-items: center; justify-content: center; gap: 3px; width: 100%; min-height: 38px; border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); background: var(--bg-elevated); cursor: pointer; font: inherit; font-size: 0.72rem; }
+.image-mini-target img { width: 26px; height: 26px; object-fit: contain; }
+.needs-review { outline: 2px solid #fbbf24; outline-offset: -1px; }
+.image-field-editor { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 10px; border-radius: 8px; border: 1px solid #38bdf8; }
+.image-field-editor select { max-width: 100%; padding: 8px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-base); color: var(--text-primary); font: inherit; }
 .image-import-actions { position: sticky; bottom: -20px; padding: 12px 0; background: var(--bg-surface); }
+.tools-menu { position: relative; }
+.tools-menu summary { list-style: none; }
+.tools-menu summary::-webkit-details-marker { display: none; }
+.tools-menu-content { position: absolute; right: 0; top: calc(100% + 8px); padding: 10px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: 0 10px 30px #0008; }
+.disclosure summary { cursor: pointer; font-size: 0.8rem; color: var(--text-secondary); padding: 5px 0; }
+.disclosure[open] summary { margin-bottom: 8px; color: var(--text-primary); }
+.strategy-help { margin-left: auto; }
+.strategy-help[open] { flex-basis: 100%; margin-left: 0; }
+.strategy-help #mechanicCard { font-size: 0.8rem; line-height: 1.6; color: var(--text-secondary); }
+.current-step-controls { display: flex; flex-direction: column; gap: 12px; }
+.step-nav-btn { white-space: nowrap; gap: 6px; padding: 10px 8px; font-size: 0.9rem; }
+.step-nav-btn .nav-arrow { font-size: 1.2rem; }
+.recipe-picker { width: min(420px, calc(100vw - 24px)); margin: auto; padding: 18px; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-surface); color: var(--text-primary); }
+.recipe-picker::backdrop { background: #0009; }
+.recipe-picker-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.recipe-choice { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 78px; padding: 6px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); cursor: pointer; }
+.recipe-choice[aria-pressed="true"] { border-color: #38bdf8; background: #123047; }
+.image-drop-overlay { position: fixed; inset: 12px; z-index: 1000; display: grid; place-items: center; border: 3px dashed #38bdf8; border-radius: 18px; background: #0e1522ed; color: #7dd3fc; font-size: 1.3rem; font-weight: 700; pointer-events: none; }
+@media (min-width: 1181px) {
+  .solution-panel { position: sticky; top: 90px; }
+}
 @media (max-width: 640px) {
-  header { padding: 12px; }
+  :root { --tube-width: 54px; --tube-height: 112px; }
+  header { padding: 10px 12px; position: relative; }
   .header-actions { gap: 6px; }
-  .header-actions .btn { padding: 6px 10px; }
+  .header-actions .btn { padding: 7px 8px; font-size: 0.75rem; }
+  .brand { max-width: calc(100% - 96px); }
+  .brand-title { font-size: 0.95rem; }
+  .brand-sub { font-size: 0.65rem; }
+  .lang-switch { position: absolute; top: 10px; right: 12px; padding: 2px; }
+  .lang-switch button { font-size: 0.65rem; padding: 5px 6px; }
+  .app-container { padding: 12px; gap: 12px; }
+  .main-column { gap: 12px; }
+  .control-bar { padding: 10px; }
+  .control-left { width: 100%; gap: 8px; }
+  .stat-pill { max-width: 100%; padding: 5px; font-family: var(--font-main); }
+  .stat-pill select { min-width: 0; max-width: 100%; }
+  .workbench-card { padding: 14px 10px 22px; }
+  .bench-stand { gap: 22px; }
+  .tube-header-tag { padding: 2px 6px; font-size: 0.7rem; }
+  .target-status-chip { font-size: 0.66rem; min-height: 56px; }
+  .recipe-icon, .recipe-free { width: 30px; height: 30px; }
+  .palette-swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .color-chip-btn { padding: 7px; font-size: 0.7rem; }
+  body.has-plan { padding-bottom: calc(260px + env(safe-area-inset-bottom)); }
+  body.has-plan .current-step-controls { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #0e1522; border-top: 1px solid #334155; gap: 8px; box-shadow: 0 -4px 20px #0006; }
+  body.has-plan .action-hero-card { padding: 10px 12px; gap: 4px; }
+  body.has-plan .action-instruction { font-size: 1.1rem; }
+  body.has-plan .action-sub { font-size: 0.72rem; max-height: 64px; overflow: auto; }
+  body.has-plan .step-nav-btn { min-height: 44px; padding: 8px; font-size: 0.8rem; }
   .image-import { padding: 12px; }
-  .image-import-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .image-import-body { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .image-import-body canvas { position: static; }
+  .image-import-cards { gap: 6px; }
+  .image-import-cards fieldset { padding: 5px 3px; }
+  .image-mini-glass { width: 44px; }
+  .image-mini-slot { height: 28px; }
+  .image-mini-target { flex-direction: column; min-height: 51px; font-size: 0.66rem; }
   .image-import-actions { bottom: -12px; }
 }
 </style>
@@ -1231,19 +1267,24 @@ header {
     <div class="brand-badge">🧪</div>
     <div>
       <div class="brand-title" id="brandTitle">PVZ3 游戏谜题求解器</div>
-      <div class="brand-sub" id="brandSub">REFILL-AWARE WATER SORT · POLICY BOUNDS</div>
+      <div class="brand-sub" id="brandSub">倒水求解器 · 拖入截图即可识别</div>
     </div>
   </div>
 
   <div class="header-actions">
     <button class="btn btn-subtle" id="btnUndo" title="Undo (Ctrl+Z)">↩️ 撤销</button>
     <button class="btn btn-subtle" id="btnClearBoard">🗑️ 清空盘面</button>
-    <button class="btn btn-subtle" id="btnSampleBoard">📋 示例关卡</button>
     <button class="btn btn-subtle" id="btnImportImage" type="button">📷 从图片导入</button>
     <input id="waterImageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
     <button class="btn" id="btnRandomLevel" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 600;" title="Generate a solvable random puzzle (R)">🎲 生成随机关卡</button>
-    <button class="btn" id="btnRandomRefill" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(56, 189, 248, 0.25)); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.5); font-weight: 600;" title="Simulate a 4-unit refill after a recipe clear (F)">💧 模拟加料</button>
+    <button class="btn" id="btnRandomRefill" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(56, 189, 248, 0.25)); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.5); font-weight: 600;" title="Random 4-unit refill after a recipe clear (F)">💧 随机加料</button>
     <button class="btn btn-primary" id="btnRunSolve">⚡ 求解最优策略</button>
+    <details class="tools-menu" id="moreTools">
+      <summary class="btn btn-subtle" id="moreToolsLabel">更多</summary>
+      <div class="tools-menu-content">
+        <button class="btn btn-subtle" id="btnOpenSmokeTest" type="button">📊 100 局模拟测试</button>
+      </div>
+    </details>
     <div class="lang-switch" aria-label="Language switcher">
       <button id="btnLangZh" type="button">中文</button>
       <button id="btnLangEn" type="button">English</button>
@@ -1258,7 +1299,6 @@ header {
 
     <div class="control-bar">
       <div class="control-left">
-        <span class="stat-pill"><span id="boardLabel">盘面</span>: <b id="boardShapeLabel">7 瓶 (上 3 / 下 4)</b></span>
         <span class="stat-pill"><span id="strategyLabel">算法策略</span>:
           <select id="selectAlgorithmStrategy" style="background: var(--bg-surface); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 4px; padding: 2px 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">
             <option value="exact_refill" selected>🛡️ 加料策略（实机推荐）</option>
@@ -1275,12 +1315,10 @@ header {
         </span>
       </div>
 
-      <div class="control-right">
-        <button class="btn btn-subtle" id="btnOpenSmokeTest" style="font-size: 0.74rem; padding: 4px 10px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Run 100 random puzzle simulations in this browser">📊 100 局模拟测试</button>
-      </div>
-      <div class="strategy-advice" id="strategyAdvice">
-        <b>实机推荐：</b>选择「加料策略」。时间是搜索上限，搜索完成会提前返回；60 秒最充分，15 秒性价比最高，4 秒最快。
-      </div>
+      <details class="disclosure strategy-help">
+        <summary id="strategyHelpLabel">策略说明</summary>
+        <div id="mechanicCard"></div>
+      </details>
     </div>
 
     <div id="noticeBox" class="notice-banner"></div>
@@ -1328,6 +1366,7 @@ header {
         <div class="move-count-badge" id="badgeStepCount">未求解</div>
       </div>
 
+      <div class="current-step-controls">
       <!-- Big Visual Action Instruction -->
       <div class="action-hero-card" id="heroCard">
         <div class="action-step-num" id="heroStepNum">等待求解</div>
@@ -1335,48 +1374,40 @@ header {
         <div class="action-sub" id="heroSub">系统将规划达成目标配方的倾倒路径，并在加料后支持继续求解</div>
       </div>
 
-      <div class="solver-certificate" id="solverCertificate"></div>
+      <div class="stepper-controls">
+        <button class="step-nav-btn" id="btnPrevStep"><span class="nav-arrow">◀</span><span id="prevStepText">上一步</span></button>
+        <button class="step-nav-btn play-toggle" id="btnAutoPlay" type="button" aria-pressed="false"><span id="autoPlayIcon" aria-hidden="true">▶</span><span id="autoPlayText">播放</span></button>
+        <button class="step-nav-btn primary" id="btnNextStep"><span id="nextStepText">下一步</span><span class="nav-arrow">▶</span></button>
+      </div>
+      </div>
 
+      <details class="disclosure">
+      <summary id="playbackSettingsLabel">播放设置</summary>
       <div class="playback-settings">
         <label class="playback-interval-control" for="inputAutoPlaySeconds">
           <span id="playbackIntervalLabel">每步播放时间</span>
           <input class="playback-interval-input" id="inputAutoPlaySeconds" type="number" value="2" min="0.1" max="60" step="0.1" inputmode="decimal" aria-describedby="playbackHint">
           <span id="playbackSecondsUnit">秒</span>
         </label>
-        <span class="playback-hint" id="playbackHint">播放到末步后自动停止；模拟加料仍由用户手动操作。</span>
+        <span class="playback-hint" id="playbackHint">播放到末步后自动停止；随机加料仍由用户手动操作。</span>
       </div>
-
-      <!-- Stepper Controls -->
-      <div class="stepper-controls">
-        <button class="step-nav-btn" id="btnPrevStep">
-          <span class="nav-arrow">◀</span>
-          <span id="prevStepText">上一步</span>
-        </button>
-        <button class="step-nav-btn play-toggle" id="btnAutoPlay" type="button" aria-pressed="false">
-          <span id="autoPlayIcon" aria-hidden="true">▶</span>
-          <span id="autoPlayText">播放</span>
-        </button>
-        <button class="step-nav-btn primary" id="btnNextStep">
-          <span id="nextStepText">下一步</span>
-          <span class="nav-arrow">▶</span>
-        </button>
-      </div>
+      </details>
 
       <!-- Step List -->
+      <details class="disclosure" id="allStepsDetails">
+      <summary id="allStepsLabel">完整步骤</summary>
       <div class="timeline-list" id="timelineContainer">
         <div style="text-align:center; padding: 30px 10px; color: var(--text-muted); font-size: 0.78rem;">
           暂无步骤记录
         </div>
       </div>
+      </details>
+      <details class="disclosure" id="solverDetails" hidden>
+        <summary id="solverDetailsLabel">计算详情</summary>
+        <div class="solver-certificate" id="solverCertificate"></div>
+      </details>
     </div>
 
-    <!-- PvZ3 Mechanic Guide -->
-    <div class="mechanic-card" id="mechanicCard">
-      <b>💡 求解策略说明：</b><br>
-      1. <b>PVZ3 加料感知 A*</b>：默认策略会规划到下一次配方完成，并评估完成后的 4 格加料分支。<br>
-      2. <b>基线 A* Search</b>：用于静态盘面的最短路径对照，不额外评估后续加料风险。<br>
-      3. <b>加料后继续求解</b>：配方完成后，可使用顶部「💧 模拟加料」或各瓶「+加料」更新盘面，再重新求解。
-    </div>
 
   </div>
 
@@ -1441,13 +1472,25 @@ header {
     <button id="waterImageRetry" class="btn btn-subtle" type="button" disabled>重新识别</button>
   </div>
   <p id="waterImageStatus" class="image-import-status" role="status" aria-live="polite"></p>
-  <canvas id="waterImagePreview" width="0" height="0" aria-label="截图预览，可框选游戏区域"></canvas>
-  <div id="waterImageCards" class="image-import-cards"></div>
+  <div class="image-import-body">
+    <canvas id="waterImagePreview" width="0" height="0" aria-label="截图预览，可框选游戏区域"></canvas>
+    <div id="waterImageCards" class="image-import-cards"></div>
+  </div>
+  <div id="waterImageEditor" class="image-field-editor" hidden></div>
   <div class="image-import-actions">
     <button id="waterImageCancel" class="btn btn-subtle" type="button">取消</button>
     <button id="waterImageApply" class="btn btn-primary" type="button" disabled>载入盘面</button>
   </div>
 </dialog>
+
+<dialog id="waterTargetDialog" class="recipe-picker" aria-labelledby="waterTargetTitle">
+  <div class="image-import-heading">
+    <h3 id="waterTargetTitle">目标配方</h3>
+    <button id="waterTargetClose" class="btn btn-subtle" type="button" aria-label="关闭">×</button>
+  </div>
+  <div id="waterTargetOptions" class="recipe-picker-options"></div>
+</dialog>
+<div id="waterImageDropOverlay" class="image-drop-overlay" role="status" hidden>松开图片，识别盘面</div>
 
 <script src="./water_solver_engine.js"></script>
 <script>
@@ -1472,11 +1515,15 @@ let uiLang = getWaterLang();
 const WATER_COPY = {
   zh: {
     title: 'PVZ3 游戏谜题求解器',
+    subtitle: '倒水求解器 · 拖入截图即可识别',
+    more: '更多', strategyHelp: '策略说明', allSteps: '完整步骤', solverDetails: '计算详情', playbackSettings: '播放设置',
+    shortColors: { G: '绿', B: '蓝', O: '橙', R: '红', P: '紫' },
+    recipePickerTitle: tube => `${tube} · 选择配方`, close: '关闭',
     undo: '↩️ 撤销',
     clear: '🗑️ 清空盘面',
     sample: '📋 示例关卡',
     random: '🎲 生成随机关卡',
-    refill: '💧 模拟加料',
+    refill: '💧 随机加料',
     solve: '⚡ 求解最优策略',
     langZh: '中文',
     langEn: 'English',
@@ -1497,7 +1544,7 @@ const WATER_COPY = {
     clearTitle: '清空盘面',
     sampleTitle: '加载示例关卡',
     randomTitle: '生成可解随机关卡',
-    refillButtonTitle: '模拟一次 4 格加料',
+    refillButtonTitle: '随机加入共 4 格液体 (F)',
     solveTitle: '求解当前盘面的加料策略或可证明静态最短路',
     paletteLabel: '当前涂料',
     paletteTip: '数字 1~5 换色 · 左键填充单格 · 右键清空单格 · 双击填满整瓶',
@@ -1514,7 +1561,7 @@ const WATER_COPY = {
     pauseTitle: '暂停自动播放',
     playbackIntervalLabel: '每步播放时间',
     playbackSecondsUnit: '秒',
-    playbackHint: '播放到末步后自动停止；模拟加料仍由用户手动操作。',
+    playbackHint: '播放到末步后自动停止；随机加料仍由用户手动操作。',
     noSteps: '暂无步骤记录',
     mechanicHtml: '<b>💡 三种策略怎么选：</b><br>1. <b>加料策略（实机推荐）</b>：把清瓶后的随机 4 格加料纳入整体规划；会比较满瓶护盾、四个空格锁定等布局，并展开所有建模加料结果。<br>2. <b>静态最短（仅无加料）</b>：只优化当前盘面到清瓶的步数；可证明这一段最短，但不管清瓶后的加料是否好处理。<br>3. <b>旧版快速（仅应急）</b>：最快给出一条可行路线，但不优化加料布局，也没有最短性证明。<br>4. <b>预算</b>：15 秒适合日常；60 秒搜索最充分、最可能得到更小步数或更紧差距；4 秒只在想尽快出结果时使用。上下界相等时才标记「已证明最优」。',
     smokeTitle: '📊 100 局随机模拟测试',
@@ -1531,17 +1578,17 @@ const WATER_COPY = {
     slotLayer: (n, color) => `第 ${n} 层: ${color}`,
     refillBtn: '+加料',
     refillTitle: (tube, color) => `给${tube}顶部注入 1 格当前颜色【${color}】`,
-    freeTarget: '⚪ 自由中转',
-    freeTitle: '当前为自由中转瓶。点击可切换目标配方',
+    freeTarget: '无配方',
+    freeTitle: '当前瓶子没有目标配方，点击选择配方',
     setFreeTitle: '设为：自由中转瓶 (无目标)',
     setTargetTitle: color => `设为目标：${color}`,
-    targetText: color => `🎯 目标: ${color}`,
-    targetTitle: color => `目标集满 4 格【${color}】。点击可切换下一个`,
+    targetText: color => `配方：${color}`,
+    targetTitle: color => `需要集齐 4 格【${color}】，点击修改配方`,
     undoNotice: '已撤销上一步操作',
     completedRecipe: (tube, color) => `🎉 ${tube} 已装满 4 格【${color}】配方，已自动解除目标并转为「自由中转瓶」！`,
     tubeFull: tube => `${tube} 已满，无法再加料！`,
     refillFilled: (tube, color) => `已向${tube}顶部注入 1 格【${color}】`,
-    emptyBoard: '当前盘面全空，请先填入试管液体或点击顶部「示例关卡」！',
+    emptyBoard: '当前盘面全空，请拖入游戏截图、手动填入液体，或生成随机关卡。',
     noTarget: '请至少为一个试管指定目标配方颜色（瓶子下方的选择器）！',
     duplicateTargets: '当前加料概率模型要求每个目标配方使用不同颜色；请先调整重复的目标颜色。',
     shortage: (color, count) => `无法推演：【${color}】全场总共只有 ${count} 格，不足以集满 4 格配方！请补齐颜色。`,
@@ -1558,7 +1605,7 @@ const WATER_COPY = {
     stepCount: (idx, total) => `步骤 ${idx} / ${total}`,
     heroPour: (from, to, amount, color) => `瓶 <b>${from}</b> ➔ 瓶 <b>${to}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(倾倒 ${amount} 格 ${color})</span>`,
     defaultStepSub: '完成本次倾倒后，继续执行下一步。',
-    clearedSub: (tube, color) => `<span style="color:#34d399; font-weight:700;">✨ ${tube} 完成【${color}】配方并清空。</span><br><span style="color:#93c5fd;">下一轮加料会排除刚清空的瓶位，并向其余未满瓶分批加入共 4 格【${color}】。可点击顶部<b>「💧 模拟加料」</b>，或按游戏结果使用对应瓶子的<b>「+加料」</b>。</span>`,
+    clearedSub: (tube, color) => `<span style="color:#34d399; font-weight:700;">✨ ${tube} 完成【${color}】配方并清空。</span><br>点击顶部「💧 随机加料」，或导入实际加料后的截图，再继续求解。`,
     clearedChip: '✨ 已达成消除',
     noSolution: '❌ 当前盘面暂无可行解。可能原因：可用空间不足，或关键颜色被阻挡。',
     stepLine: (from, to, amount, color) => `瓶 <b>${from}</b> ➔ 瓶 <b>${to}</b> (${amount}格 ${color})`,
@@ -1571,7 +1618,7 @@ const WATER_COPY = {
     randomGenerated: (colors, filled, empty, steps) => `🎲 <b>随机关卡已生成。</b><br>颜色：${colors}<br>初始装水瓶：<b>${filled}</b>；空瓶：<b>${empty}</b>。<br>已通过 A* 验证可解，参考步数约 ${steps} 步。`,
     refillNone: '⚠️ 除刚清空的瓶位外，当前没有可承接喷料的未满瓶；本轮加料视为 0 格。',
     excludedTube: tube => `已排除刚清空的${tube}；`,
-    refillDone: (count, colorHtml, tubes) => `💧 <b>加料已模拟。</b>{excluded}本轮共加入 <b>${count}</b> 格【${colorHtml}】，位置：${tubes}。可点击「⚡ 求解最优策略」重新规划。`,
+    refillDone: (count, colorHtml, tubes) => `💧 <b>随机加料完成。</b>{excluded}本轮共加入 <b>${count}</b> 格【${colorHtml}】，位置：${tubes}。可点击「⚡ 求解最优策略」重新规划。`,
     physicalOne: (tube, gap, bad) => `${tube} 不符合物理规律：从下往上第 ${gap} 格是空的，但第 ${bad} 格上方已经有液体。`,
     physicalPrefix: '❌ 盘面不符合物理规律：',
     physicalTail: count => `，另外还有 ${count} 个瓶子也不合法`,
@@ -1584,11 +1631,15 @@ const WATER_COPY = {
   },
   en: {
     title: 'PVZ3 Water Sort Solver',
+    subtitle: 'Water sort · Drop a screenshot to import',
+    more: 'More', strategyHelp: 'Strategy guide', allSteps: 'All steps', solverDetails: 'Search details', playbackSettings: 'Playback settings',
+    shortColors: { G: 'Green', B: 'Blue', O: 'Orange', R: 'Red', P: 'Purple' },
+    recipePickerTitle: tube => `${tube} · Choose recipe`, close: 'Close',
     undo: '↩️ Undo',
     clear: '🗑️ Clear board',
     sample: '📋 Sample board',
     random: '🎲 Random level',
-    refill: '💧 Simulate refill',
+    refill: '💧 Random refill',
     solve: '⚡ Solve optimal policy',
     langZh: '中文',
     langEn: 'English',
@@ -1609,7 +1660,7 @@ const WATER_COPY = {
     clearTitle: 'Clear board',
     sampleTitle: 'Load sample board',
     randomTitle: 'Generate a solvable random level',
-    refillButtonTitle: 'Simulate one 4-block refill',
+    refillButtonTitle: 'Add a random 4-block refill (F)',
     solveTitle: 'Solve a refill-aware policy or prove the static shortest route',
     paletteLabel: 'Current paint',
     paletteTip: 'Keys 1-5 switch color · Left click fills one slot · Right click clears one slot · Double click fills the tube',
@@ -1626,7 +1677,7 @@ const WATER_COPY = {
     pauseTitle: 'Pause automatic playback',
     playbackIntervalLabel: 'Time per step',
     playbackSecondsUnit: 'sec',
-    playbackHint: 'Playback stops after the last step. Refill simulation always remains manual.',
+    playbackHint: 'Playback stops after the last step. Random refill remains manual.',
     noSteps: 'No steps yet',
     mechanicHtml: '<b>💡 Choosing among the three strategies:</b><br>1. <b>Refill policy (recommended for live play)</b>: optimizes across the next 4-block refill, comparing full-tube shields, deterministic four-slot layouts, and every modeled refill outcome.<br>2. <b>Static shortest (no refill)</b>: proves the shortest route to the next clear, but does not consider whether the resulting refill is easy to solve.<br>3. <b>Legacy fast (emergency only)</b>: finds a feasible route quickly, without refill-layout optimization or a shortest-path proof.<br>4. <b>Budget</b>: 15 seconds is the everyday choice; 60 seconds searches most thoroughly and has the best chance of improving the step count or bound; use 4 seconds only for the quickest response. “Proven optimal” appears only when the lower and upper bounds meet.',
     smokeTitle: '📊 100-run random simulation',
@@ -1643,17 +1694,17 @@ const WATER_COPY = {
     slotLayer: (n, color) => `Layer ${n}: ${color}`,
     refillBtn: '+Refill',
     refillTitle: (tube, color) => `Add 1 block of the current color [${color}] to the top of ${tube}`,
-    freeTarget: '⚪ Free transfer',
-    freeTitle: 'This tube is a free transfer tube. Click to switch target recipe.',
+    freeTarget: 'No recipe',
+    freeTitle: 'This tube has no target recipe. Click to choose one.',
     setFreeTitle: 'Set as free transfer tube (no target)',
     setTargetTitle: color => `Set target: ${color}`,
-    targetText: color => `🎯 Target: ${color}`,
-    targetTitle: color => `Collect 4 blocks of [${color}]. Click to switch to the next target.`,
+    targetText: color => `Recipe: ${color}`,
+    targetTitle: color => `Collect 4 blocks of [${color}]. Click to edit the recipe.`,
     undoNotice: 'Undid the previous action',
     completedRecipe: (tube, color) => `🎉 ${tube} is full with 4 blocks of [${color}]. The target is cleared and it becomes a free transfer tube!`,
     tubeFull: tube => `${tube} is full. No more refill can be added.`,
     refillFilled: (tube, color) => `Added 1 block of [${color}] to the top of ${tube}`,
-    emptyBoard: 'The board is empty. Fill the tubes first or click “Sample board” in the top bar.',
+    emptyBoard: 'The board is empty. Drop a screenshot, fill the tubes, or generate a random level.',
     noTarget: 'Assign at least one target recipe color to a tube using the selector below each tube.',
     duplicateTargets: 'The refill probability model requires distinct colors for active target recipes. Remove duplicate target colors first.',
     shortage: (color, count) => `Cannot solve: there are only ${count} blocks of [${color}] on the board, not enough to build a 4-block recipe.`,
@@ -1670,7 +1721,7 @@ const WATER_COPY = {
     stepCount: (idx, total) => `Step ${idx} / ${total}`,
     heroPour: (from, to, amount, color) => `Tube <b>${from}</b> ➔ Tube <b>${to}</b> <span style="font-size:0.85rem; font-weight:normal; color:var(--text-secondary);">(pour ${amount} ${amount === 1 ? 'block' : 'blocks'} of ${color})</span>`,
     defaultStepSub: 'After this pour, continue to the next step.',
-    clearedSub: (tube, color) => `<span style="color:#34d399; font-weight:700;">✨ ${tube} completed the [${color}] recipe and cleared.</span><br><span style="color:#93c5fd;">The next refill will exclude the just-cleared tube and add 4 total blocks of [${color}] across the remaining non-full tubes. Use the top <b>“💧 Simulate refill”</b> button, or use each tube’s <b>“+Refill”</b> button to match the game result.</span>`,
+    clearedSub: (tube, color) => `<span style="color:#34d399; font-weight:700;">✨ ${tube} completed the [${color}] recipe and cleared.</span><br>Use “💧 Random refill” in the top bar, or import a screenshot after the real refill, then solve again.`,
     clearedChip: '✨ Cleared',
     noSolution: '❌ No valid solution for the current board. Likely causes: not enough free space, or a key color is blocked.',
     stepLine: (from, to, amount, color) => `Tube <b>${from}</b> ➔ Tube <b>${to}</b> (${amount} ${amount === 1 ? 'block' : 'blocks'} ${color})`,
@@ -1683,7 +1734,7 @@ const WATER_COPY = {
     randomGenerated: (colors, filled, empty, steps) => `🎲 <b>Random level generated.</b><br>Colors: ${colors}<br>Filled tubes: <b>${filled}</b>; empty tubes: <b>${empty}</b>.<br>Validated solvable by A*, reference path is about ${steps} steps.`,
     refillNone: '⚠️ No non-full tube can take the refill except the one that was just cleared; this refill counts as 0 blocks.',
     excludedTube: tube => `Excluded the just-cleared ${tube}; `,
-    refillDone: (count, colorHtml, tubes) => `💧 <b>Refill simulated.</b>{excluded}Added <b>${count}</b> blocks of [${colorHtml}], at: ${tubes}. Click “⚡ Solve optimal policy” to replan.`,
+    refillDone: (count, colorHtml, tubes) => `💧 <b>Random refill complete.</b>{excluded}Added <b>${count}</b> blocks of [${colorHtml}], at: ${tubes}. Click “⚡ Solve optimal policy” to replan.`,
     physicalOne: (tube, gap, bad) => `${tube} violates the physical stacking rule: layer ${gap} from the bottom is empty, but layer ${bad} above it has liquid.`,
     physicalPrefix: '❌ The board violates the physical stacking rule: ',
     physicalTail: count => `, plus ${count} more invalid tube(s)`,
@@ -1790,13 +1841,16 @@ function applyWaterLanguage() {
   document.title = copy.title;
   const textNodes = {
     brandTitle: copy.title,
-    boardLabel: copy.boardLabel,
-    boardShapeLabel: copy.boardShape,
+    brandSub: copy.subtitle,
+    moreToolsLabel: copy.more,
+    strategyHelpLabel: copy.strategyHelp,
+    allStepsLabel: copy.allSteps,
+    solverDetailsLabel: copy.solverDetails,
+    playbackSettingsLabel: copy.playbackSettings,
     strategyLabel: copy.strategyLabel,
     budgetLabel: copy.budgetLabel,
     btnUndo: copy.undo,
     btnClearBoard: copy.clear,
-    btnSampleBoard: copy.sample,
     btnRandomLevel: copy.random,
     btnRandomRefill: copy.refill,
     btnRunSolve: copy.solve,
@@ -1848,8 +1902,6 @@ function applyWaterLanguage() {
   if (btnUndo) btnUndo.title = copy.undoTitle;
   const btnClear = document.getElementById('btnClearBoard');
   if (btnClear) btnClear.title = copy.clearTitle;
-  const btnSample = document.getElementById('btnSampleBoard');
-  if (btnSample) btnSample.title = copy.sampleTitle;
   const btnRandom = document.getElementById('btnRandomLevel');
   if (btnRandom) btnRandom.title = copy.randomTitle;
   const btnRefill = document.getElementById('btnRandomRefill');
@@ -2000,7 +2052,7 @@ function createTubeElement(tubeIdx) {
     wrapper.classList.add('invalid-physics');
   }
 
-  // Header Box with Tube Number and Quick Refill (+加料) button
+  // Bottle number keeps the same position as the game screenshot.
   const headerBox = document.createElement('div');
   headerBox.className = 'tube-header-box';
 
@@ -2009,15 +2061,6 @@ function createTubeElement(tubeIdx) {
   headerTag.textContent = copy.tube(tubeIdx + 1);
   headerBox.appendChild(headerTag);
 
-  const refillBtn = document.createElement('button');
-  refillBtn.className = 'tube-add-refill-btn';
-  refillBtn.textContent = copy.refillBtn;
-  refillBtn.title = copy.refillTitle(copy.tube(tubeIdx + 1), COLOR_MAP[currentBrush].name);
-  refillBtn.onclick = (e) => {
-    e.stopPropagation();
-    pushRefill(tubeIdx);
-  };
-  headerBox.appendChild(refillBtn);
 
   wrapper.appendChild(headerBox);
 
@@ -2078,7 +2121,7 @@ function createTubeElement(tubeIdx) {
 
   const currentTargetColor = targetRecipes[tubeIdx];
 
-  // 1. 目标状态胶囊 (点击直接按顺序轮播下一个目标颜色)
+  // A recipe icon opens one shared picker.
   const chip = document.createElement('button');
   chip.className = 'target-status-chip';
   chip.id = `target-chip-${tubeIdx}`;
@@ -2086,46 +2129,10 @@ function createTubeElement(tubeIdx) {
 
   chip.onclick = (e) => {
     e.stopPropagation();
-    saveHistory();
-    // 轮转顺序: null -> G -> B -> O -> R -> P -> null
-    const cycle = [null, 'G', 'B', 'O', 'R', 'P'];
-    const curIdx = cycle.indexOf(targetRecipes[tubeIdx]);
-    const nextColor = cycle[(curIdx + 1) % cycle.length];
-    setTubeTargetRecipe(tubeIdx, nextColor);
+    openTargetPicker(tubeIdx);
   };
   dock.appendChild(chip);
 
-  // 2. 微型颜色圆点直选条 (一触即达，包含自由中转与5色)
-  const dotsContainer = document.createElement('div');
-  dotsContainer.className = 'target-dots-picker';
-
-  // 自由中转点
-  const freeDot = document.createElement('button');
-  freeDot.className = `target-dot-btn ${currentTargetColor === null ? 'selected' : ''}`;
-  freeDot.style.background = 'rgba(255, 255, 255, 0.25)';
-  freeDot.title = copy.setFreeTitle;
-  freeDot.onclick = (e) => {
-    e.stopPropagation();
-    saveHistory();
-    setTubeTargetRecipe(tubeIdx, null);
-  };
-  dotsContainer.appendChild(freeDot);
-
-  // 5大专属颜色点
-  LIQUID_COLORS.forEach(c => {
-    const dot = document.createElement('button');
-    dot.className = `target-dot-btn ${currentTargetColor === c.id ? 'selected' : ''}`;
-    dot.style.background = c.hex;
-    dot.title = copy.setTargetTitle(c.name);
-    dot.onclick = (e) => {
-      e.stopPropagation();
-      saveHistory();
-      setTubeTargetRecipe(tubeIdx, c.id);
-    };
-    dotsContainer.appendChild(dot);
-  });
-
-  dock.appendChild(dotsContainer);
   wrapper.appendChild(dock);
 
   return wrapper;
@@ -2137,19 +2144,46 @@ function setTubeTargetRecipe(tubeIdx, colorId) {
   const chip = document.getElementById(`target-chip-${tubeIdx}`);
   if (chip) updateTargetChipUI(chip, colorId);
 
-  // 同步更新圆点选中状态
-  const tubeEl = document.getElementById(`tube-${tubeIdx}`);
-  if (tubeEl) {
-    const dots = tubeEl.querySelectorAll('.target-dot-btn');
-    // 第 0 个是自由中转点
-    dots[0].classList.toggle('selected', colorId === null);
-    LIQUID_COLORS.forEach((c, idx) => {
-      dots[idx + 1].classList.toggle('selected', colorId === c.id);
-    });
-  }
 
   clearPlan();
   checkAndAutoFreeTargetTubes(tubeIdx);
+}
+
+function appendRecipeVisual(element, colorId, label) {
+  const visual = document.createElement(colorId ? 'img' : 'span');
+  visual.className = colorId ? 'recipe-icon' : 'recipe-free';
+  if (colorId) {
+    visual.src = `./assets/water-recipes/${colorId}.png`;
+    visual.alt = '';
+    visual.width = 44; visual.height = 44;
+  } else {
+    visual.textContent = '↔'; visual.setAttribute('aria-hidden', 'true');
+  }
+  const caption = document.createElement('span'); caption.textContent = label;
+  element.replaceChildren(visual, caption);
+}
+
+function openTargetPicker(tubeIdx) {
+  if (isStepAnimating) return;
+  stopAutoPlay();
+  const copy = wc(), dialog = document.getElementById('waterTargetDialog');
+  dialog.dataset.tube = tubeIdx;
+  document.getElementById('waterTargetTitle').textContent = copy.recipePickerTitle(copy.tube(tubeIdx + 1));
+  document.getElementById('waterTargetClose').setAttribute('aria-label', copy.close);
+  const options = document.getElementById('waterTargetOptions');
+  options.replaceChildren();
+  for (const colorId of [null, ...LIQUID_COLORS.map(color => color.id)]) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'recipe-choice';
+    button.dataset.color = colorId || '';
+    button.setAttribute('aria-pressed', String(targetRecipes[tubeIdx] === colorId));
+    appendRecipeVisual(button, colorId, colorId ? COLOR_MAP[colorId].name : copy.freeTarget);
+    button.onclick = () => {
+      saveHistory(); setTubeTargetRecipe(tubeIdx, colorId); dialog.close();
+    };
+    options.appendChild(button);
+  }
+  if (!dialog.open) dialog.showModal();
 }
 
 function updateTargetChipUI(chipEl, colorId) {
@@ -2159,15 +2193,15 @@ function updateTargetChipUI(chipEl, colorId) {
     chipEl.style.borderColor = 'var(--border-subtle)';
     chipEl.style.color = 'var(--text-secondary)';
     chipEl.style.boxShadow = 'none';
-    chipEl.textContent = copy.freeTarget;
+    appendRecipeVisual(chipEl, null, copy.freeTarget);
     chipEl.title = copy.freeTitle;
   } else {
     const c = COLOR_MAP[colorId];
-    chipEl.style.backgroundColor = c.hex;
-    chipEl.style.borderColor = '#ffffff';
+    chipEl.style.backgroundColor = `${c.hex}18`;
+    chipEl.style.borderColor = c.hex;
     chipEl.style.color = '#ffffff';
-    chipEl.style.boxShadow = `0 0 10px ${c.hex}66`;
-    chipEl.textContent = copy.targetText(c.name);
+    chipEl.style.boxShadow = 'none';
+    appendRecipeVisual(chipEl, colorId, copy.targetText(copy.shortColors[colorId]));
     chipEl.title = copy.targetTitle(c.name);
   }
 }
@@ -2505,6 +2539,7 @@ function formatBound(value, digits = 2) {
 
 function renderSolverCertificate(result) {
   const panel = document.getElementById('solverCertificate');
+  document.getElementById('solverDetails').hidden = !(result && result.certificate);
   if (!panel) return;
   if (!result || !result.certificate) {
     panel.className = 'solver-certificate';
@@ -2585,6 +2620,7 @@ function finishSolverResult(result, strategy) {
   }
 
   currentPlan = solution;
+  document.body.classList.add('has-plan');
   currentStepIdx = -1;
   const remainingAfterPlan = solution[solution.length - 1].remainingTargets
     ? solution[solution.length - 1].remainingTargets.length
@@ -3684,7 +3720,7 @@ function showStep(stepIdx, animate = true, onComplete = null) {
   const activeEl = document.getElementById(`step-item-${stepIdx}`);
   if (activeEl) {
     activeEl.classList.add('active');
-    activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    if (document.getElementById('allStepsDetails').open) activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
   }
 
   const move = currentPlan[stepIdx];
@@ -3859,7 +3895,6 @@ function updateTubeTargetsVisual(remainingTargets, justClearedTubeIdx = null) {
   for (let i = 0; i < TUBE_COUNT; i++) {
     const colorId = currentTargetMap[i] || null;
     const chip = document.getElementById(`target-chip-${i}`);
-    const tubeEl = document.getElementById(`tube-${i}`);
 
     if (chip) {
       if (i === justClearedTubeIdx) {
@@ -3874,15 +3909,6 @@ function updateTubeTargetsVisual(remainingTargets, justClearedTubeIdx = null) {
       }
     }
 
-    if (tubeEl) {
-      const dots = tubeEl.querySelectorAll('.target-dot-btn');
-      if (dots && dots.length > 0) {
-        dots[0].classList.toggle('selected', colorId === null);
-        LIQUID_COLORS.forEach((c, idx) => {
-          dots[idx + 1].classList.toggle('selected', colorId === c.id);
-        });
-      }
-    }
   }
 }
 
@@ -3919,6 +3945,7 @@ function clearPlan() {
   isStepAnimating = false;
   clearPourAnimationClasses();
   currentPlan = null;
+  document.body.classList.remove('has-plan');
   currentStepIdx = -1;
   puzzleInitialBoard = null;
   puzzleInitialTargets = null;
@@ -4107,7 +4134,7 @@ function loadSamplePuzzle() {
 
 function setupKeyboardShortcuts() {
   window.addEventListener('keydown', (e) => {
-    if (document.getElementById('waterImageDialog').open) return;
+    if (document.querySelector('dialog[open]')) return;
     const tagName = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
     if (tagName === 'input' || tagName === 'select' || tagName === 'textarea'
       || (e.target && e.target.isContentEditable)) {
@@ -4181,7 +4208,7 @@ function setupUIEvents() {
 
   document.getElementById('btnUndo').onclick = undo;
   document.getElementById('btnRunSolve').onclick = runSolve;
-  document.getElementById('btnSampleBoard').onclick = loadSamplePuzzle;
+  document.getElementById('waterTargetClose').onclick = () => document.getElementById('waterTargetDialog').close();
   document.getElementById('btnRandomLevel').onclick = () => generateRandomLevel(true);
   document.getElementById('btnRandomRefill').onclick = executeRandomRefill;
 
@@ -4238,7 +4265,10 @@ function setupUIEvents() {
   const btnStartSmoke = document.getElementById('btnStartSmokeTest');
 
   if (btnOpenSmoke && smokeModal) {
-    btnOpenSmoke.onclick = () => smokeModal.style.display = 'flex';
+    btnOpenSmoke.onclick = () => {
+      document.getElementById('moreTools').open = false;
+      smokeModal.style.display = 'flex';
+    };
   }
   if (btnCloseSmoke && smokeModal) {
     btnCloseSmoke.onclick = () => smokeModal.style.display = 'none';
