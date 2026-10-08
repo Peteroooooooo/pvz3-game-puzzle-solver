@@ -74,6 +74,22 @@ for (const [name, image] of cases) {
   } catch (error) { failures.push({ name, error: error.message }); }
 }
 assert.deepEqual(failures, [], 'all configurations and empty-bottle targets must match');
+const grape = { width: 960, height: 441, data: zlib.gunzipSync(fs.readFileSync(path.join(__dirname, 'tests/fixtures/water-sort-grape.rgba.gz'))) };
+const grapeSlots = [
+  ['R','O','B','B'], ['P','B','R','P'], ['G','G','R','O'], ['O','G','G','O'],
+  [null,null,null,null], [null,null,null,null], ['P','R','P','B']
+];
+const grapeTargets = ['R','B',null,null,'G',null,'P'];
+const grapeCases = [['grape screenshot', grape], ['grape 720px', resize(grape,720)], ['grape 640px', resize(grape,640)],
+  ['grape portrait margins', paste(frame(720,960),resize(grape,720),0,300)],
+  ['grape 85% brightness', {...grape, data: Uint8ClampedArray.from(grape.data,(v,i) => i % 4 === 3 ? v : Math.round(v*.85))}]];
+for (const [name,image] of grapeCases) {
+  const result = engine.recognize(image);
+  assert.deepEqual(result.bottles.map(b => b.slots.map(s => s.color)), grapeSlots, `${name}: sticker pixels must not change liquid layers`);
+  assert.deepEqual(result.bottles.map(b => b.target), grapeTargets, `${name}: grape and pea recipes must be recognized`);
+  assert.ok([2,3,5].every(i => !result.bottles[i].targetUncertain), `${name}: plain bottles must remain free transfer`);
+  timings.push({name,milliseconds:result.elapsedMs});
+}
 const greenSticker = { ...source, data: Uint8ClampedArray.from(source.data) };
 for (let y = 336; y <= 374; y++) for (let x = 641; x <= 679; x++) {
   const distance = Math.hypot(x - 660, y - 355);
@@ -86,6 +102,14 @@ const greenResult = engine.recognize(greenSticker);
 assert.equal(greenResult.bottles[6].target, 'G', 'an unseen green sticker is recognized by its enclosed color');
 assert.equal(greenResult.bottles[6].targetUncertain, true, 'generic sticker classification requires review');
 assert.deepEqual(greenResult.bottles[6].slots.map(s => s.color), [null,null,null,null], 'a sticker is not liquid');
+const tintedSticker = {...greenSticker, data:Uint8ClampedArray.from(greenSticker.data)};
+for (let y=336;y<=374;y++) for (let x=641;x<=679;x++) {
+  const distance=Math.hypot(x-660,y-355);
+  if (distance>=14 && distance<=18) tintedSticker.data.set([245,180,235],(y*tintedSticker.width+x)*4);
+}
+const tintedResult=engine.recognize(tintedSticker);
+assert.equal(tintedResult.bottles[6].target,'G','a pink rim must work for other sticker shapes and colors too');
+assert.deepEqual(tintedResult.bottles[6].slots.map(s=>s.color),[null,null,null,null],'a tinted sticker is not liquid');
 const partial = frame(960,441);
 const syntheticTubes = [['P','P','P','P'], ['G','O','B'], ['R','G'], ['B'], [], ['O','R','B','G'], []];
 const rgb = { R: [230,35,20], O: [245,135,0], G: [40,155,10], B: [35,200,235], P: [115,20,170] };

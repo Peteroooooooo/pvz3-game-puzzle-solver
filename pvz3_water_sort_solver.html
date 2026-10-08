@@ -1381,8 +1381,6 @@ header {
       </div>
       </div>
 
-      <details class="disclosure">
-      <summary id="playbackSettingsLabel">播放设置</summary>
       <div class="playback-settings">
         <label class="playback-interval-control" for="inputAutoPlaySeconds">
           <span id="playbackIntervalLabel">每步播放时间</span>
@@ -1391,17 +1389,13 @@ header {
         </label>
         <span class="playback-hint" id="playbackHint">播放到末步后自动停止；随机加料仍由用户手动操作。</span>
       </div>
-      </details>
 
       <!-- Step List -->
-      <details class="disclosure" id="allStepsDetails">
-      <summary id="allStepsLabel">完整步骤</summary>
       <div class="timeline-list" id="timelineContainer">
         <div style="text-align:center; padding: 30px 10px; color: var(--text-muted); font-size: 0.78rem;">
           暂无步骤记录
         </div>
       </div>
-      </details>
       <details class="disclosure" id="solverDetails" hidden>
         <summary id="solverDetailsLabel">计算详情</summary>
         <div class="solver-certificate" id="solverCertificate"></div>
@@ -1516,7 +1510,7 @@ const WATER_COPY = {
   zh: {
     title: 'PVZ3 游戏谜题求解器',
     subtitle: '倒水求解器 · 拖入截图即可识别',
-    more: '更多', strategyHelp: '策略说明', allSteps: '完整步骤', solverDetails: '计算详情', playbackSettings: '播放设置',
+    more: '更多', strategyHelp: '策略说明', solverDetails: '计算详情',
     shortColors: { G: '绿', B: '蓝', O: '橙', R: '红', P: '紫' },
     recipePickerTitle: tube => `${tube} · 选择配方`, close: '关闭',
     undo: '↩️ 撤销',
@@ -1632,7 +1626,7 @@ const WATER_COPY = {
   en: {
     title: 'PVZ3 Water Sort Solver',
     subtitle: 'Water sort · Drop a screenshot to import',
-    more: 'More', strategyHelp: 'Strategy guide', allSteps: 'All steps', solverDetails: 'Search details', playbackSettings: 'Playback settings',
+    more: 'More', strategyHelp: 'Strategy guide', solverDetails: 'Search details',
     shortColors: { G: 'Green', B: 'Blue', O: 'Orange', R: 'Red', P: 'Purple' },
     recipePickerTitle: tube => `${tube} · Choose recipe`, close: 'Close',
     undo: '↩️ Undo',
@@ -1844,9 +1838,7 @@ function applyWaterLanguage() {
     brandSub: copy.subtitle,
     moreToolsLabel: copy.more,
     strategyHelpLabel: copy.strategyHelp,
-    allStepsLabel: copy.allSteps,
     solverDetailsLabel: copy.solverDetails,
-    playbackSettingsLabel: copy.playbackSettings,
     strategyLabel: copy.strategyLabel,
     budgetLabel: copy.budgetLabel,
     btnUndo: copy.undo,
@@ -3720,7 +3712,11 @@ function showStep(stepIdx, animate = true, onComplete = null) {
   const activeEl = document.getElementById(`step-item-${stepIdx}`);
   if (activeEl) {
     activeEl.classList.add('active');
-    if (document.getElementById('allStepsDetails').open) activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    const timeline = document.getElementById('timelineContainer');
+    const itemRect = activeEl.getBoundingClientRect(), listRect = timeline.getBoundingClientRect();
+    const top = listRect.top + timeline.clientTop, bottom = top + timeline.clientHeight;
+    if (itemRect.top < top) timeline.scrollTop += itemRect.top - top;
+    else if (itemRect.bottom > bottom) timeline.scrollTop += itemRect.bottom - bottom;
   }
 
   const move = currentPlan[stepIdx];

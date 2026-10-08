@@ -312,13 +312,20 @@
       box: best.box, score: Math.round(best.score * 100) / 100 };
   }
 
-  // Generic white-rim enclosure supports green/previously unseen sticker shapes.
+  // Local pale-rim enclosure supports tinted/previously unseen sticker shapes.
   // Reflections have no substantial enclosed, consistently colored interior.
   function enclosedSticker(frame, bottle) {
     const x = Math.ceil(bottle.x + bottle.width * 0.12), y = Math.ceil(bottle.y + bottle.height * 0.30);
     const w = Math.floor(bottle.width * 0.76), h = Math.floor(bottle.height * 0.57), n = w * h;
     const mask = new Uint8Array(n), dilated = new Uint8Array(n), closed = new Uint8Array(n);
-    for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) mask[yy * w + xx] = Number(frame.masks[(y + yy) * frame.width + x + xx] === 6);
+    // Game lighting tints the grape's white outline pink. Relax saturation only
+    // in this small interior ROI; bottle localization keeps its original masks.
+    for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+      const k = ((y + yy) * frame.width + x + xx) * 4;
+      const max = Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
+      const min = Math.min(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
+      mask[yy * w + xx] = Number(max >= frame.whiteThreshold && max - min < max * 0.40);
+    }
     for (let yy = 1; yy < h - 1; yy++) for (let xx = 1; xx < w - 1; xx++) {
       const i = yy * w + xx;
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (mask[i + dy * w + dx]) dilated[i] = 1;

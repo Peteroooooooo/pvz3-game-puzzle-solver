@@ -43,11 +43,11 @@ Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 10
 
 Drop a still game screenshot anywhere on the page, paste an image, or click **Import screenshot**. The original appears beside a compact seven-bottle preview on desktop and above it on phones. Click a layer or recipe to edit just that field. Check yellow items and assign values to **Please confirm** items, then click **Load board**. If detection fails, drag around the complete seven-tube game area and recognize again. Solving remains manual, and Undo restores the previous configuration.
 
-The top-bar **Random refill** button keeps the existing refill behavior. Recipe colors are edited by clicking the icon below a bottle. The 100-run simulation lives under **More**; strategy explanations, full steps, and search details can be expanded as needed. The five transparent recipe icons are static screenshot cutouts, with no image processing during display.
+The top-bar **Random refill** button keeps the existing refill behavior. Recipe colors are edited by clicking the icon below a bottle. The 100-run simulation lives under **More**. Playback timing and the complete step list stay visible; strategy explanations and search details can be expanded as needed. The five transparent recipe icons are static screenshot cutouts, with no image processing during display.
 
 Images stay in the browser. The working image is limited to a 960-pixel longest edge. Recognition uses color segmentation, morphological closing, connected components, normalized bottle geometry, and compact recipe templates, with no vision model or new dependencies. HTTP/GitHub Pages runs recognition in an on-demand worker that terminates afterward; direct HTML opening uses a bounded local fallback. Closing the preview releases its images. There is no idle scanning.
 
-Recognition tests use decoded pixels from the supplied screenshot and cover scaling, black margins, changed spacing, and brightness. These derived cases do not replace screenshots from other actual devices. New bottle artwork, animation, and occlusion may need corrections. Unlisted stickers can be identified by a colored interior enclosed by a white rim and are flagged for review.
+Recognition tests use decoded pixels from the supplied screenshots and cover scaling, black margins, changed spacing, and brightness. These derived cases do not replace screenshots from other actual devices. New bottle artwork, animation, and occlusion may need corrections. Unlisted stickers can be identified by a colored interior enclosed by a pale rim and are flagged for review. Local rim detection tolerates light pink or purple tinting to avoid missing grape stickers.
 
 ## Docs
 
