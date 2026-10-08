@@ -1201,7 +1201,8 @@ header {
 .tools-menu { position: relative; }
 .tools-menu summary { list-style: none; }
 .tools-menu summary::-webkit-details-marker { display: none; }
-.tools-menu-content { position: absolute; right: 0; top: calc(100% + 8px); padding: 10px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: 0 10px 30px #0008; }
+.tools-menu-content { display: grid; gap: 8px; width: max-content; position: absolute; right: 0; top: calc(100% + 8px); padding: 10px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: 0 10px 30px #0008; }
+.clear-board-icon { width: 1em; height: 1.1em; color: #ef4444; flex-shrink: 0; }
 .disclosure summary { cursor: pointer; font-size: 0.8rem; color: var(--text-secondary); padding: 5px 0; }
 .disclosure[open] summary { margin-bottom: 8px; color: var(--text-primary); }
 .strategy-help { margin-left: auto; }
@@ -1274,15 +1275,15 @@ header {
 
   <div class="header-actions">
     <button class="btn btn-subtle" id="btnUndo" title="Undo (Ctrl+Z)">↩️ 撤销</button>
-    <button class="btn btn-subtle" id="btnClearBoard">🗑️ 清空盘面</button>
+    <button class="btn btn-subtle" id="btnClearBoard"><svg class="clear-board-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span id="clearBoardLabel">清空盘面</span></button>
     <button class="btn btn-subtle" id="btnImportImage" type="button">📷 从图片导入</button>
     <input id="waterImageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-    <button class="btn" id="btnRandomLevel" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 600;" title="Generate a solvable random puzzle (R)">🎲 生成随机关卡</button>
     <button class="btn" id="btnRandomRefill" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(56, 189, 248, 0.25)); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.5); font-weight: 600;" title="Random 4-unit refill after a recipe clear (F)">💧 随机加料</button>
     <button class="btn btn-primary" id="btnRunSolve">⚡ 求解最优策略</button>
     <details class="tools-menu" id="moreTools">
       <summary class="btn btn-subtle" id="moreToolsLabel">更多</summary>
       <div class="tools-menu-content">
+        <button class="btn" id="btnRandomLevel" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 600;" title="Generate a solvable random puzzle (R)">🎲 生成随机关卡</button>
         <button class="btn btn-subtle" id="btnOpenSmokeTest" type="button">📊 100 局模拟测试</button>
       </div>
     </details>
@@ -1515,7 +1516,7 @@ const WATER_COPY = {
     shortColors: { G: '绿', B: '蓝', O: '橙', R: '红', P: '紫' },
     recipePickerTitle: tube => `${tube} · 选择配方`, close: '关闭',
     undo: '↩️ 撤销',
-    clear: '🗑️ 清空盘面',
+    clear: '清空盘面',
     sample: '📋 示例关卡',
     random: '🎲 生成随机关卡',
     refill: '💧 随机加料',
@@ -1631,7 +1632,7 @@ const WATER_COPY = {
     shortColors: { G: 'Green', B: 'Blue', O: 'Orange', R: 'Red', P: 'Purple' },
     recipePickerTitle: tube => `${tube} · Choose recipe`, close: 'Close',
     undo: '↩️ Undo',
-    clear: '🗑️ Clear board',
+    clear: 'Clear board',
     sample: '📋 Sample board',
     random: '🎲 Random level',
     refill: '💧 Random refill',
@@ -1843,7 +1844,7 @@ function applyWaterLanguage() {
     strategyLabel: copy.strategyLabel,
     budgetLabel: copy.budgetLabel,
     btnUndo: copy.undo,
-    btnClearBoard: copy.clear,
+    clearBoardLabel: copy.clear,
     btnRandomLevel: copy.random,
     btnRandomRefill: copy.refill,
     btnRunSolve: copy.solve,
@@ -4206,7 +4207,10 @@ function setupUIEvents() {
   document.getElementById('btnUndo').onclick = undo;
   document.getElementById('btnRunSolve').onclick = runSolve;
   document.getElementById('waterTargetClose').onclick = () => document.getElementById('waterTargetDialog').close();
-  document.getElementById('btnRandomLevel').onclick = () => generateRandomLevel(true);
+  document.getElementById('btnRandomLevel').onclick = () => {
+    document.getElementById('moreTools').open = false;
+    generateRandomLevel(true);
+  };
   document.getElementById('btnRandomRefill').onclick = executeRandomRefill;
 
   document.getElementById('btnClearBoard').onclick = () => {
