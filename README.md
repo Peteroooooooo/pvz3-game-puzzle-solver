@@ -41,7 +41,7 @@ Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 10
 
 ## Screenshot import
 
-Drop a still game screenshot anywhere on the page, paste an image, or click **Import screenshot**. The original appears beside a compact seven-bottle preview on desktop and above it on phones. Click a layer or recipe to edit just that field. Check yellow items and assign values to **Please confirm** items, then click **Load board**. If detection fails, drag around the complete seven-tube game area and recognize again. Solving remains manual, and Undo restores the previous configuration.
+Drop a still game screenshot anywhere on the page, paste an image, or click **Import screenshot**. The original appears beside a compact seven-bottle preview on desktop and above it on phones. Click a layer or recipe to edit just that field. Check yellow items and assign values to **Please confirm** items, then click **Load board**. If detection fails, drag around the complete seven-tube game area. Recognition starts automatically when you release, without another click on **Recognize again**. Solving remains manual, and Undo restores the previous configuration.
 
 The top-bar **Random refill** button keeps the existing refill behavior. Recipe colors are edited by clicking the icon below a bottle. The 100-run simulation lives under **More**. Playback timing and the complete step list stay visible; strategy explanations and search details can be expanded as needed. The five transparent recipe icons are static screenshot cutouts, with no image processing during display.
 

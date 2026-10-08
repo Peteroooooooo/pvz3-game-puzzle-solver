@@ -5,8 +5,8 @@
     zh: {
       button: '📷 图片导入', title: '从游戏截图导入', choose: '选择图片', crop: '框选游戏区域', retry: '重新识别',
       cancel: '取消', apply: '载入盘面', hint: '可拖入或粘贴截图。点击识别结果修改颜色或配方；黄色项目请对照原图核对。',
-      loading: '正在读取图片…', recognizing: '正在识别…', cropHint: '在截图上拖动框选包含全部七瓶的区域，然后重新识别。',
-      cropReady: '已选择区域，点击「重新识别」。', failed: '未能定位上排 3 瓶、下排 4 瓶。请框选完整游戏区域后重试。',
+      loading: '正在读取图片…', recognizing: '正在识别…', cropHint: '拖动框选包含全部七瓶的区域，松开后自动识别。',
+      failed: '未能定位上排 3 瓶、下排 4 瓶。请框选完整游戏区域后重试。',
       invalid: '请选择可读取的 PNG、JPG 或 WebP 图片。', unknown: '请确认', empty: '空', free: '无配方', target: '目标配方',
       tube: n => `瓶 ${n}`, layer: n => `第 ${n} 层`, colors: ['番茄红', '橙汁橙', '豌豆绿', '水波蓝', '葡萄紫'],
       shortColors: ['红', '橙', '绿', '蓝', '紫'], confirm: '确认', drop: '松开图片，识别盘面',
@@ -18,8 +18,8 @@
     en: {
       button: '📷 Import screenshot', title: 'Import game screenshot', choose: 'Choose image', crop: 'Select game area', retry: 'Recognize again',
       cancel: 'Cancel', apply: 'Load board', hint: 'Drop or paste a screenshot. Click a layer or recipe to edit it. Check yellow fields against the original.',
-      loading: 'Reading image…', recognizing: 'Recognizing…', cropHint: 'Drag around all seven tubes, then recognize again.',
-      cropReady: 'Area selected. Click “Recognize again”.', failed: 'Could not locate 3 upper and 4 lower tubes. Select the complete game area and retry.',
+      loading: 'Reading image…', recognizing: 'Recognizing…', cropHint: 'Drag around all seven tubes. Recognition starts when you release.',
+      failed: 'Could not locate 3 upper and 4 lower tubes. Select the complete game area and retry.',
       invalid: 'Choose a readable PNG, JPG or WebP image.', unknown: 'Please confirm', empty: 'Empty', free: 'No recipe', target: 'Target recipe',
       tube: n => `Tube ${n}`, layer: n => `Layer ${n}`, colors: ['Tomato Red', 'Juice Orange', 'Pea Green', 'Wave Blue', 'Grape Purple'],
       shortColors: ['Red', 'Orange', 'Green', 'Blue', 'Purple'], confirm: 'Confirm', drop: 'Drop to recognize the board',
@@ -317,14 +317,18 @@
     if (!drag) return;
     drag.end = point(event); const rect = dragRect(); drag = null;
     if (rect.width >= 40 && rect.height >= 40) {
-      roi = rect; result = null; cards.replaceChildren(); apply.disabled = true; status.textContent = text().cropReady;
+      roi = rect;
+      runRecognition();
+      return;
     }
     draw();
   };
   preview.onpointercancel = () => { drag = null; draw(); };
   cropButton.onclick = () => {
     cropMode = !cropMode; preview.classList.toggle('selecting', cropMode);
-    status.textContent = cropMode ? text().cropHint : text().cropReady;
+    if (cropMode) status.textContent = text().cropHint;
+    else if (result) updateReady();
+    else status.textContent = text().failed;
   };
   retry.onclick = runRecognition;
   document.getElementById('btnImportImage').onclick = () => { input.value = ''; input.click(); };
