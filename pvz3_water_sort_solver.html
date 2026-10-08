@@ -385,12 +385,13 @@ header {
   line-height: 1;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.75);
 }
-.tube-wrapper.target-highlight .tube-glass::after {
+.tube-wrapper.target-highlight::before {
   content: '↓';
   position: absolute;
-  bottom: -29px;
+  top: -30px;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 8;
   pointer-events: none;
   color: #fde047;
   font-size: 1.9rem;
