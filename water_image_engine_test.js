@@ -109,6 +109,30 @@ for (const [name,image] of emptyGrapeCases) {
   assert.ok(result.bottles.every(b=>!b.targetUncertain && b.slots.every(s=>!s.uncertain)),`${name}: this clear screenshot must load without unresolved or review fields`);
   timings.push({name,milliseconds:result.elapsedMs});
 }
+const emptyTomato = {width:960,height:441,data:zlib.gunzipSync(fs.readFileSync(path.join(__dirname,'tests/fixtures/water-sort-empty-tomato.rgba.gz')))};
+const emptyTomatoSlots = [['P','O','B','G'],['O','R','G','O'],[null,null,null,null],['R','R','R','G'],
+  [null,null,null,null],['P','G','P','B'],['B','O','B','P']];
+const emptyTomatoTargets = [null,null,null,'P','R','O','B'];
+const tomatoReflowed = frame(960,441);
+engine.recognize(emptyTomato).bottles.forEach((b,i)=>{
+  const x=i<3?170+i*175:125+(i-3)*180, y=(i<3?210:412)-b.box.height;
+  paste(tomatoReflowed,emptyTomato,x,y,b.box);
+});
+const emptyTomatoCases = [['empty tomato screenshot',emptyTomato],['empty tomato 720px',resize(emptyTomato,720)],
+  ['empty tomato 640px',resize(emptyTomato,640)],['empty tomato 480px',resize(emptyTomato,480)],
+  ['empty tomato browser 640px',{width:640,height:294,data:zlib.gunzipSync(fs.readFileSync(path.join(__dirname,'tests/fixtures/water-sort-empty-tomato-640.rgba.gz')))}],
+  ['empty tomato portrait margins',paste(frame(720,960),resize(emptyTomato,720),0,300)],
+  ['empty tomato 85% brightness',{...emptyTomato,data:Uint8ClampedArray.from(emptyTomato.data,(v,i)=>i%4===3?v:Math.round(v*.85))}],
+  ['empty tomato selected game area',paste(frame(520,380),emptyTomato,0,0,{x:250,y:40,width:520,height:380})],
+  ['empty tomato changed tube spacing',tomatoReflowed]];
+for(const [name,image] of emptyTomatoCases) {
+  let result;
+  assert.doesNotThrow(()=>{result=engine.recognize(image);},`${name}: all seven bottles must be located`);
+  assert.deepEqual(result.bottles.map(b=>b.slots.map(s=>s.color)),emptyTomatoSlots,`${name}: a tinted empty tomato bottle must not contain liquid`);
+  assert.deepEqual(result.bottles.map(b=>b.target),emptyTomatoTargets,`${name}: recipes stay separate from liquid`);
+  assert.ok(result.bottles.every(b=>!b.targetUncertain && b.slots.every(s=>!s.uncertain)),`${name}: clear layer regions must remain confident`);
+  timings.push({name,milliseconds:result.elapsedMs});
+}
 const greenSticker = { ...source, data: Uint8ClampedArray.from(source.data) };
 for (let y = 336; y <= 374; y++) for (let x = 641; x <= 679; x++) {
   const distance = Math.hypot(x - 660, y - 355);
@@ -144,6 +168,36 @@ const partialResult = engine.recognize(partial);
 assert.deepEqual(partialResult.bottles.map(b => b.slots.map(s => s.color)), syntheticTubes.map(t => [...t, ...Array(4-t.length).fill(null)]), 'partial fills and four identical adjacent layers');
 assert.deepEqual(partialResult.bottles.map(b => b.target), Array(7).fill(null), 'liquid color is not a recipe target');
 assert.ok(partialResult.bottles.every(b => !b.targetUncertain), 'plain bottles must not request recipe confirmation');
+const obscured = {...partial,data:Uint8ClampedArray.from(partial.data)};
+rect(obscured,255,65+140*(.955-3*.185),55,140*.185,[40,45,50]);
+const obscuredResult = engine.recognize(obscured);
+assert.equal(obscuredResult.bottles[0].slots[2].color,null,'a layer with no visible color evidence must not be invented');
+assert.equal(obscuredResult.bottles[0].slots[2].uncertain,true,'an obscured gap below visible liquid cannot be declared empty with certainty');
+// Exercise every fill height and liquid color with tinted shelf reflections,
+// large pale highlights, and adjacent layers of the same color. These cases
+// verify that the decision uses region evidence rather than bottle-wall hue.
+const shelf = {R:[148,90,88],O:[148,119,88],G:[90,148,93],B:[88,124,148],P:[137,93,118]};
+let regionCases = 0;
+for(const color of Object.keys(rgb)) for(let filled=0;filled<=4;filled++) {
+  const input=frame(960,441), expectedTubes=[];
+  for(let i=0;i<7;i++) {
+    const x=i<3?250+i*150:180+(i-3)*150, y=i<3?65:260;
+    const height=i===0?filled:(filled+i)%5;
+    const tube=Array.from({length:height},(_,layer)=>i<2?color:Object.keys(rgb)[(layer+i)%5]);
+    expectedTubes.push([...tube,...Array(4-height).fill(null)]);
+    rect(input,x,y,65,140,[240,240,240]);rect(input,x+4,y+4,57,132,[40,45,50]);
+    if(!height) rect(input,x+5,y+140*.84,55,140*.11,shelf[color]);
+    tube.forEach((c,layer)=>rect(input,x+5,y+140*(.955-(layer+1)*.185),55,140*.185,rgb[c]));
+    rect(input,x+31,y+25,8,105,[185,190,195]);
+  }
+  for(const light of [1,.85]) {
+    const image=light===1?input:{...input,data:Uint8ClampedArray.from(input.data,(v,i)=>i%4===3?v:Math.round(v*light))};
+    const result=engine.recognize(image);
+    assert.deepEqual(result.bottles.map(b=>b.slots.map(s=>s.color)),expectedTubes,`${color}, fill ${filled}, light ${light}: regional fill and tinted empty bottoms`);
+    assert.ok(result.bottles.every(b=>!b.target && !b.targetUncertain && b.slots.every(s=>!s.uncertain)),`${color}, fill ${filled}, light ${light}: clear synthetic evidence`);
+    regionCases++;
+  }
+}
 assert.throws(() => engine.recognize(frame(960, 441)), /BOTTLES_NOT_FOUND/);
 assert.throws(() => engine.recognize(frame(961, 100)), /IMAGE_SIZE/);
 assert.throws(() => engine.recognize({ width: 960, height: 441, data: new Uint8Array(2) }), /IMAGE_SIZE/);
@@ -157,4 +211,5 @@ for (let y = missing.y - 3; y < missing.y + missing.height + 3; y++) {
 }
 assert.throws(() => engine.recognize(missingBottle), /BOTTLES_NOT_FOUND/, 'a missing bottle must not be guessed');
 console.log(JSON.stringify(timings, null, 2));
+console.log(`${regionCases} color/fill/reflection cases passed.`);
 console.log('water_image_engine_test: PASS');

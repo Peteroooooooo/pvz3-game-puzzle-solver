@@ -11,12 +11,18 @@
   const IDS = [null, 'R', 'O', 'G', 'B', 'P'];
   const stickerRefs = Object.entries(refs).map(([id, ref]) => {
     const pixels = Uint8Array.from(ref.pixels, c => Number(c)), whiteNear = new Uint8Array(576);
+    const luma = Uint8Array.from({length:576}, (_,i)=>parseInt(ref.luma.slice(i*2,i*2+2),16));
+    let count=0,sum=0,sum2=0;
+    for (let i=0;i<576;i++) if(pixels[i]) {
+      const v=luma[i];count++;sum+=v;sum2+=v*v;
+    }
+    const texture={count,mean:sum/count,variance:sum2-sum*sum/count};
     for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) {
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         if (x + dx >= 0 && x + dx < 24 && y + dy >= 0 && y + dy < 24 && pixels[(y + dy) * 24 + x + dx] === 6) whiteNear[y * 24 + x] = 1;
       }
     }
-    return { id, ...ref, pixels, whiteNear };
+    return { id, ...ref, pixels, whiteNear, luma, texture };
   });
 
   function classify(r, g, b) {
@@ -82,7 +88,7 @@
     let firstRow = 0, lastRow = height - 1;
     while (firstRow < lastRow && activeRows[firstRow] < width * 0.04) firstRow++;
     while (lastRow > firstRow && activeRows[lastRow] < width * 0.04) lastRow--;
-    return { ...image, colors, masks, whiteNear, whiteThreshold, activeHeight: lastRow - firstRow + 1 };
+    return { ...image, colors, masks, whiteNear, whiteThreshold, neutralPeak, activeHeight: lastRow - firstRow + 1 };
   }
 
   // A 3x3 close joins small JPEG/antialiasing gaps. Keep color classes separate.
@@ -145,8 +151,29 @@
     return iw * ih / Math.min(a.width * a.height, b.width * b.height);
   }
 
-  function locate(frame, retry = true) {
+  function locate(frame) {
     const candidates = components(frame);
+    let boxes = selectBottles(frame, candidates);
+    if (boxes) return boxes;
+    // Preserve complete contours from the normal pass while adding white
+    // contours separated from pale backgrounds at two contrast levels. Using
+    // only a stricter mask can cut the bottom off another white bottle.
+    for (const factor of [1.06, 1.12]) {
+      const masks = frame.masks.slice(), threshold = frame.whiteThreshold * factor;
+      for (let i = 0; i < masks.length; i++) if (masks[i] === 6) {
+        const k = i * 4;
+        if (Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]) < threshold) masks[i] = 0;
+      }
+      for (const c of components({ ...frame, masks })) {
+        if (c.border === 6 && !candidates.some(v => overlap(c, v) > 0.95 && c.height <= v.height)) candidates.push(c);
+      }
+    }
+    boxes = selectBottles(frame, candidates.sort((a,b)=>b.height-a.height).slice(0,64));
+    if (!boxes) throw new Error('BOTTLES_NOT_FOUND');
+    return boxes;
+  }
+
+  function selectBottles(frame, candidates) {
     let best = null;
     // Compare a bounded set of height/row hypotheses, never all combinations.
     for (const anchor of candidates) {
@@ -178,20 +205,7 @@
         }
       }
     }
-    if (!best) {
-      if (retry) {
-        // At small scales, pale background pixels can connect a white bottle
-        // outline to the shelf. One stricter neutral pass separates that bridge.
-        const masks = frame.masks.slice(), threshold = frame.whiteThreshold * 1.06;
-        for (let i = 0; i < masks.length; i++) if (masks[i] === 6) {
-          const k = i * 4;
-          if (Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]) < threshold) masks[i] = 0;
-        }
-        return locate({ ...frame, masks }, false);
-      }
-      throw new Error('BOTTLES_NOT_FOUND');
-    }
-    return best.boxes;
+    return best ? best.boxes : null;
   }
 
   function recognize(image) {
@@ -234,49 +248,100 @@
       }
       profiles.push({ yy, left, right });
     }
-    const bins = Array.from({ length: 4 }, () => new Uint32Array(6));
-    const samples = new Uint32Array(4);
+    const votes = Array.from({ length: 4 }, () => new Uint32Array(6));
+    const rows = new Uint32Array(4);
     for (const row of profiles) {
       if (row.left < 0 || row.right - row.left < bw * 0.20) continue;
-      const level = Math.min(3, Math.floor((row.yy - (y + bh * 0.215)) / (bh * 0.74 / 4)));
-      if (level < 0) continue;
+      const position = (row.yy - (y + bh * 0.215)) / (bh * 0.74 / 4);
+      const level = Math.floor(position), within = position - level;
+      // Analyze the body of each layer. Surfaces and the curved bottom rim
+      // are boundary pixels, not evidence of another unit of liquid.
+      if (level < 0 || level > 3 || within < 0.12 || within > 0.88) continue;
       const span = row.right - row.left;
-      for (const f of [0.10, 0.13, 0.16, 0.84, 0.87, 0.90]) {
-        const xx = Math.round(row.left + span * f);
-        const sticker = target.box;
-        if (sticker && xx >= sticker.x && xx < sticker.x + sticker.width
-          && row.yy >= sticker.y && row.yy < sticker.y + sticker.height) {
-          if (target.mask) {
-            if (target.mask[(row.yy - sticker.y) * sticker.width + xx - sticker.x]) continue;
-          } else {
-            const ref = stickerRefs.find(r => r.id === target.color);
-            const tx = Math.floor((xx - sticker.x) * 24 / sticker.width), ty = Math.floor((row.yy - sticker.y) * 24 / sticker.height);
-            const c = ref.pixels[ty * 24 + tx];
-            if (c === 6 || c === IDS.indexOf(target.color) || (target.color === 'R' && (c === 2 || c === 3))) continue;
-          }
-        }
+      const counts = new Uint32Array(6);
+      let count = 0;
+      // Sample the whole visible interior, rather than six points near the
+      // bottle walls. Each row contributes once, so one bright rim cannot
+      // outvote a large empty region or a real layer obscured by a sticker.
+      const step = Math.max(1, Math.floor(span * 0.84 / 32));
+      for (let xx = Math.ceil(row.left + span * 0.08); xx <= row.right - span * 0.08; xx += step) {
+        if (stickerPixel(target, xx, row.yy)) continue;
         const pixel = row.yy * frame.width + xx;
-        let c = frame.colors[pixel];
-        if (border === 5 && c === 5) {
-          const k = pixel * 4, max = Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
-          const min = Math.min(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
-          // A purple rim and the shelf visible through an empty grape bottle
-          // are desaturated; grape liquid inside that bottle is saturated.
-          if (max - min < max * 0.50) c = 0;
-        }
-        bins[level][c]++; samples[level]++;
+        const c = liquidPixel(frame, pixel);
+        counts[c]++; count++;
       }
+      if (count < 2) continue;
+      let color = 1;
+      for (let c = 2; c <= 5; c++) if (counts[c] > counts[color]) color = c;
+      const colored = count - counts[0];
+      const supported = counts[color] >= Math.max(2, count * 0.30) && counts[color] >= colored * 0.60;
+      votes[level][supported ? color : 0]++;
+      rows[level]++;
     }
-    const slots = bins.map((counts, i) => {
-      const rank = [...counts].map((count, color) => ({ count, color })).sort((a, b) => b.count - a.count);
-      const winner = rank[0];
-      return { color: IDS[winner.color], uncertain: samples[i] < 12 || winner.count / Math.max(1, samples[i]) < 0.55 };
-    }).reverse();
-    // An unambiguously empty bottom implies an empty tube when no upper layer
-    // has a positive color reading (a sticker may hide all samples in one band).
-    if (!slots[0].color && !slots[0].uncertain && slots.every(s => !s.color)) slots.forEach(s => { s.uncertain = false; });
+    const slots = decodeLayers(votes, rows);
     return { box: { ...box }, slots, target: target.color, targetUncertain: target.uncertain,
       targetBox: target.box, targetScore: target.score };
+  }
+
+  function stickerPixel(target, x, y) {
+    const box = target.box;
+    if (!box || x < box.x || x >= box.x + box.width || y < box.y || y >= box.y + box.height) return false;
+    if (target.mask) {
+      // The detected mask already includes the pale outline and closed JPEG
+      // gaps. Expanding it would erase narrow liquid strips beside the label.
+      return Boolean(target.mask[(y - box.y) * box.width + x - box.x]);
+    }
+    const ref = stickerRefs.find(r => r.id === target.color);
+    const xx = Math.floor((x - box.x) * 24 / box.width), yy = Math.floor((y - box.y) * 24 / box.height);
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if (xx + dx >= 0 && xx + dx < 24 && yy + dy >= 0 && yy + dy < 24 && ref.pixels[(yy + dy) * 24 + xx + dx]) return true;
+    }
+    return false;
+  }
+
+  const LIQUID_LIGHT = [0, 0.68, 0.68, 0.40, 0.72, 0.30];
+  function liquidPixel(frame, pixel) {
+    const color = frame.colors[pixel];
+    if (!color) return 0;
+    const k = pixel * 4, max = Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
+    const min = Math.min(frame.data[k], frame.data[k + 1], frame.data[k + 2]), chroma = max - min;
+    // Liquid has stronger chroma than tinted glass or the shelf seen through
+    // it. Normalize brightness/contrast to this image's neutral highlights;
+    // pale blue liquid needs less saturation than juice or grape liquid.
+    if (max < frame.neutralPeak * LIQUID_LIGHT[color] || chroma < frame.neutralPeak * 0.28
+      || chroma < max * (color === 4 ? 0.30 : 0.52)) return 0;
+    return color;
+  }
+
+  function decodeLayers(votes, rows) {
+    const evidence = votes.map((counts, i) => Array.from(counts, n => n / Math.max(1, rows[i]))).reverse();
+    const rowCounts = Array.from(rows).reverse();
+    const colors = evidence.map(values => {
+      let color = 1;
+      for (let c = 2; c <= 5; c++) if (values[c] > values[color]) color = c;
+      return color;
+    });
+    // A constrained vertical sequence has liquid at the bottom and empty
+    // space above it. Evaluate the five possible fill heights; a weak reading
+    // cannot invent a color to fill a gap below a visible layer.
+    let minimumHeight = 0;
+    for (let i=0;i<4;i++) {
+      const values=evidence[i], color=colors[i];
+      if (rowCounts[i]>=3 && values[color]>=0.55 && values[color]-values[0]>=0.15) minimumHeight=i+1;
+    }
+    let height = minimumHeight, best = -Infinity;
+    for (let filled = minimumHeight; filled <= 4; filled++) {
+      let score = -filled * 0.05;
+      for (let i = 0; i < 4; i++) score += evidence[i][i < filled ? colors[i] : 0];
+      if (score > best) { best = score; height = filled; }
+    }
+    return evidence.map((values, i) => {
+      const color = i < height ? colors[i] : 0;
+      const support = values[color];
+      const alternatives = Math.max(...values.filter((_, c) => c !== color));
+      const uncertain = rowCounts[i] < 3 || support < 0.55 || support - alternatives < 0.15;
+      return { color: i < height && support < 0.30 ? null : IDS[color], uncertain };
+    });
   }
 
   function readTarget(frame, box) {
@@ -285,6 +350,10 @@
     function match(ref, cx, cy, height, stride) {
       const width = height * ref.aspect, sx = cx - width / 2, sy = cy - height / 2;
       let expectedWhite = 0, foundWhite = 0, correctWhite = 0, correctFound = 0, colored = 0, correctColor = 0;
+      let sum=0,sum2=0,dot=0;
+      // Detail correlation is needed only to verify a broken/absent enclosure
+      // during refinement. The coarse search and complete contours stay cheap.
+      const detail = !enclosed && stride === 1, stats=ref.texture;
       for (let yy = 0; yy < 24; yy += stride) {
         const row = Math.round(sy + (yy + 0.5) * height / 24);
         if (row < 0 || row >= frame.height) return { score: 0 };
@@ -296,6 +365,10 @@
           // Transparent template pixels describe no foreground. Liquid and
           // background behind the sticker must not contribute to its score.
           if (!wanted) continue;
+          if (detail) {
+            const k=i*4, value=(77*frame.data[k]+150*frame.data[k+1]+29*frame.data[k+2])/256;
+            sum+=value;sum2+=value*value;dot+=value*(ref.luma[yy*24+xx]-stats.mean);
+          }
           if (wanted === 6) { expectedWhite++; if (frame.whiteNear[i]) correctWhite++; }
           if (actual === 6) { foundWhite++; if (ref.whiteNear[yy * 24 + xx]) correctFound++; }
           if (wanted && wanted !== 6) { colored++; if (actual === wanted) correctColor++; }
@@ -303,8 +376,12 @@
       }
       const whiteFit = (correctWhite / Math.max(1, expectedWhite) + correctFound / Math.max(1, foundWhite)) / 2;
       const colorFit = correctColor / Math.max(1, colored);
+      // Mean-centered normalized correlation compares foreground detail while
+      // tolerating brightness changes. It is evaluated on this tiny template,
+      // rather than searching a second full-size image or loading a model.
+      const textureFit=detail?dot/Math.sqrt(Math.max(1,(sum2-sum*sum/stats.count)*stats.variance)):0;
       return { score: whiteFit * 0.65 + colorFit * 0.35, cx, cy, height, ref,
-        box: { x: sx, y: sy, width, height } };
+        textureFit, box: { x: sx, y: sy, width, height } };
     }
     const matches = [];
     for (const ref of stickerRefs) {
@@ -319,18 +396,19 @@
       matches.push(best);
     }
     matches.sort((a, b) => b.score - a.score);
-    let best = { score: 0 };
+    let best = { score: 0 }, bestQuality = -Infinity;
     for (const coarse of matches) {
       if (!coarse.ref) continue;
       const step = Math.max(1, Math.round(bh * 0.016));
       for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) {
         for (const dh of [-0.025, 0, 0.025]) {
           const m = match(coarse.ref, coarse.cx + dx * step, coarse.cy + dy * step, coarse.height + bh * dh, 1);
-          if (m.score > best.score) best = m;
+          const quality = enclosed ? m.score : m.score * 0.75 + Math.max(0, m.textureFit || 0) * 0.25;
+          if (quality > bestQuality) { best = m; bestQuality = quality; }
         }
       }
     }
-    if (best.score < 0.77 || (!enclosed && best.score < 0.90)) {
+    if (best.score < 0.77 || (!enclosed && (best.score < 0.80 || best.textureFit < 0.50))) {
       if (enclosed) return enclosed;
       // A weak template resemblance alone is not evidence of a sticker.
       // Reflections and liquid decoration also produce medium scores.
