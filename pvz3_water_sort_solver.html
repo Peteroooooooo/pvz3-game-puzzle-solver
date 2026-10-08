@@ -208,6 +208,8 @@ header {
 }
 
 @media (max-width: 1180px) {
+  header { height: auto; min-height: 64px; padding: 12px 28px; flex-wrap: wrap; gap: 12px; }
+  .header-actions { width: 100%; flex-wrap: wrap; }
   .app-container {
     grid-template-columns: 1fr;
   }
@@ -1187,6 +1189,38 @@ header {
   line-height: 1.5;
   color: #94a3b8;
 }
+.image-import {
+  width: min(1100px, calc(100vw - 24px)); max-height: 90vh;
+  margin: auto;
+  padding: 20px; border: 1px solid var(--border-subtle); border-radius: 16px;
+  background: var(--bg-surface); color: var(--text-primary);
+}
+.image-import::backdrop { background: rgba(0, 0, 0, 0.72); }
+.image-import h2 { font-size: 1.15rem; margin: 0; }
+.image-import-heading, .image-import-actions {
+  display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+}
+.image-import p { line-height: 1.5; font-size: 0.85rem; }
+.image-import-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.image-import .image-import-close { background: transparent; border: 0; color: inherit; font-size: 1.4rem; cursor: pointer; }
+.image-import canvas { display: block; width: 100%; height: auto; border-radius: 8px; }
+.image-import canvas.selecting { cursor: crosshair; touch-action: none; }
+.image-import-status { min-height: 1.5em; color: #7dd3fc; }
+.image-import-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.image-import-cards fieldset { min-width: 0; padding: 8px; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.image-import-cards legend { font-size: 0.85rem; padding: 0 5px; }
+.image-import-cards label { display: flex; flex-direction: column; gap: 3px; margin: 5px 0; font-size: 0.72rem; color: var(--text-secondary); }
+.image-import-cards select { width: 100%; padding: 6px 4px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-base); color: var(--text-primary); font: inherit; }
+.image-import-cards select.needs-review { outline: 2px solid #fbbf24; outline-offset: -1px; }
+.image-import-actions { position: sticky; bottom: -20px; padding: 12px 0; background: var(--bg-surface); }
+@media (max-width: 640px) {
+  header { padding: 12px; }
+  .header-actions { gap: 6px; }
+  .header-actions .btn { padding: 6px 10px; }
+  .image-import { padding: 12px; }
+  .image-import-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .image-import-actions { bottom: -12px; }
+}
 </style>
 </head>
 
@@ -1205,6 +1239,8 @@ header {
     <button class="btn btn-subtle" id="btnUndo" title="Undo (Ctrl+Z)">↩️ 撤销</button>
     <button class="btn btn-subtle" id="btnClearBoard">🗑️ 清空盘面</button>
     <button class="btn btn-subtle" id="btnSampleBoard">📋 示例关卡</button>
+    <button class="btn btn-subtle" id="btnImportImage" type="button">📷 从图片导入</button>
+    <input id="waterImageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
     <button class="btn" id="btnRandomLevel" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); font-weight: 600;" title="Generate a solvable random puzzle (R)">🎲 生成随机关卡</button>
     <button class="btn" id="btnRandomRefill" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(56, 189, 248, 0.25)); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.5); font-weight: 600;" title="Simulate a 4-unit refill after a recipe clear (F)">💧 模拟加料</button>
     <button class="btn btn-primary" id="btnRunSolve">⚡ 求解最优策略</button>
@@ -1392,6 +1428,26 @@ header {
     </div>
   </div>
 </div>
+
+<dialog id="waterImageDialog" class="image-import" aria-labelledby="waterImageTitle" aria-describedby="waterImageHint">
+  <div class="image-import-heading">
+    <h2 id="waterImageTitle">从游戏截图导入</h2>
+    <button id="waterImageClose" class="image-import-close" type="button" aria-label="关闭">×</button>
+  </div>
+  <p id="waterImageHint">本地识别，不上传图片。黄色项目请对照截图核对。</p>
+  <div class="image-import-toolbar">
+    <button id="waterImageChoose" class="btn btn-subtle" type="button">选择图片</button>
+    <button id="waterImageCrop" class="btn btn-subtle" type="button" disabled>框选游戏区域</button>
+    <button id="waterImageRetry" class="btn btn-subtle" type="button" disabled>重新识别</button>
+  </div>
+  <p id="waterImageStatus" class="image-import-status" role="status" aria-live="polite"></p>
+  <canvas id="waterImagePreview" width="0" height="0" aria-label="截图预览，可框选游戏区域"></canvas>
+  <div id="waterImageCards" class="image-import-cards"></div>
+  <div class="image-import-actions">
+    <button id="waterImageCancel" class="btn btn-subtle" type="button">取消</button>
+    <button id="waterImageApply" class="btn btn-primary" type="button" disabled>载入盘面</button>
+  </div>
+</dialog>
 
 <script src="./water_solver_engine.js"></script>
 <script>
@@ -4051,6 +4107,7 @@ function loadSamplePuzzle() {
 
 function setupKeyboardShortcuts() {
   window.addEventListener('keydown', (e) => {
+    if (document.getElementById('waterImageDialog').open) return;
     const tagName = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
     if (tagName === 'input' || tagName === 'select' || tagName === 'textarea'
       || (e.target && e.target.isContentEditable)) {
@@ -4103,6 +4160,20 @@ function setupKeyboardShortcuts() {
 }
 
 function setupUIEvents() {
+  window.addEventListener('water-image-open', () => {
+    stopAutoPlay();
+    cancelActiveSolver();
+  });
+  window.addEventListener('water-image-import', event => {
+    saveHistory();
+    clearPlan();
+    boardState = event.detail.tubes.map(tube => [...tube]);
+    targetRecipes = [...event.detail.targets];
+    lastClearedColor = null;
+    lastClearedTube = null;
+    renderBoard();
+    showNotice(event.detail.message, 'success');
+  });
   const btnLangZh = document.getElementById('btnLangZh');
   const btnLangEn = document.getElementById('btnLangEn');
   if (btnLangZh) btnLangZh.onclick = () => switchWaterLanguage('zh');
@@ -4341,5 +4412,6 @@ function showNotice(msg, type = 'success') {
   box.style.display = 'flex';
 }
 </script>
+<script src="./water_image_import.js"></script>
 </body>
 </html>
