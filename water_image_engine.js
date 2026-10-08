@@ -24,7 +24,8 @@
     if (max < 65 || delta < max * 0.32) return 0;
     let hue = max === r ? (g - b) / delta : max === g ? 2 + (b - r) / delta : 4 + (r - g) / delta;
     hue = ((hue * 60) + 360) % 360;
-    if (hue < 17 || hue >= 345) return delta > max * 0.48 && max > 100 ? 1 : 0;
+    // Red liquid stays red under the pale glass reflection.
+    if (hue < 17 || hue >= 345) return delta > max * 0.40 && max > 100 ? 1 : 0;
     if (hue < 65) return delta > max * 0.55 && max > 110 ? 2 : 0;
     if (hue < 165) return delta > max * 0.45 ? 3 : 0;
     if (hue < 235) return 4;
@@ -71,7 +72,10 @@
     const whiteNear = new Uint8Array(n);
     for (let y = 1; y < height - 1; y++) for (let x = 1; x < width - 1; x++) {
       const i = y * width + x;
-      if (masks[i] === 6) {
+      const k = i * 4, max = Math.max(data[k], data[k + 1], data[k + 2]), min = Math.min(data[k], data[k + 1], data[k + 2]);
+      // Sticker outlines are tinted by bottle lighting. This relaxed rim map
+      // is only used for sticker matching, never for bottle localization.
+      if (data[k + 3] >= 128 && max >= whiteThreshold && max - min < max * 0.40) {
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) whiteNear[i + dy * width + dx] = 1;
       }
     }
@@ -141,7 +145,7 @@
     return iw * ih / Math.min(a.width * a.height, b.width * b.height);
   }
 
-  function locate(frame) {
+  function locate(frame, retry = true) {
     const candidates = components(frame);
     let best = null;
     // Compare a bounded set of height/row hypotheses, never all combinations.
@@ -174,7 +178,19 @@
         }
       }
     }
-    if (!best) throw new Error('BOTTLES_NOT_FOUND');
+    if (!best) {
+      if (retry) {
+        // At small scales, pale background pixels can connect a white bottle
+        // outline to the shelf. One stricter neutral pass separates that bridge.
+        const masks = frame.masks.slice(), threshold = frame.whiteThreshold * 1.06;
+        for (let i = 0; i < masks.length; i++) if (masks[i] === 6) {
+          const k = i * 4;
+          if (Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]) < threshold) masks[i] = 0;
+        }
+        return locate({ ...frame, masks }, false);
+      }
+      throw new Error('BOTTLES_NOT_FOUND');
+    }
     return best.boxes;
   }
 
@@ -239,7 +255,15 @@
             if (c === 6 || c === IDS.indexOf(target.color) || (target.color === 'R' && (c === 2 || c === 3))) continue;
           }
         }
-        const c = frame.colors[row.yy * frame.width + xx];
+        const pixel = row.yy * frame.width + xx;
+        let c = frame.colors[pixel];
+        if (border === 5 && c === 5) {
+          const k = pixel * 4, max = Math.max(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
+          const min = Math.min(frame.data[k], frame.data[k + 1], frame.data[k + 2]);
+          // A purple rim and the shelf visible through an empty grape bottle
+          // are desaturated; grape liquid inside that bottle is saturated.
+          if (max - min < max * 0.50) c = 0;
+        }
         bins[level][c]++; samples[level]++;
       }
     }
@@ -257,6 +281,7 @@
 
   function readTarget(frame, box) {
     const { x, y, width: bw, height: bh } = box;
+    const enclosed = enclosedSticker(frame, box);
     function match(ref, cx, cy, height, stride) {
       const width = height * ref.aspect, sx = cx - width / 2, sy = cy - height / 2;
       let expectedWhite = 0, foundWhite = 0, correctWhite = 0, correctFound = 0, colored = 0, correctColor = 0;
@@ -268,6 +293,9 @@
           if (col < 0 || col >= frame.width) return { score: 0 };
           const i = row * frame.width + col;
           const actual = frame.masks[i] === 6 ? 6 : frame.colors[i], wanted = ref.pixels[yy * 24 + xx];
+          // Transparent template pixels describe no foreground. Liquid and
+          // background behind the sticker must not contribute to its score.
+          if (!wanted) continue;
           if (wanted === 6) { expectedWhite++; if (frame.whiteNear[i]) correctWhite++; }
           if (actual === 6) { foundWhite++; if (ref.whiteNear[yy * 24 + xx]) correctFound++; }
           if (wanted && wanted !== 6) { colored++; if (actual === wanted) correctColor++; }
@@ -280,6 +308,7 @@
     }
     const matches = [];
     for (const ref of stickerRefs) {
+      if (enclosed && ref.id !== enclosed.color) continue;
       let best = { score: 0 };
       for (const scale of [0.26, 0.32, 0.38, 0.44, 0.50]) {
         for (let fx = 0.28; fx < 0.73; fx += 0.08) for (let fy = 0.46; fy < 0.76; fy += 0.06) {
@@ -301,12 +330,16 @@
         }
       }
     }
-    if (best.score < 0.77) {
-      const generic = enclosedSticker(frame, box);
-      if (generic) return generic;
+    if (best.score < 0.77 || (!enclosed && best.score < 0.90)) {
+      if (enclosed) return enclosed;
       // A weak template resemblance alone is not evidence of a sticker.
       // Reflections and liquid decoration also produce medium scores.
       return { color: null, uncertain: false, box: null, score: Math.round(best.score * 100) / 100 };
+    }
+    if (enclosed && enclosed.color === best.ref.id) {
+      // Mask the actual enclosed sticker, including its tinted outline,
+      // rather than guessing exclusion pixels from an approximate rectangle.
+      return { ...enclosed, uncertain: best.score < 0.82, score: Math.round(best.score * 100) / 100 };
     }
     return { color: best.ref.id, uncertain: best.score < 0.85,
       box: best.box, score: Math.round(best.score * 100) / 100 };

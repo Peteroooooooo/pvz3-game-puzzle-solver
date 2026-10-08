@@ -90,6 +90,25 @@ for (const [name,image] of grapeCases) {
   assert.ok([2,3,5].every(i => !result.bottles[i].targetUncertain), `${name}: plain bottles must remain free transfer`);
   timings.push({name,milliseconds:result.elapsedMs});
 }
+const emptyGrape = { width: 960, height: 441, data: zlib.gunzipSync(fs.readFileSync(path.join(__dirname, 'tests/fixtures/water-sort-empty-grape.rgba.gz'))) };
+const emptyGrapeSlots = [
+  ['B','O','P','O'], ['G','P','B','G'], ['B','R','G','G'], ['O','B','P','P'],
+  ['R','O','R','R'], [null,null,null,null], [null,null,null,null]
+];
+const emptyGrapeTargets = [null,'G','B','O',null,null,'P'];
+const emptyGrapeCases = [['empty grape screenshot',emptyGrape], ['empty grape 720px',resize(emptyGrape,720)],
+  ['empty grape 640px',resize(emptyGrape,640)], ['empty grape 480px',resize(emptyGrape,480)],
+  ['empty grape portrait margins',paste(frame(720,960),resize(emptyGrape,720),0,300)],
+  ['empty grape 85% brightness',{...emptyGrape,data:Uint8ClampedArray.from(emptyGrape.data,(v,i)=>i%4===3?v:Math.round(v*.85))}],
+  ['empty grape selected game area',paste(frame(515,370),emptyGrape,0,0,{x:250,y:50,width:515,height:370})]];
+for (const [name,image] of emptyGrapeCases) {
+  let result;
+  assert.doesNotThrow(()=>{ result=engine.recognize(image); },`${name}: all seven bottles must be located`);
+  assert.deepEqual(result.bottles.map(b=>b.slots.map(s=>s.color)),emptyGrapeSlots,`${name}: reflected red is liquid; purple glass and shelf are not`);
+  assert.deepEqual(result.bottles.map(b=>b.target),emptyGrapeTargets,`${name}: foreground recipe shapes must be independent of their background`);
+  assert.ok(result.bottles.every(b=>!b.targetUncertain && b.slots.every(s=>!s.uncertain)),`${name}: this clear screenshot must load without unresolved or review fields`);
+  timings.push({name,milliseconds:result.elapsedMs});
+}
 const greenSticker = { ...source, data: Uint8ClampedArray.from(source.data) };
 for (let y = 336; y <= 374; y++) for (let x = 641; x <= 679; x++) {
   const distance = Math.hypot(x - 660, y - 355);
