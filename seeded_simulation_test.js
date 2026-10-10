@@ -248,6 +248,7 @@ function comparePaired(reference, candidate) {
 function runSuite() {
   const cache = new Map();
   const policyResult = engine.solveRefillPolicy(SAMPLE_BOARD, SAMPLE_TARGETS, {
+    objective: 'worst-case',
     timeLimitMs: 0,
     maxStageNodes: 8000,
     maxStageCandidates: 30,
@@ -315,8 +316,8 @@ assert.ok(
   report.policy.averageSteps <= report.policyCertificate.upperBound + 0.05,
   'seeded mean is inconsistent with the certified expected upper bound'
 );
-assert.ok(report.policy.averageSteps < 19.25, 'locked-refill policy regressed on fixed seeds');
-assert.ok(report.policy.maxSteps <= 20, 'locked-refill worst case regressed on fixed seeds');
+assert.ok(report.policy.averageSteps < 16.9, 'worst-case policy regressed on fixed seeds');
+assert.ok(report.policy.maxSteps <= 17, 'certified worst case regressed on fixed seeds');
 
 console.log(JSON.stringify(report, null, 2));
 console.log('seeded_simulation_test: PASS');

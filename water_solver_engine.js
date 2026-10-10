@@ -510,6 +510,7 @@
       const options = [{ units: 0, blockers: 0 }];
       let exposedUnits = 0;
       let blockerRuns = 0;
+      let targetRuns = 0;
       for (let index = source.length - 1; index >= 0;) {
         const color = source[index];
         let runLength = 0;
@@ -519,7 +520,8 @@
         }
         if (color === target.color) {
           exposedUnits += runLength;
-          options.push({ units: exposedUnits, blockers: blockerRuns });
+          targetRuns++;
+          options.push({ units: exposedUnits, blockers: blockerRuns + targetRuns });
         } else {
           blockerRuns++;
         }
@@ -541,7 +543,10 @@
     const blockerLower = Number.isFinite(exposureCost[needed])
       ? exposureCost[needed]
       : 0;
-    return runsToRemove + blockerLower + finalFill;
+    // Each selected color run must leave its original source at least once;
+    // consolidating it elsewhere cannot eliminate that departure. One such
+    // transfer can also be the final fill, so these costs are not added twice.
+    return runsToRemove + Math.max(blockerLower, finalFill);
   }
 
   function admissibleNextClearLowerBound(tubes, targets, capacity = DEFAULT_CAPACITY) {
@@ -550,7 +555,7 @@
     for (const target of targets) {
       best = Math.min(
         best,
-        targetCompletionLowerBound(tubes, target, capacity, false)
+        targetCompletionLowerBound(tubes, target, capacity, true)
       );
     }
     return Number.isFinite(best) ? best : 1;
@@ -562,13 +567,55 @@
   // never overestimates because a single pour may help two targets at once.
   function admissibleMoveLowerBound(tubes, targets, capacity = DEFAULT_CAPACITY) {
     let bound = minimumDecisionMoves(targets);
+    let requiredDepartures = 0;
     for (const target of targets) {
+      const tube = tubes[target.tubeIdx] || [];
+      let prefix = 0;
+      while (prefix < tube.length && tube[prefix] === target.color) prefix++;
+      for (let index = prefix; index < tube.length; index++) {
+        if (index === prefix || tube[index] !== tube[index - 1]) requiredDepartures++;
+      }
       bound = Math.max(
         bound,
-        targetCompletionLowerBound(tubes, target, capacity, targets.length === 1)
+        targetCompletionLowerBound(tubes, target, capacity, true)
       );
     }
-    return bound;
+    // Every run above a target's correct bottom prefix must leave that tube.
+    // One pour has only one source, so these departures add across targets.
+    // A refill of a distinct, already-cleared color cannot remove any of them.
+    // The final clear pours into the last active target. Its source cannot be
+    // another still-unfinished target, so it is not one of these departures.
+    return Math.max(bound, requiredDepartures + (targets.length ? 1 : 0));
+  }
+
+  function policyCost(value, context) {
+    return context.options.objective === 'worst-case' ? value.worstUpper : value.upper;
+  }
+
+  function betterPolicy(upper, worst, bestUpper, bestWorst, context) {
+    const primary = context.options.objective === 'worst-case' ? worst : upper;
+    const bestPrimary = context.options.objective === 'worst-case' ? bestWorst : bestUpper;
+    const secondary = context.options.objective === 'worst-case' ? upper : worst;
+    const bestSecondary = context.options.objective === 'worst-case' ? bestUpper : bestWorst;
+    return primary < bestPrimary - EPSILON
+      || (Math.abs(primary - bestPrimary) <= EPSILON && secondary < bestSecondary - EPSILON);
+  }
+
+  function preparePolicyOutcomes(outcomes, targets, capacity, context) {
+    const prepared = outcomes.map(outcome => {
+      const state = normalizeSearchState(outcome.tubes, targets, capacity);
+      return { ...outcome, state, lower: admissibleMoveLowerBound(state.tubes, state.targets, capacity) };
+    });
+    // Evaluate the hardest branch first; a bad branch can reject the entire
+    // worst-case candidate before spending time on its easier siblings.
+    if (context.options.objective === 'worst-case') prepared.sort((a, b) => b.lower - a.lower);
+    const suffix = new Array(prepared.length + 1).fill(0);
+    for (let index = prepared.length - 1; index >= 0; index--) {
+      suffix[index] = context.options.objective === 'worst-case'
+        ? Math.max(suffix[index + 1], prepared[index].lower)
+        : suffix[index + 1] + prepared[index].probability * prepared[index].lower;
+    }
+    return { prepared, suffix };
   }
 
   function compareSearchNodes(left, right) {
@@ -676,7 +723,10 @@
         eligibleCount,
         outcomeCount: estimatedOutcomeCount,
         expectedStructure: currentStructure,
-        rank: candidate.depth * 9 + currentStructure + estimatedOutcomeCount * 1.5 - fullShieldCount * 2
+        rank: options.objective === 'worst-case'
+          ? candidate.depth + admissibleMoveLowerBound(candidate.tubes, candidate.targets, capacity)
+            + currentStructure * 0.03 + estimatedOutcomeCount * 0.1
+          : candidate.depth * 9 + currentStructure + estimatedOutcomeCount * 1.5 - fullShieldCount * 2
       };
     }
 
@@ -701,13 +751,17 @@
       ),
       0
     );
+    const worstLower = options.objective === 'worst-case' ? outcomes.reduce((worst, outcome) =>
+      Math.max(worst, admissibleMoveLowerBound(outcome.tubes, candidate.targets, capacity)), 0) : 0;
 
     return {
       fullShieldCount,
       eligibleCount,
       outcomeCount: outcomes.length,
       expectedStructure,
-      rank: candidate.depth * 9 + expectedStructure + outcomes.length * 1.5 - fullShieldCount * 2
+      rank: options.objective === 'worst-case'
+        ? candidate.depth + worstLower + expectedStructure * 0.03 + outcomes.length * 0.1
+        : candidate.depth * 9 + expectedStructure + outcomes.length * 1.5 - fullShieldCount * 2
     };
   }
 
@@ -738,6 +792,8 @@
     const timeLimitMs = Number.isFinite(options.timeLimitMs) ? options.timeLimitMs : 4000;
     const context = {
       options: {
+        objective: options.objective === 'worst-case' ? 'worst-case' : 'expected',
+        moveBudget: Number.isInteger(options.moveBudget) ? Math.max(0, options.moveBudget) : 20,
         capacity: options.capacity || DEFAULT_CAPACITY,
         refillCount: options.refillCount || DEFAULT_REFILL_COUNT,
         timeLimitMs,
@@ -819,10 +875,8 @@
       source
     };
     const previous = context.policyEntries.get(key);
-    if (!previous
-      || entry.upperBound < previous.upperBound - EPSILON
-      || (Math.abs(entry.upperBound - previous.upperBound) <= EPSILON
-        && entry.worstCaseUpper < previous.worstCaseUpper)) {
+    if (!previous || betterPolicy(entry.upperBound, entry.worstCaseUpper,
+      previous.upperBound, previous.worstCaseUpper, context)) {
       context.policyEntries.set(key, entry);
     }
   }
@@ -893,6 +947,7 @@
       ? overrides.depthSlack
       : context.options.stageDepthSlack;
     const deadline = overrides.deadline || context.deadline;
+    const maxClearDepth = Number.isFinite(overrides.maxClearDepth) ? overrides.maxClearDepth : Infinity;
 
     const start = normalizeSearchState(tubes, targets, capacity);
     const rootNode = {
@@ -941,6 +996,11 @@
 
       const current = heapPop(frontier);
       if (seen.get(current.key) !== current.depth) continue;
+      if (current.priority > maxClearDepth) {
+        truncation.reason = 'incumbent-bound';
+        truncation.minUnexpandedClearDepth = current.priority;
+        break;
+      }
       if (Number.isFinite(shortestClearDepth)
         && current.priority > shortestClearDepth + depthSlack) {
         truncation.reason = truncation.reason || 'depth-slack';
@@ -994,6 +1054,7 @@
             clearedColor: next.clearedColor
           };
           candidate.layout = analyzeClearLayout(candidate, {
+            objective: context.options.objective,
             capacity,
             refillCount,
             quick: true,
@@ -1031,6 +1092,7 @@
     candidates.push(...lockedCandidates);
     for (const candidate of candidates) {
       candidate.layout = analyzeClearLayout(candidate, {
+        objective: context.options.objective,
         capacity,
         refillCount,
         targetsNormalized: true,
@@ -1254,33 +1316,16 @@
       );
       context.stats.chanceOutcomes += outcomes.length;
 
-      const preparedOutcomes = outcomes.map(outcome => {
-        const outcomeState = normalizeSearchState(
-          outcome.tubes,
-          candidate.targets,
-          capacity
-        );
-        return {
-          ...outcome,
-          state: outcomeState,
-          lower: admissibleMoveLowerBound(
-            outcomeState.tubes,
-            outcomeState.targets,
-            capacity
-          )
-        };
-      });
-      let remainingLower = preparedOutcomes.reduce(
-        (sum, outcome) => sum + outcome.probability * outcome.lower,
-        0
+      const { prepared: preparedOutcomes, suffix } = preparePolicyOutcomes(
+        outcomes, candidate.targets, capacity, context
       );
-      if (best && candidate.depth + remainingLower > best.upper + EPSILON) continue;
+      if (best && candidate.depth + suffix[0] > policyCost(best, context) + EPSILON) continue;
 
       let expected = candidate.depth;
       let worst = candidate.depth;
       let complete = true;
-      for (const outcome of preparedOutcomes) {
-        remainingLower -= outcome.probability * outcome.lower;
+      for (let outcomeIndex = 0; outcomeIndex < preparedOutcomes.length; outcomeIndex++) {
+        const outcome = preparedOutcomes[outcomeIndex];
         const child = greedyPolicyValue(
           outcome.state.tubes,
           outcome.state.targets,
@@ -1293,15 +1338,16 @@
         }
         expected += outcome.probability * child.upper;
         worst = Math.max(worst, candidate.depth + child.worstUpper);
-        if (best && expected + remainingLower > best.upper + EPSILON) {
+        const runningLower = context.options.objective === 'worst-case'
+          ? Math.max(worst, candidate.depth + suffix[outcomeIndex + 1])
+          : expected + suffix[outcomeIndex + 1];
+        if (best && runningLower > policyCost(best, context) + EPSILON) {
           complete = false;
           break;
         }
       }
 
-      if (complete && (!best || expected < best.upper - EPSILON || (
-        Math.abs(expected - best.upper) <= EPSILON && worst < best.worstUpper
-      ))) {
+      if (complete && (!best || betterPolicy(expected, worst, best.upper, best.worstUpper, context))) {
         best = {
           upper: expected,
           worstUpper: worst,
@@ -1328,14 +1374,15 @@
     return result;
   }
 
-  function solvePolicyState(tubes, targets, context, wantPlan = false) {
+  function solvePolicyState(tubes, targets, context, wantPlan = false, upperLimit = Infinity) {
     const capacity = context.options.capacity;
     const refillCount = context.options.refillCount;
     const state = normalizeSearchState(tubes, targets, capacity);
     const key = canonicalStateKeyNormalized(state.tubes, state.targets);
     const orderedKey = orderedStateKeyNormalized(state.tubes, state.targets);
     const cached = context.valueMemo.get(key);
-    if (cached && (!wantPlan || cached.orderedKey === orderedKey)) {
+    if (cached && policyCost(cached, context) <= upperLimit
+      && (!wantPlan || cached.orderedKey === orderedKey)) {
       context.stats.cacheHits++;
       return cached;
     }
@@ -1374,7 +1421,7 @@
 
     if (isExpired(context)) {
       return {
-        lower: minimumDecisionMoves(state.targets),
+        lower: admissibleMoveLowerBound(state.tubes, state.targets, capacity),
         upper: Infinity,
         worstUpper: Infinity,
         plan: null,
@@ -1390,7 +1437,13 @@
     let bestPlan = greedy && greedy.orderedKey === orderedKey ? greedy.plan : null;
     let bestCandidate = greedy ? greedy.selectedCandidate : null;
 
-    const enumeration = enumerateFirstClearCandidates(state.tubes, state.targets, context);
+    const incumbentCost = context.options.objective === 'worst-case'
+      ? Math.min(bestWorst, upperLimit) : bestUpper;
+    const enumeration = enumerateFirstClearCandidates(state.tubes, state.targets, context, {
+      maxClearDepth: Number.isFinite(incumbentCost)
+        ? Math.floor(incumbentCost - Math.max(0, targetCount - 1))
+        : Infinity
+    });
     const evaluationLimit = getCandidateEvaluationLimit(targetCount, context);
     const lockedEvaluationLimit = context.options.maxLockedCandidatesEvaluated;
     let evaluated = 0;
@@ -1437,28 +1490,13 @@
       );
       context.stats.chanceOutcomes += outcomes.length;
 
-      const preparedOutcomes = outcomes.map(outcome => {
-        const outcomeState = normalizeSearchState(
-          outcome.tubes,
-          candidate.targets,
-          capacity
-        );
-        return {
-          ...outcome,
-          state: outcomeState,
-          lower: admissibleMoveLowerBound(
-            outcomeState.tubes,
-            outcomeState.targets,
-            capacity
-          )
-        };
-      });
-      let remainingOutcomeLower = preparedOutcomes.reduce(
-        (sum, outcome) => sum + outcome.probability * outcome.lower,
-        0
+      const { prepared: preparedOutcomes, suffix } = preparePolicyOutcomes(
+        outcomes, candidate.targets, capacity, context
       );
-      const initialCandidateLower = candidate.depth + remainingOutcomeLower;
-      if (Number.isFinite(bestUpper) && initialCandidateLower > bestUpper + EPSILON) {
+      const bestCost = context.options.objective === 'worst-case'
+        ? Math.min(bestWorst, upperLimit) : bestUpper;
+      const initialCandidateLower = candidate.depth + suffix[0];
+      if (Number.isFinite(bestCost) && initialCandidateLower > bestCost + EPSILON) {
         unevaluatedLower = Math.min(unevaluatedLower, initialCandidateLower);
         allEvaluatedCandidatesExact = false;
         continue;
@@ -1471,15 +1509,18 @@
       let exactChildren = true;
       let prunedByBound = false;
 
-      for (const outcome of preparedOutcomes) {
-        remainingOutcomeLower -= outcome.probability * outcome.lower;
+      for (let outcomeIndex = 0; outcomeIndex < preparedOutcomes.length; outcomeIndex++) {
+        const outcome = preparedOutcomes[outcomeIndex];
         const child = solvePolicyState(
           outcome.state.tubes,
           outcome.state.targets,
           context,
-          false
+          false,
+          context.options.objective === 'worst-case' ? bestCost - candidate.depth : Infinity
         );
-        candidateLower += outcome.probability * child.lower;
+        candidateLower = context.options.objective === 'worst-case'
+          ? Math.max(candidateLower, candidate.depth + child.lower)
+          : candidateLower + outcome.probability * child.lower;
         exactChildren = exactChildren && child.proven;
         if (Number.isFinite(child.upper)) {
           candidateUpper += outcome.probability * child.upper;
@@ -1488,8 +1529,20 @@
           completeUpper = false;
         }
 
-        const runningLower = candidateLower + remainingOutcomeLower;
-        if (Number.isFinite(bestUpper) && runningLower > bestUpper + EPSILON) {
+        const runningLower = context.options.objective === 'worst-case'
+          ? Math.max(candidateLower, candidate.depth + suffix[outcomeIndex + 1])
+          : candidateLower + suffix[outcomeIndex + 1];
+        if (context.options.objective === 'worst-case'
+          && candidate.depth + child.worstUpper > bestCost) {
+          // The child's bounded search did not construct a sufficiently short
+          // continuation. Keep its rigorous lower bound, but do not mistake a
+          // budget-limited miss for an impossibility proof.
+          unevaluatedLower = Math.min(unevaluatedLower, runningLower);
+          allEvaluatedCandidatesExact = false;
+          prunedByBound = true;
+          break;
+        }
+        if (Number.isFinite(bestCost) && runningLower > bestCost + EPSILON) {
           unevaluatedLower = Math.min(unevaluatedLower, runningLower);
           allEvaluatedCandidatesExact = false;
           prunedByBound = true;
@@ -1501,10 +1554,7 @@
 
       evaluatedLower = Math.min(evaluatedLower, candidateLower);
       allEvaluatedCandidatesExact = allEvaluatedCandidatesExact && exactChildren;
-      if (completeUpper && (
-        candidateUpper < bestUpper - EPSILON
-        || (Math.abs(candidateUpper - bestUpper) <= EPSILON && candidateWorst < bestWorst)
-      )) {
+      if (completeUpper && betterPolicy(candidateUpper, candidateWorst, bestUpper, bestWorst, context)) {
         bestUpper = candidateUpper;
         bestWorst = candidateWorst;
         bestPlan = candidate.moves;
@@ -1517,16 +1567,18 @@
       const distinctTargetColors = new Set(state.targets.map(target => target.color)).size;
       unseenLower = enumeration.unseenClearLower + Math.max(0, distinctTargetColors - 1);
     }
+    const bestCost = context.options.objective === 'worst-case' ? bestWorst : bestUpper;
     let lower = Math.min(evaluatedLower, unevaluatedLower, unseenLower);
     if (!Number.isFinite(lower)) {
-      lower = Number.isFinite(bestUpper) ? bestUpper : minimumDecisionMoves(state.targets);
+      lower = Number.isFinite(bestCost) ? bestCost : admissibleMoveLowerBound(state.tubes, state.targets, capacity);
     }
-    if (Number.isFinite(bestUpper)) lower = Math.min(lower, bestUpper);
+    lower = Math.max(lower, admissibleMoveLowerBound(state.tubes, state.targets, capacity));
+    if (Number.isFinite(bestCost)) lower = Math.min(lower, bestCost);
 
-    const proven = Number.isFinite(bestUpper)
-      && Math.abs(bestUpper - lower) <= EPSILON
-      && (enumeration.exhaustive || unseenLower >= bestUpper - EPSILON)
-      && (allEvaluatedCandidatesExact || unevaluatedLower >= bestUpper - EPSILON);
+    const proven = Number.isFinite(bestCost)
+      && Math.abs(bestCost - lower) <= EPSILON
+      && (enumeration.exhaustive || unseenLower >= bestCost - EPSILON)
+      && (allEvaluatedCandidatesExact || unevaluatedLower >= bestCost - EPSILON);
     const result = {
       lower,
       upper: bestUpper,
@@ -1568,8 +1620,10 @@
     const plan = materializeMovePlan(start.tubes, start.targets, rawPlan, capacity);
     const selected = solved.selectedCandidate || greedy.selectedCandidate || null;
     const elapsedMs = nowMs() - context.startedAt;
-    const gap = Number.isFinite(solved.upper)
-      ? Math.max(0, solved.upper - solved.lower)
+    const objective = context.options.objective;
+    const solvedCost = policyCost(solved, context);
+    const gap = Number.isFinite(solvedCost)
+      ? Math.max(0, solvedCost - solved.lower)
       : Infinity;
     const layout = selected
       ? selected.layout
@@ -1587,9 +1641,15 @@
       kind: 'refill-policy',
       plan,
       certificate: {
+        objective,
         guaranteed: solved.guaranteed,
         provenOptimal: solved.proven,
-        lowerBound: solved.lower,
+        lowerBound: objective === 'worst-case'
+          ? admissibleMoveLowerBound(start.tubes, start.targets, capacity)
+          : solved.lower,
+        objectiveLowerBound: solved.lower,
+        objectiveUpperBound: solvedCost,
+        worstCaseLower: objective === 'worst-case' ? solved.lower : null,
         upperBound: solved.upper,
         worstCaseUpper: solved.worstUpper,
         absoluteGap: gap,
@@ -1605,17 +1665,99 @@
       },
       stats: { ...context.stats, elapsedMs }
     };
+    result.certificate.moveBudget = context.options.moveBudget;
+    result.certificate.budgetStatus = solved.guaranteed === true
+      && solved.worstUpper <= context.options.moveBudget ? 'guaranteed'
+      : solved.lower > context.options.moveBudget ? 'impossible' : 'unproven';
     if (context.options.includePolicy) {
       result.policy = {
+        objective,
         entries: [...context.policyEntries.values()]
           .sort((a, b) => a.canonicalKey.localeCompare(b.canonicalKey))
       };
     }
+    return finalizePolicyResult(result, start.tubes, start.targets, context.options);
+  }
+
+  // Combining independently improved sub-policies may change expected cost:
+  // a safer child can have a higher average. Recalculate the actual selected
+  // tree before publishing either bound, rather than trusting stale parents.
+  function finalizePolicyResult(result, tubes, targets, options) {
+    if (!result.policy || result.certificate.guaranteed !== true) return result;
+    const started = nowMs();
+    const capacity = options.capacity || DEFAULT_CAPACITY;
+    const entries = new Map(result.policy.entries.map(entry => [entry.canonicalKey, entry]));
+    const memo = new Map();
+    function visit(board, goals) {
+      const state = normalizeSearchState(board, goals, capacity);
+      if (!state.targets.length) return { expected: 0, worst: 0 };
+      const key = canonicalStateKeyNormalized(state.tubes, state.targets);
+      if (memo.has(key)) return memo.get(key);
+      const entry = entries.get(key);
+      if (!entry) return null;
+      const plan = remapPolicyPlan(entry, state.tubes, state.targets, capacity);
+      if (!plan || !plan.length) return null;
+      let next = state;
+      for (const move of plan) next = applySearchMove(next.tubes, next.targets, move, capacity);
+      if (!next.clearedColor || next.targets.length >= state.targets.length) return null;
+      let expected = plan.length;
+      let worst = plan.length;
+      if (next.targets.length) {
+        const outcomes = enumerateRefillOutcomes(next.tubes, next.clearedColor, next.clearedTube, {
+          capacity, refillCount: options.refillCount || DEFAULT_REFILL_COUNT,
+          targets: next.targets, targetsNormalized: true, searchOptimized: true
+        });
+        for (const outcome of outcomes) {
+          const child = visit(outcome.tubes, next.targets);
+          if (!child) return null;
+          expected += outcome.probability * child.expected;
+          worst = Math.max(worst, plan.length + child.worst);
+        }
+      }
+      entry.upperBound = expected;
+      entry.worstCaseUpper = worst;
+      const value = { expected, worst };
+      memo.set(key, value);
+      return value;
+    }
+    const value = visit(tubes, targets);
+    if (!value) {
+      result.certificate.guaranteed = null;
+      result.certificate.budgetStatus = 'unproven';
+      return result;
+    }
+    const continuation = getPolicyContinuation(result.policy, tubes, targets, options);
+    if (continuation) {
+      result.plan = continuation.plan;
+      for (const field of ['nextClearSteps', 'fullShieldCount', 'eligibleRefillTubes', 'refillOutcomeCount']) {
+        result.certificate[field] = continuation.certificate[field];
+      }
+    }
+    const cert = result.certificate;
+    cert.upperBound = value.expected;
+    cert.worstCaseUpper = value.worst;
+    cert.objectiveUpperBound = cert.objective === 'worst-case' ? value.worst : value.expected;
+    cert.absoluteGap = Math.max(0, cert.objectiveUpperBound - cert.objectiveLowerBound);
+    cert.relativeGap = cert.objectiveLowerBound > EPSILON ? cert.absoluteGap / cert.objectiveLowerBound : null;
+    cert.provenOptimal = cert.absoluteGap <= EPSILON;
+    cert.budgetStatus = value.worst <= cert.moveBudget ? 'guaranteed'
+      : cert.objectiveLowerBound > cert.moveBudget ? 'impossible' : 'unproven';
+    // Only the selected tree must cross the Worker boundary or remain in the
+    // page. Discard thousands of unused search alternatives from that payload.
+    result.policy.entries = result.policy.entries.filter(entry => memo.has(entry.canonicalKey));
+    result.stats.policyValidationStates = memo.size;
+    result.stats.elapsedMs += nowMs() - started;
     return result;
   }
 
   function isBetterPolicyResult(candidate, incumbent) {
     if (!incumbent) return true;
+    if (candidate.certificate.objective === 'worst-case') {
+      const candidateWorst = candidate.certificate.worstCaseUpper;
+      const incumbentWorst = incumbent.certificate.worstCaseUpper;
+      if (candidateWorst < incumbentWorst - EPSILON) return true;
+      if (candidateWorst > incumbentWorst + EPSILON) return false;
+    }
     const candidateUpper = candidate.certificate.upperBound;
     const incumbentUpper = incumbent.certificate.upperBound;
     if (candidateUpper < incumbentUpper - EPSILON) return true;
@@ -1627,7 +1769,7 @@
     return candidate.plan.length < incumbent.plan.length;
   }
 
-  function mergePolicyEntries(first, second) {
+  function mergePolicyEntries(first, second, objective = 'expected') {
     const merged = new Map();
     for (const result of [first, second]) {
       const entries = result && result.policy && Array.isArray(result.policy.entries)
@@ -1635,10 +1777,8 @@
         : [];
       for (const entry of entries) {
         const previous = merged.get(entry.canonicalKey);
-        if (!previous
-          || entry.upperBound < previous.upperBound - EPSILON
-          || (Math.abs(entry.upperBound - previous.upperBound) <= EPSILON
-            && entry.worstCaseUpper < previous.worstCaseUpper)) {
+        if (!previous || betterPolicy(entry.upperBound, entry.worstCaseUpper,
+          previous.upperBound, previous.worstCaseUpper, { options: { objective } })) {
           merged.set(entry.canonicalKey, entry);
         }
       }
@@ -1660,6 +1800,8 @@
     const warmLimitMs = Math.max(1, Math.min(totalLimitMs, configuredWarmLimit));
     const warmResult = solveRefillPolicyOnce(initialTubes, initialTargets, {
       ...warmOptions,
+      objective: options.objective,
+      moveBudget: options.moveBudget,
       timeLimitMs: warmLimitMs,
       includePolicy: true,
       warmStartOptions: undefined,
@@ -1699,22 +1841,27 @@
     };
 
     const combinedLower = Math.min(
-      result.certificate.upperBound,
+      result.certificate.objectiveUpperBound,
       Math.max(
-        warmResult.certificate.lowerBound,
-        fullResult.certificate.lowerBound
+        warmResult.certificate.objectiveLowerBound,
+        fullResult.certificate.objectiveLowerBound
       )
     );
-    const combinedGap = Number.isFinite(result.certificate.upperBound)
-      ? Math.max(0, result.certificate.upperBound - combinedLower)
+    const combinedGap = Number.isFinite(result.certificate.objectiveUpperBound)
+      ? Math.max(0, result.certificate.objectiveUpperBound - combinedLower)
       : Infinity;
-    result.certificate.lowerBound = combinedLower;
+    result.certificate.objectiveLowerBound = combinedLower;
+    if (result.certificate.objective === 'worst-case') result.certificate.worstCaseLower = combinedLower;
+    else result.certificate.lowerBound = combinedLower;
     result.certificate.absoluteGap = combinedGap;
     result.certificate.relativeGap = Number.isFinite(combinedGap) && combinedLower > EPSILON
       ? combinedGap / combinedLower
       : null;
     result.certificate.provenOptimal = result.certificate.provenOptimal
-      || (Number.isFinite(result.certificate.upperBound) && combinedGap <= EPSILON);
+      || (Number.isFinite(result.certificate.objectiveUpperBound) && combinedGap <= EPSILON);
+    result.certificate.budgetStatus = result.certificate.guaranteed === true
+      && result.certificate.worstCaseUpper <= result.certificate.moveBudget ? 'guaranteed'
+      : combinedLower > result.certificate.moveBudget ? 'impossible' : 'unproven';
 
     const counterKeys = [
       'deterministicNodes',
@@ -1733,11 +1880,52 @@
     result.stats.elapsedMs = nowMs() - portfolioStartedAt;
 
     if (options.includePolicy === true) {
-      result.policy = { entries: mergePolicyEntries(warmResult, fullResult) };
+      result.policy = {
+        objective: result.certificate.objective,
+        entries: mergePolicyEntries(warmResult, fullResult, result.certificate.objective)
+      };
     } else {
       delete result.policy;
     }
-    return result;
+    return finalizePolicyResult(result, initialTubes, normalizeTargets(initialTargets), options);
+  }
+
+  // A certified contingent policy already contains a plan for every refill
+  // state it can reach. Reuse that exact continuation instead of starting an
+  // unrelated search after each clear, which could lose the original budget.
+  function getPolicyContinuation(policy, tubes, targets, options = {}) {
+    if (!policy || !Array.isArray(policy.entries)) return null;
+    const capacity = options.capacity || DEFAULT_CAPACITY;
+    const state = normalizeState(tubes, targets, capacity);
+    const key = canonicalStateKeyNormalized(state.tubes, state.targets);
+    const entry = policy.entries.find(value => value.canonicalKey === key);
+    if (!entry || !Number.isFinite(entry.worstCaseUpper)) return null;
+    const rawPlan = remapPolicyPlan(entry, state.tubes, state.targets, capacity);
+    if (!rawPlan || rawPlan.length === 0) return null;
+    const plan = materializeMovePlan(state.tubes, state.targets, rawPlan, capacity);
+    const objective = policy.objective || 'expected';
+    const lower = admissibleMoveLowerBound(state.tubes, state.targets, capacity);
+    const cost = objective === 'worst-case' ? entry.worstCaseUpper : entry.upperBound;
+    const moveBudget = Number.isInteger(options.moveBudget) ? Math.max(0, options.moveBudget) : 20;
+    const last = plan[plan.length - 1];
+    const layout = analyzeClearLayout({ depth: plan.length, tubes: last.afterState,
+      targets: last.remainingTargets, clearedTube: last.clearedTube, clearedColor: last.clearedColor }, options);
+    return {
+      kind: 'refill-policy', plan, policy,
+      certificate: {
+        objective, guaranteed: true, provenOptimal: cost === lower,
+        lowerBound: lower, upperBound: entry.upperBound,
+        objectiveLowerBound: lower, objectiveUpperBound: cost,
+        worstCaseLower: objective === 'worst-case' ? lower : null,
+        worstCaseUpper: entry.worstCaseUpper,
+        absoluteGap: Math.max(0, cost - lower),
+        moveBudget, budgetStatus: entry.worstCaseUpper <= moveBudget ? 'guaranteed' : 'unproven',
+        nextClearSteps: plan.length, shortestClearDepth: null, deliberateSetupSteps: null,
+        fullShieldCount: layout.fullShieldCount, eligibleRefillTubes: layout.eligibleCount,
+        refillOutcomeCount: layout.outcomeCount
+      },
+      stats: { elapsedMs: 0, reusedPolicy: true }
+    };
   }
 
   function solveStaticOptimal(initialTubes, initialTargets, options = {}) {
@@ -1890,6 +2078,7 @@
   }
 
   return {
+    getPolicyContinuation,
     DEFAULT_CAPACITY,
     DEFAULT_REFILL_COUNT,
     normalizeState,

@@ -22,7 +22,8 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 - Screenshot-derived recipe icons, source/receiver arrows, a compact responsive board, and a mobile current-step bar; strategy and search budget stay directly accessible
 - Shield-aware policy search protects deterministic-refill layouts (especially exactly four eligible tubes), then compares their full downstream cost against immediate clears and other setups
 - Static mode performs complete state search and proves the shortest route; the benchmark sample improves from the legacy 15 steps to a proven 13 steps
-- Refill mode reports guaranteed-policy status, expected-step lower/upper bounds, and the remaining optimality gap; global expected optimality is shown only when the bounds meet
+- Refill mode prioritizes the worst total move count, breaking ties by expected moves; worst-case bounds, expected policy cost, and optimality gaps are reported separately
+- A 20-move guarantee requires a complete branch certificate; after refills, verified continuations are reused and executed moves are counted against the original total bound
 - 4-second, 15-second, and 60-second search budgets run inside a Web Worker
 - Default strict-feedback decoder strategy: all 11,880 valid non-repeating secrets are guaranteed to finish within 4 rounds under permanent correct-slot locks
 - Browser-only, no install required
@@ -33,11 +34,17 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 ```bash
 node smoke_test.js
 node water_solver_engine_test.js
+node water_solver_optimization_test.js
+node water_solver_worst_case_test.js
 node water_image_engine_test.js
 node seeded_simulation_test.js
 ```
 
-Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 100% of runs. The policy spends one extra setup move before the first clear to leave exactly four refill-eligible tubes, locking that refill to one outcome. It averages 19.208 moves with an observed maximum of 20. That is 1.635 moves (7.85%) below the 20.844-move immediate-clear baseline, whose maximum is 23, and 1.390 moves (6.75%) below the previous bounded policy's 20.598 mean, whose maximum was 22. Blindly maximizing full-tube shields averages 23 moves, so deterministic refill is prioritized only when its evaluated downstream cost is actually lower.
+Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 100% of runs. The policy spends one extra setup move before the first clear to leave exactly four refill-eligible tubes, locking that refill to one outcome. It averages 16.800 moves with an observed maximum of 17. That is 4.025 moves (19.33%) below the 20.825-move immediate-clear baseline, whose maximum is 23. Blindly maximizing full-tube shields averages 23 moves, so deterministic refill is prioritized only when its evaluated downstream cost is actually lower.
+
+Worst-case mode verifies all 7 distinct refill edges in the selected sample policy (8 policy states), with a maximum of 17 moves and an exact expectation of 16.8. Independent exhaustive oracles cover 114 compact stochastic boards and 1,760 static shortest-path cases. Pruning adds required departures across target tubes plus the final clear, uses a small capacity-bounded dynamic program for color transfers and blocker removal, checks difficult refill branches first, limits first-clear depth, and passes the remaining move limit to child searches. Only selected policy states cross the Worker boundary and remain in the page.
+
+The 20-move certificate applies to the current board, modeled refill rules, and verified policy; it is not a universal promise. The latest supplied five-color, four-recipe screenshot currently has a constructed 21-move policy, without a proof excluding a 20-move policy. A legal five-recipe editor configuration has a rigorous 21-move lower bound. A timed-out search remains unproven.
 
 ## Feedback decoder
 

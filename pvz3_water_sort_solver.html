@@ -1588,7 +1588,7 @@ const WATER_COPY = {
     noTarget: '请至少为一个试管指定目标配方颜色（瓶子下方的选择器）！',
     duplicateTargets: '当前加料概率模型要求每个目标配方使用不同颜色；请先调整重复的目标颜色。',
     shortage: (color, count) => `无法推演：【${color}】全场总共只有 ${count} 格，不足以集满 4 格配方！请补齐颜色。`,
-    solvingExact: '🛡️ 正在比较立即清瓶与满瓶屏蔽路线，并展开全部随机加料结果...',
+    solvingExact: '🛡️ 正在优先降低最坏总步数，并逐分支验证 20 步策略...',
     solvingStatic: '✅ 正在搜索并证明当前静态盘面的最短路线...',
     solvingClassic: '⚡ 正在运行旧版快速 A*...',
     plannedNext: steps => `🛡️ 已规划到下一次配方完成，共 ${steps} 步。完成后请按实际加料结果更新盘面，再继续求解。`,
@@ -1704,7 +1704,7 @@ const WATER_COPY = {
     noTarget: 'Assign at least one target recipe color to a tube using the selector below each tube.',
     duplicateTargets: 'The refill probability model requires distinct colors for active target recipes. Remove duplicate target colors first.',
     shortage: (color, count) => `Cannot solve: there are only ${count} blocks of [${color}] on the board, not enough to build a 4-block recipe.`,
-    solvingExact: '🛡️ Comparing immediate clears with shield-building routes and expanding every refill outcome...',
+    solvingExact: '🛡️ Minimizing the worst total move count and checking every branch for a 20-move policy...',
     solvingStatic: '✅ Searching for and proving the shortest route on the current static board...',
     solvingClassic: '⚡ Running the legacy fast A*...',
     plannedNext: steps => `🛡️ Planned through the next recipe clear in ${steps} steps. After the real refill result, update the board and solve again.`,
@@ -1830,6 +1830,7 @@ let autoPlayTimer = null;
 let solverWorker = null;
 let solverRequestId = 0;
 let currentSolverAnalysis = null;
+let refillPolicySession = null;
 
 function applyWaterLanguage() {
   setWaterLang(uiLang);
@@ -2366,6 +2367,19 @@ function runSolve() {
   puzzleInitialTargets = [...targetRecipes];
 
   if (isExactRefillStrategy || isStaticOptimalStrategy) {
+    if (isExactRefillStrategy && refillPolicySession) {
+      const continuation = window.PVZ3WaterSolverEngine.getPolicyContinuation(
+        refillPolicySession.policy, boardState, initialTargets,
+        { moveBudget: Math.max(0, 20 - refillPolicySession.spentMoves) }
+      );
+      if (continuation) {
+        finishSolverResult(continuation, EXACT_REFILL_STRATEGY);
+        return;
+      }
+      refillPolicySession = null;
+    } else {
+      refillPolicySession = null;
+    }
     runAdvancedSolver(
       isStaticOptimalStrategy ? 'static-optimal' : 'refill-policy',
       boardState,
@@ -2392,6 +2406,9 @@ function getAdvancedSearchOptions() {
     ? document.getElementById('selectSearchBudget').value
     : 'balanced';
   const fastIncumbent = {
+    objective: 'worst-case',
+    moveBudget: 20,
+    includePolicy: true,
     timeLimitMs: 4000,
     maxStageNodes: 8000,
     maxStageCandidates: 30,
@@ -2406,6 +2423,7 @@ function getAdvancedSearchOptions() {
 
   if (budget === 'proof') {
     return {
+      objective: 'worst-case', moveBudget: 20, includePolicy: true,
       timeLimitMs: 60000,
       maxStageNodes: 250000,
       maxStageCandidates: 1200,
@@ -2422,6 +2440,7 @@ function getAdvancedSearchOptions() {
 
   if (budget === 'deep') {
     return {
+      objective: 'worst-case', moveBudget: 20, includePolicy: true,
       timeLimitMs: 15000,
       maxStageNodes: 70000,
       maxStageCandidates: 240,
@@ -2436,7 +2455,16 @@ function getAdvancedSearchOptions() {
     };
   }
 
-  return fastIncumbent;
+  return {
+    ...fastIncumbent,
+    maxStageNodes: 32000,
+    maxStageCandidates: 120,
+    stageDepthSlack: 8,
+    maxCandidatesEvaluated: { 4: 12, 3: 12, 2: 24 },
+    finalNodeLimit: 300000,
+    upperFraction: 0.5,
+    warmStartOptions: { ...fastIncumbent, timeLimitMs: 1000 }
+  };
 }
 
 function cancelActiveSolver() {
@@ -2561,6 +2589,7 @@ function renderSolverCertificate(result) {
     lines.push(`<div class="certificate-title certificate-warn">${isEnglish ? 'Legacy heuristic route' : '旧版启发式路线'}</div>`);
     lines.push(isEnglish ? 'No optimality certificate is available.' : '该模式不提供最短性或全局策略证明。');
   } else {
+    const isWorstCase = cert.objective === 'worst-case';
     const guaranteeText = cert.guaranteed === true
       ? (isEnglish ? '✓ Every modeled refill branch has a continuation' : '✓ 所有已建模加料分支均有后续解')
       : (isEnglish ? 'Guaranteed-clear proof is still incomplete' : '必胜证明尚未完成');
@@ -2568,18 +2597,27 @@ function renderSolverCertificate(result) {
 
     if (Number.isFinite(cert.upperBound)) {
       const gapText = cert.provenOptimal
-        ? (isEnglish ? 'global expected optimum proven' : '已证明全局期望最优')
+        ? (isWorstCase
+          ? (isEnglish ? 'global worst-case optimum proven' : '已证明全局最坏步数最优')
+          : (isEnglish ? 'global expected optimum proven' : '已证明全局期望最优'))
         : (isEnglish
           ? `remaining gap ≤ ${formatBound(cert.absoluteGap)} steps`
           : `剩余最优差距 ≤ ${formatBound(cert.absoluteGap)} 步`);
-      lines.push(isEnglish
-        ? `Expected bounds: ${formatBound(cert.lowerBound)} – ${formatBound(cert.upperBound)} steps · ${gapText}`
-        : `期望步数范围：${formatBound(cert.lowerBound)}～${formatBound(cert.upperBound)} 步 · ${gapText}`);
+      lines.push(isWorstCase
+        ? (isEnglish
+          ? `Worst-case bounds: ${formatBound(cert.worstCaseLower, 0)} – ${formatBound(cert.worstCaseUpper, 0)} steps · ${gapText}`
+          : `最坏总步数范围：${formatBound(cert.worstCaseLower, 0)}～${formatBound(cert.worstCaseUpper, 0)} 步 · ${gapText}`)
+        : (isEnglish
+          ? `Expected bounds: ${formatBound(cert.lowerBound)} – ${formatBound(cert.upperBound)} steps · ${gapText}`
+          : `期望步数范围：${formatBound(cert.lowerBound)}～${formatBound(cert.upperBound)} 步 · ${gapText}`));
       if (Number.isFinite(cert.worstCaseUpper)) {
         lines.push(isEnglish
           ? `Constructed policy worst case: ≤ ${formatBound(cert.worstCaseUpper, 0)} steps`
           : `已构造策略的最坏情况：≤ ${formatBound(cert.worstCaseUpper, 0)} 步`);
       }
+      if (isWorstCase) lines.push(isEnglish
+        ? `Constructed policy expected cost: ≤ ${formatBound(cert.upperBound)} steps`
+        : `已构造策略的平均总步数：≤ ${formatBound(cert.upperBound)} 步`);
     } else {
       lines.push(isEnglish
         ? `Rigorous lower bound: ${formatBound(cert.lowerBound)} steps; no complete upper policy was certified within this budget.`
@@ -2604,6 +2642,17 @@ function finishSolverResult(result, strategy) {
   const solveButton = document.getElementById('btnRunSolve');
   if (solveButton) solveButton.disabled = false;
   currentSolverAnalysis = result;
+  if (strategy === EXACT_REFILL_STRATEGY && result.policy && result.certificate.guaranteed === true) {
+    refillPolicySession = {
+      policy: result.policy,
+      spentMoves: result.stats.reusedPolicy && refillPolicySession ? refillPolicySession.spentMoves : 0,
+      targetCount: targetRecipes.filter(Boolean).length
+    };
+    result.certificate.spentMoves = refillPolicySession.spentMoves;
+    result.certificate.totalWorstCaseUpper = refillPolicySession.spentMoves + result.certificate.worstCaseUpper;
+  } else {
+    refillPolicySession = null;
+  }
 
   const solution = decorateSolverPlan(result && result.plan ? result.plan : []);
   if (!solution || solution.length === 0) {
@@ -2640,7 +2689,17 @@ function finishSolverResult(result, strategy) {
   updateNavButtonStates();
 
   if (isRefillPlan) {
-    showNotice(copy.plannedNext(solution.length), 'success');
+    const cert = result.certificate;
+    const guarantee = cert && cert.budgetStatus === 'guaranteed'
+      ? (uiLang === 'en'
+        ? `✓ Every modeled refill sequence completes within ${formatBound(cert.totalWorstCaseUpper || cert.worstCaseUpper, 0)} total moves. `
+        : `✓ 已验证全部加料分支，总步数不超过 ${formatBound(cert.totalWorstCaseUpper || cert.worstCaseUpper, 0)} 步。`)
+      : cert && cert.budgetStatus === 'impossible'
+        ? (uiLang === 'en'
+          ? `A guaranteed 20-move policy is impossible here; rigorous lower bound: ${formatBound(cert.objectiveLowerBound)}. `
+          : `此盘面无法保证 20 步内完成；严格下界为 ${formatBound(cert.objectiveLowerBound)} 步。`)
+        : (uiLang === 'en' ? '20-move guarantee is not yet proven. ' : '尚未证明可保证 20 步内完成。');
+    showNotice(guarantee + copy.plannedNext(solution.length), 'success');
   } else if (result.certificate && result.certificate.provenOptimal) {
     showNotice(copy.foundProvenPath(solution.length), 'success');
   } else {
@@ -3937,6 +3996,22 @@ function resetToInitialPuzzleState() {
 
 function clearPlan() {
   const copy = wc();
+  if (refillPolicySession) {
+    const targets = targetRecipes.flatMap((color, tubeIdx) => color ? [{ tubeIdx, color }] : []);
+    const completedStage = currentPlan && currentStepIdx === currentPlan.length - 1
+      && currentPlan[currentStepIdx].clearedColor
+      && targets.length === refillPolicySession.targetCount - 1;
+    const sameStage = targets.length === refillPolicySession.targetCount;
+    const continuation = (completedStage || sameStage) && window.PVZ3WaterSolverEngine.getPolicyContinuation(
+      refillPolicySession.policy, boardState, targets
+    );
+    if (continuation) {
+      if (completedStage) refillPolicySession.spentMoves += currentPlan.length;
+      refillPolicySession.targetCount = targets.length;
+    } else {
+      refillPolicySession = null;
+    }
+  }
   stopAutoPlay();
   cancelActiveSolver();
   stepAnimationToken++;
