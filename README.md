@@ -24,6 +24,7 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 - Static mode performs complete state search and proves the shortest route; the benchmark sample improves from the legacy 15 steps to a proven 13 steps
 - Refill mode prioritizes the worst total move count, breaking ties by expected moves; worst-case bounds, expected policy cost, and optimality gaps are reported separately
 - The 25-move whole-game target includes all three refills before the fourth recipe clears. A guarantee requires a complete branch certificate; continuations are reused and executed moves are deducted from the original total budget, including when the next screenshot is imported without playing the steps in this page
+- Budget search passes remaining whole-game moves to every refill branch, progressively tightens verified strategies, and resumes first-clear frontiers beyond the ranked shortlist. Time, node and live-state limits keep the incumbent on exhaustion
 - 4-second, 15-second, and 60-second search budgets run inside a Web Worker
 - Default strict-feedback decoder strategy: all 11,880 valid non-repeating secrets are guaranteed to finish within 4 rounds under permanent correct-slot locks
 - Browser-only, no install required
@@ -36,6 +37,7 @@ node smoke_test.js
 node water_solver_engine_test.js
 node water_solver_optimization_test.js
 node water_solver_worst_case_test.js
+node water_solver_budget_search_test.js
 node water_solver_batch_verify_test.js
 node water_image_engine_test.js
 node seeded_simulation_test.js
@@ -46,6 +48,10 @@ Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 10
 Worst-case mode verifies all 7 distinct refill edges in the selected sample policy (8 policy states), with a maximum of 17 moves and an exact expectation of 16.8. Independent exhaustive oracles cover 114 compact stochastic boards and 1,760 static shortest-path cases. Pruning adds required departures across target tubes plus the final clear, uses a small capacity-bounded dynamic program for color transfers and blocker removal, checks difficult refill branches first, limits first-clear depth, and passes the remaining move limit to child searches. Only selected policy states cross the Worker boundary and remain in the page.
 
 The 25-move certificate covers the current board, all three modeled random refills, and the verified policy. The latest supplied five-color, four-recipe screenshot has a certified 21-move policy. All 1,000 generated starting boards (500 four-color and 500 five-color, including 500 fragmented wrong-bottom recipe layouts) passed complete branch verification, with worst cases of 14–25 moves. An independent replay checked 11,607 policy states and 12,935 refill edges. The batch exposed restrictive layout limits and missing cached continuations; recovery now widens the search within the existing time budget and carries the complete cached plans. This coverage is not a proof over every possible initial board. No fourth refill is included after the final recipe. The [verification report](./docs/water-budget-verification.md) includes per-case results, seeds, and reproduction commands. Batch verification runs offline in Node and is never loaded by the website.
+
+The next optimization revisited the 125 previously certified 25-move boards using the default four-second profile: 15 now need at most 23 moves, 92 at most 24, and 18 remain at 25. All selected refill branches pass independent replay; 104 boards have a proven optimal worst-case count. Eight compact three-recipe games additionally match an independent exhaustive minimax oracle at both the feasible budget and one move below it.
+
+Another 200 boards generated with a new seed all pass complete three-refill verification within the same default budget: worst cases are 15–25 moves, 195 boards are within 24, and 88 have a proven optimal worst-case count. Full records and reproduction commands are in the verification report.
 
 ## Feedback decoder
 

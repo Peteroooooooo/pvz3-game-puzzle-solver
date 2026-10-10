@@ -1,0 +1,2419 @@
+{
+  "rules": {
+    "tubes": 7,
+    "capacity": 4,
+    "recipes": 4,
+    "initialColors": [
+      4,
+      5
+    ],
+    "unitsPerColor": 4,
+    "initiallyFilledTubes": [
+      4,
+      5
+    ],
+    "refillCount": 4,
+    "refillRounds": 3,
+    "excluded": "just-cleared tube",
+    "moveBudget": 25
+  },
+  "generator": "LCG per case; alternating 4/5 colors; half uniform, half fragmented wrong-bottom goals; no initially completed recipe",
+  "scope": "Random initial boards; every refill branch of each selected policy is exhaustively checked. Not enumeration of all initial boards.",
+  "seed": 250310,
+  "requested": 125,
+  "completed": 125,
+  "workers": 1,
+  "profile": "balanced",
+  "fastMs": 4000,
+  "retryMs": 0,
+  "elapsedMs": 320294,
+  "verified": 125,
+  "unresolved": 0,
+  "refuted": 0,
+  "retried": 0,
+  "budgetRecoveries": 9,
+  "policyStates": 858,
+  "refillEdges": 893,
+  "histogram": {
+    "23": 15,
+    "24": 92,
+    "25": 18
+  },
+  "results": [
+    {
+      "index": 3,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1426
+    },
+    {
+      "index": 7,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 9,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1707
+    },
+    {
+      "index": 15,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 2392
+    },
+    {
+      "index": 27,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2665
+    },
+    {
+      "index": 47,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 71,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 2494
+    },
+    {
+      "index": 83,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2255
+    },
+    {
+      "index": 103,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2229
+    },
+    {
+      "index": 107,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1967
+    },
+    {
+      "index": 115,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2744
+    },
+    {
+      "index": 119,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2431
+    },
+    {
+      "index": 123,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2694
+    },
+    {
+      "index": 127,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 2039
+    },
+    {
+      "index": 135,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2142
+    },
+    {
+      "index": 139,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2981
+    },
+    {
+      "index": 159,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 8
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 167,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2728
+    },
+    {
+      "index": 169,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 3994
+    },
+    {
+      "index": 175,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 9,
+        "refillEdges": 9
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 177,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 179,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2003
+    },
+    {
+      "index": 195,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 1901
+    },
+    {
+      "index": 199,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2420
+    },
+    {
+      "index": 203,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2425
+    },
+    {
+      "index": 211,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 18,
+        "refillEdges": 19
+      },
+      "elapsedMs": 2312
+    },
+    {
+      "index": 219,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 16
+      },
+      "elapsedMs": 2666
+    },
+    {
+      "index": 227,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2109
+    },
+    {
+      "index": 231,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2238
+    },
+    {
+      "index": 235,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3365
+    },
+    {
+      "index": 239,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1953
+    },
+    {
+      "index": 251,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2211
+    },
+    {
+      "index": 257,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2443
+    },
+    {
+      "index": 263,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 2493
+    },
+    {
+      "index": 271,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2384
+    },
+    {
+      "index": 275,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2577
+    },
+    {
+      "index": 279,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2082
+    },
+    {
+      "index": 295,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2533
+    },
+    {
+      "index": 299,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2210
+    },
+    {
+      "index": 315,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1967
+    },
+    {
+      "index": 323,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1968
+    },
+    {
+      "index": 327,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2818
+    },
+    {
+      "index": 343,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2217
+    },
+    {
+      "index": 347,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2546
+    },
+    {
+      "index": 359,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1872
+    },
+    {
+      "index": 365,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3175
+    },
+    {
+      "index": 367,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 13
+      },
+      "elapsedMs": 3206
+    },
+    {
+      "index": 371,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2983
+    },
+    {
+      "index": 375,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 383,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2094
+    },
+    {
+      "index": 387,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1967
+    },
+    {
+      "index": 399,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2156
+    },
+    {
+      "index": 403,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2527
+    },
+    {
+      "index": 411,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2308
+    },
+    {
+      "index": 419,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3122
+    },
+    {
+      "index": 423,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 2354
+    },
+    {
+      "index": 427,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 1813
+    },
+    {
+      "index": 434,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 21
+      },
+      "elapsedMs": 4005
+    },
+    {
+      "index": 435,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2291
+    },
+    {
+      "index": 439,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2508
+    },
+    {
+      "index": 441,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 15,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 3485
+    },
+    {
+      "index": 455,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2301
+    },
+    {
+      "index": 458,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 21
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 459,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 18,
+        "refillEdges": 19
+      },
+      "elapsedMs": 2734
+    },
+    {
+      "index": 483,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1980
+    },
+    {
+      "index": 487,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2875
+    },
+    {
+      "index": 499,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1994
+    },
+    {
+      "index": 507,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2175
+    },
+    {
+      "index": 511,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1708
+    },
+    {
+      "index": 515,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2929
+    },
+    {
+      "index": 527,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2087
+    },
+    {
+      "index": 563,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2903
+    },
+    {
+      "index": 567,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2569
+    },
+    {
+      "index": 615,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2365
+    },
+    {
+      "index": 619,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2279
+    },
+    {
+      "index": 623,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1937
+    },
+    {
+      "index": 631,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2144
+    },
+    {
+      "index": 633,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2726
+    },
+    {
+      "index": 647,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1896
+    },
+    {
+      "index": 651,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1597
+    },
+    {
+      "index": 655,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 14,
+        "refillEdges": 16
+      },
+      "elapsedMs": 1934
+    },
+    {
+      "index": 659,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2310
+    },
+    {
+      "index": 671,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2173
+    },
+    {
+      "index": 679,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2436
+    },
+    {
+      "index": 681,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 15,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 683,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2282
+    },
+    {
+      "index": 698,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 21
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 699,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 14,
+        "refillEdges": 16
+      },
+      "elapsedMs": 1936
+    },
+    {
+      "index": 703,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 3116
+    },
+    {
+      "index": 707,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2142
+    },
+    {
+      "index": 711,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 2101
+    },
+    {
+      "index": 731,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2075
+    },
+    {
+      "index": 742,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 21
+      },
+      "elapsedMs": 4007
+    },
+    {
+      "index": 743,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 3114
+    },
+    {
+      "index": 758,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 771,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2763
+    },
+    {
+      "index": 775,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1686
+    },
+    {
+      "index": 779,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 3704
+    },
+    {
+      "index": 783,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 2401
+    },
+    {
+      "index": 787,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 2268
+    },
+    {
+      "index": 799,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 3171
+    },
+    {
+      "index": 801,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 3137
+    },
+    {
+      "index": 803,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2149
+    },
+    {
+      "index": 811,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 1966
+    },
+    {
+      "index": 819,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2168
+    },
+    {
+      "index": 831,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 1977
+    },
+    {
+      "index": 835,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 16
+      },
+      "elapsedMs": 2855
+    },
+    {
+      "index": 837,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2534
+    },
+    {
+      "index": 839,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2357
+    },
+    {
+      "index": 851,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3186
+    },
+    {
+      "index": 871,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2733
+    },
+    {
+      "index": 891,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 15
+      },
+      "elapsedMs": 2167
+    },
+    {
+      "index": 899,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2232
+    },
+    {
+      "index": 907,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2513
+    },
+    {
+      "index": 910,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 12
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 923,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1368
+    },
+    {
+      "index": 935,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 3789
+    },
+    {
+      "index": 943,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2032
+    },
+    {
+      "index": 951,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1772
+    },
+    {
+      "index": 955,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2172
+    },
+    {
+      "index": 967,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 14,
+        "refillEdges": 16
+      },
+      "elapsedMs": 2926
+    },
+    {
+      "index": 979,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2315
+    },
+    {
+      "index": 983,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1739
+    },
+    {
+      "index": 987,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2779
+    },
+    {
+      "index": 991,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": true,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2958
+    },
+    {
+      "index": 999,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2945
+    }
+  ]
+}

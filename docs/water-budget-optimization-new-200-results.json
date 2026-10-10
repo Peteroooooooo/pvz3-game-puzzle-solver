@@ -1,0 +1,5818 @@
+{
+  "rules": {
+    "tubes": 7,
+    "capacity": 4,
+    "recipes": 4,
+    "initialColors": [
+      4,
+      5
+    ],
+    "unitsPerColor": 4,
+    "initiallyFilledTubes": [
+      4,
+      5
+    ],
+    "refillCount": 4,
+    "refillRounds": 3,
+    "excluded": "just-cleared tube",
+    "moveBudget": 25
+  },
+  "generator": "LCG per case; alternating 4/5 colors; half uniform, half fragmented wrong-bottom goals; no initially completed recipe",
+  "scope": "Random initial boards; every refill branch of each selected policy is exhaustively checked. Not enumeration of all initial boards.",
+  "seed": 20261010,
+  "requested": 200,
+  "completed": 200,
+  "workers": 1,
+  "profile": "balanced",
+  "fastMs": 4000,
+  "retryMs": 0,
+  "elapsedMs": 610310,
+  "verified": 200,
+  "unresolved": 0,
+  "refuted": 0,
+  "retried": 0,
+  "budgetRecoveries": 3,
+  "policyStates": 2086,
+  "refillEdges": 2305,
+  "histogram": {
+    "15": 2,
+    "16": 5,
+    "17": 4,
+    "18": 12,
+    "19": 13,
+    "20": 26,
+    "21": 19,
+    "22": 14,
+    "23": 59,
+    "24": 41,
+    "25": 5
+  },
+  "results": [
+    {
+      "index": 0,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 14,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 65,
+        "refillEdges": 100
+      },
+      "elapsedMs": 4016
+    },
+    {
+      "index": 1,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 545,
+      "budgetNodes": 25900,
+      "budgetPeakStates": 9067,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1395
+    },
+    {
+      "index": 2,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 180,
+      "budgetNodes": 6489,
+      "budgetPeakStates": 5926,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 3,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1852,
+      "budgetNodes": 88845,
+      "budgetPeakStates": 27204,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2790
+    },
+    {
+      "index": 4,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 9,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 22
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 5,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1854,
+      "budgetNodes": 111339,
+      "budgetPeakStates": 6136,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 6,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 21
+      },
+      "elapsedMs": 4006
+    },
+    {
+      "index": 7,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1149,
+      "budgetNodes": 59993,
+      "budgetPeakStates": 18637,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2272
+    },
+    {
+      "index": 8,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 30,
+        "refillEdges": 29
+      },
+      "elapsedMs": 4005
+    },
+    {
+      "index": 9,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 897,
+      "budgetNodes": 44590,
+      "budgetPeakStates": 17673,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1870
+    },
+    {
+      "index": 10,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 992,
+      "budgetNodes": 35116,
+      "budgetPeakStates": 12249,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 11,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 945,
+      "budgetNodes": 46104,
+      "budgetPeakStates": 24390,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1908
+    },
+    {
+      "index": 12,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 78,
+        "refillEdges": 84
+      },
+      "elapsedMs": 4008
+    },
+    {
+      "index": 13,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 9,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1969,
+      "budgetNodes": 113277,
+      "budgetPeakStates": 5346,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 14,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 307,
+      "budgetNodes": 10926,
+      "budgetPeakStates": 5650,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 15,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1537,
+      "budgetNodes": 69883,
+      "budgetPeakStates": 16897,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2616
+    },
+    {
+      "index": 16,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 17,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 19,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1404,
+      "budgetNodes": 71469,
+      "budgetPeakStates": 11574,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 17,
+        "refillEdges": 16
+      },
+      "elapsedMs": 2356
+    },
+    {
+      "index": 18,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 932,
+      "budgetNodes": 29754,
+      "budgetPeakStates": 5287,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 19,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1080,
+      "budgetNodes": 49311,
+      "budgetPeakStates": 25712,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 9,
+        "refillEdges": 8
+      },
+      "elapsedMs": 2096
+    },
+    {
+      "index": 20,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 22
+      },
+      "elapsedMs": 4006
+    },
+    {
+      "index": 21,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1587,
+      "budgetNodes": 70643,
+      "budgetPeakStates": 17417,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2592
+    },
+    {
+      "index": 22,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 934,
+      "budgetNodes": 31516,
+      "budgetPeakStates": 9652,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 23,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1888,
+      "budgetNodes": 84273,
+      "budgetPeakStates": 18514,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 2898
+    },
+    {
+      "index": 24,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 15,
+      "worst": 15,
+      "lower": 7,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 15,
+        "refillRounds": 3,
+        "policyStates": 49,
+        "refillEdges": 52
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 25,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1817,
+      "budgetNodes": 89689,
+      "budgetPeakStates": 22647,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3111
+    },
+    {
+      "index": 26,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1093,
+      "budgetNodes": 34129,
+      "budgetPeakStates": 6684,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 27,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 769,
+      "budgetNodes": 33868,
+      "budgetPeakStates": 22054,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1657
+    },
+    {
+      "index": 28,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 13,
+        "refillEdges": 14
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 29,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 713,
+      "budgetNodes": 30022,
+      "budgetPeakStates": 13233,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1318
+    },
+    {
+      "index": 30,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 815,
+      "budgetNodes": 26846,
+      "budgetPeakStates": 5185,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 31,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 638,
+      "budgetNodes": 27478,
+      "budgetPeakStates": 15390,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1595
+    },
+    {
+      "index": 32,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1094,
+      "budgetNodes": 43159,
+      "budgetPeakStates": 7095,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 33,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 14,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2565,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 21371,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 3801
+    },
+    {
+      "index": 34,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 21
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 35,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2365,
+      "budgetNodes": 107639,
+      "budgetPeakStates": 21892,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 3229
+    },
+    {
+      "index": 36,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1415,
+      "budgetNodes": 44312,
+      "budgetPeakStates": 6377,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 37,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1007,
+      "budgetNodes": 43904,
+      "budgetPeakStates": 15978,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2253
+    },
+    {
+      "index": 38,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 720,
+      "budgetNodes": 24359,
+      "budgetPeakStates": 4306,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 12,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 39,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2189,
+      "budgetNodes": 104381,
+      "budgetPeakStates": 25560,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 3211
+    },
+    {
+      "index": 40,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 16,
+      "worst": 16,
+      "lower": 8,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1284,
+      "budgetNodes": 43396,
+      "budgetPeakStates": 5417,
+      "budgetAttempts": [
+        {
+          "budget": 15,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 16,
+        "refillRounds": 3,
+        "policyStates": 63,
+        "refillEdges": 74
+      },
+      "elapsedMs": 4006
+    },
+    {
+      "index": 41,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 14,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2176,
+      "budgetNodes": 114758,
+      "budgetPeakStates": 6216,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 42,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1230,
+      "budgetNodes": 40267,
+      "budgetPeakStates": 6679,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 43,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 787,
+      "budgetNodes": 35263,
+      "budgetPeakStates": 17061,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2089
+    },
+    {
+      "index": 44,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 14,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4006
+    },
+    {
+      "index": 45,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2214,
+      "budgetNodes": 110107,
+      "budgetPeakStates": 22623,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 13,
+        "refillEdges": 14
+      },
+      "elapsedMs": 3806
+    },
+    {
+      "index": 46,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 22
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 47,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1278,
+      "budgetNodes": 73639,
+      "budgetPeakStates": 22572,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2046
+    },
+    {
+      "index": 48,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1635,
+      "budgetNodes": 57506,
+      "budgetPeakStates": 6111,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 49,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2078,
+      "budgetNodes": 103341,
+      "budgetPeakStates": 16249,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 3131
+    },
+    {
+      "index": 50,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 730,
+      "budgetNodes": 25158,
+      "budgetPeakStates": 9216,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 51,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 824,
+      "budgetNodes": 41397,
+      "budgetPeakStates": 18109,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1704
+    },
+    {
+      "index": 52,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1274,
+      "budgetNodes": 48439,
+      "budgetPeakStates": 9620,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 53,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 686,
+      "budgetNodes": 33292,
+      "budgetPeakStates": 18840,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1455
+    },
+    {
+      "index": 54,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1253,
+      "budgetNodes": 44355,
+      "budgetPeakStates": 7893,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 24,
+        "refillEdges": 36
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 55,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 915,
+      "budgetNodes": 44489,
+      "budgetPeakStates": 15704,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 1968
+    },
+    {
+      "index": 56,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 460,
+      "budgetNodes": 16374,
+      "budgetPeakStates": 6229,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 57,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 14,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2171,
+      "budgetNodes": 121122,
+      "budgetPeakStates": 9353,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 58,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1355,
+      "budgetNodes": 44044,
+      "budgetPeakStates": 40897,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 12,
+        "refillEdges": 11
+      },
+      "elapsedMs": 3665
+    },
+    {
+      "index": 59,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 984,
+      "budgetNodes": 44412,
+      "budgetPeakStates": 23381,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1774
+    },
+    {
+      "index": 60,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 22
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 61,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1488,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 7090,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 16,
+        "refillEdges": 20
+      },
+      "elapsedMs": 2617
+    },
+    {
+      "index": 62,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1906,
+      "budgetNodes": 106723,
+      "budgetPeakStates": 14404,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 63,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1560,
+      "budgetNodes": 105702,
+      "budgetPeakStates": 24424,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2162
+    },
+    {
+      "index": 64,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2241,
+      "budgetNodes": 123477,
+      "budgetPeakStates": 15638,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 65,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1274,
+      "budgetNodes": 77064,
+      "budgetPeakStates": 18523,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2132
+    },
+    {
+      "index": 66,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1350,
+      "budgetNodes": 69610,
+      "budgetPeakStates": 12995,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 67,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 926,
+      "budgetNodes": 64785,
+      "budgetPeakStates": 19700,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1611
+    },
+    {
+      "index": 68,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 17,
+      "worst": 17,
+      "lower": 8,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 17,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 69,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1196,
+      "budgetNodes": 91117,
+      "budgetPeakStates": 21743,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 2158
+    },
+    {
+      "index": 70,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1403,
+      "budgetNodes": 70078,
+      "budgetPeakStates": 12062,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 71,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1191,
+      "budgetNodes": 87893,
+      "budgetPeakStates": 32492,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1839
+    },
+    {
+      "index": 72,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1630,
+      "budgetNodes": 91131,
+      "budgetPeakStates": 19652,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 73,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 435,
+      "budgetNodes": 33399,
+      "budgetPeakStates": 17326,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 958
+    },
+    {
+      "index": 74,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2305,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 13073,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 3981
+    },
+    {
+      "index": 75,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 733,
+      "budgetNodes": 56780,
+      "budgetPeakStates": 21153,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1511
+    },
+    {
+      "index": 76,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2048,
+      "budgetNodes": 115984,
+      "budgetPeakStates": 11594,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 77,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 512,
+      "budgetNodes": 37339,
+      "budgetPeakStates": 20377,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 7
+      },
+      "elapsedMs": 1402
+    },
+    {
+      "index": 78,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1630,
+      "budgetNodes": 90627,
+      "budgetPeakStates": 11269,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 79,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 889,
+      "budgetNodes": 71643,
+      "budgetPeakStates": 16481,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1450
+    },
+    {
+      "index": 80,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 988,
+      "budgetNodes": 52106,
+      "budgetPeakStates": 13726,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 63,
+        "refillEdges": 74
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 81,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 931,
+      "budgetNodes": 72153,
+      "budgetPeakStates": 19046,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1973
+    },
+    {
+      "index": 82,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1449,
+      "budgetNodes": 80102,
+      "budgetPeakStates": 12107,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 12,
+        "refillEdges": 19
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 83,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1087,
+      "budgetNodes": 86819,
+      "budgetPeakStates": 22676,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1690
+    },
+    {
+      "index": 84,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 301,
+      "budgetNodes": 16477,
+      "budgetPeakStates": 4411,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 49,
+        "refillEdges": 52
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 85,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 16,
+      "worst": 16,
+      "lower": 16,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 577,
+      "budgetNodes": 55827,
+      "budgetPeakStates": 2649,
+      "budgetAttempts": [
+        {
+          "budget": 16,
+          "status": "win"
+        },
+        {
+          "budget": 15,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 16,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1124
+    },
+    {
+      "index": 86,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1455,
+      "budgetNodes": 49669,
+      "budgetPeakStates": 8982,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 87,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1771,
+      "budgetNodes": 88127,
+      "budgetPeakStates": 21494,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2770
+    },
+    {
+      "index": 88,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 4005
+    },
+    {
+      "index": 89,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1095,
+      "budgetNodes": 56474,
+      "budgetPeakStates": 10221,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1872
+    },
+    {
+      "index": 90,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1502,
+      "budgetNodes": 57138,
+      "budgetPeakStates": 12643,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 91,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 383,
+      "budgetNodes": 20081,
+      "budgetPeakStates": 17200,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1001
+    },
+    {
+      "index": 92,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4008
+    },
+    {
+      "index": 93,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 19,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1232,
+      "budgetNodes": 54990,
+      "budgetPeakStates": 18091,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 7
+      },
+      "elapsedMs": 2025
+    },
+    {
+      "index": 94,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 256,
+      "budgetNodes": 9443,
+      "budgetPeakStates": 6548,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 95,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "budgetSearchElapsedMs": 1060,
+      "budgetNodes": 61965,
+      "budgetPeakStates": 7613,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 96,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 8,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 14,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 97,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 16,
+      "worst": 16,
+      "lower": 16,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1254,
+      "budgetNodes": 68719,
+      "budgetPeakStates": 4100,
+      "budgetAttempts": [
+        {
+          "budget": 16,
+          "status": "win"
+        },
+        {
+          "budget": 15,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 16,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2235
+    },
+    {
+      "index": 98,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1199,
+      "budgetNodes": 39654,
+      "budgetPeakStates": 7745,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 99,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 25,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2199,
+      "budgetNodes": 101575,
+      "budgetPeakStates": 24273,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 12,
+        "refillEdges": 13
+      },
+      "elapsedMs": 3168
+    },
+    {
+      "index": 100,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1924,
+      "budgetNodes": 73386,
+      "budgetPeakStates": 7333,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 101,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2433,
+      "budgetNodes": 119640,
+      "budgetPeakStates": 14315,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 102,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1257,
+      "budgetNodes": 42827,
+      "budgetPeakStates": 4171,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 14,
+        "refillEdges": 14
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 103,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 790,
+      "budgetNodes": 35032,
+      "budgetPeakStates": 14100,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 13
+      },
+      "elapsedMs": 1643
+    },
+    {
+      "index": 104,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 17,
+        "refillEdges": 19
+      },
+      "elapsedMs": 4007
+    },
+    {
+      "index": 105,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 929,
+      "budgetNodes": 44015,
+      "budgetPeakStates": 13776,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 9,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1699
+    },
+    {
+      "index": 106,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1166,
+      "budgetNodes": 40546,
+      "budgetPeakStates": 5790,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 107,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2130,
+      "budgetNodes": 113859,
+      "budgetPeakStates": 22927,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3436
+    },
+    {
+      "index": 108,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 8,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 14,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4006
+    },
+    {
+      "index": 109,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2014,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 5035,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 7
+      },
+      "elapsedMs": 3880
+    },
+    {
+      "index": 110,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 772,
+      "budgetNodes": 27387,
+      "budgetPeakStates": 6649,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 111,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1386,
+      "budgetNodes": 72079,
+      "budgetPeakStates": 17261,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 2519
+    },
+    {
+      "index": 112,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 17,
+      "worst": 17,
+      "lower": 9,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 17,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 11
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 113,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2392,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 19973,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 7
+      },
+      "elapsedMs": 3702
+    },
+    {
+      "index": 114,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1211,
+      "budgetNodes": 44072,
+      "budgetPeakStates": 6388,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 115,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 975,
+      "budgetNodes": 47214,
+      "budgetPeakStates": 24624,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 11
+      },
+      "elapsedMs": 1945
+    },
+    {
+      "index": 116,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 117,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 18,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 453,
+      "budgetNodes": 22089,
+      "budgetPeakStates": 13201,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 969
+    },
+    {
+      "index": 118,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 872,
+      "budgetNodes": 31179,
+      "budgetPeakStates": 5829,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 119,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 419,
+      "budgetNodes": 18219,
+      "budgetPeakStates": 10809,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1755
+    },
+    {
+      "index": 120,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 16,
+      "worst": 16,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1648,
+      "budgetNodes": 60646,
+      "budgetPeakStates": 10108,
+      "budgetAttempts": [
+        {
+          "budget": 16,
+          "status": "win"
+        },
+        {
+          "budget": 15,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 16,
+        "refillRounds": 3,
+        "policyStates": 21,
+        "refillEdges": 25
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 121,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2551,
+      "budgetNodes": 126088,
+      "budgetPeakStates": 28925,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 3889
+    },
+    {
+      "index": 122,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1228,
+      "budgetNodes": 43568,
+      "budgetPeakStates": 12081,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 123,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": true,
+      "budgetSearchElapsedMs": 945,
+      "budgetNodes": 47489,
+      "budgetPeakStates": 24494,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 124,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4007
+    },
+    {
+      "index": 125,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1195,
+      "budgetNodes": 56367,
+      "budgetPeakStates": 12236,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 2001
+    },
+    {
+      "index": 126,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 979,
+      "budgetNodes": 33583,
+      "budgetPeakStates": 5032,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 127,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": true,
+      "budgetSearchElapsedMs": 929,
+      "budgetNodes": 39132,
+      "budgetPeakStates": 23827,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 3841
+    },
+    {
+      "index": 128,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 245,
+      "budgetNodes": 7463,
+      "budgetPeakStates": 2268,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 49,
+        "refillEdges": 52
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 129,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2282,
+      "budgetNodes": 107979,
+      "budgetPeakStates": 23808,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 3424
+    },
+    {
+      "index": 130,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1015,
+      "budgetNodes": 37006,
+      "budgetPeakStates": 6266,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 131,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1071,
+      "budgetNodes": 52643,
+      "budgetPeakStates": 13138,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1883
+    },
+    {
+      "index": 132,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 133,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2178,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 5579,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3206
+    },
+    {
+      "index": 134,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1123,
+      "budgetNodes": 40051,
+      "budgetPeakStates": 12234,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 135,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 705,
+      "budgetNodes": 33071,
+      "budgetPeakStates": 20343,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1520
+    },
+    {
+      "index": 136,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 16,
+      "worst": 16,
+      "lower": 6,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 16,
+        "refillRounds": 3,
+        "policyStates": 20,
+        "refillEdges": 26
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 137,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1431,
+      "budgetNodes": 70848,
+      "budgetPeakStates": 31054,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2678
+    },
+    {
+      "index": 138,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1010,
+      "budgetNodes": 35778,
+      "budgetPeakStates": 9994,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 139,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 689,
+      "budgetNodes": 52340,
+      "budgetPeakStates": 16608,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1530
+    },
+    {
+      "index": 140,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2256,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 9191,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 3582
+    },
+    {
+      "index": 141,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 446,
+      "budgetNodes": 32864,
+      "budgetPeakStates": 14283,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1069
+    },
+    {
+      "index": 142,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 756,
+      "budgetNodes": 43455,
+      "budgetPeakStates": 10446,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 143,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 587,
+      "budgetNodes": 46495,
+      "budgetPeakStates": 22353,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 8
+      },
+      "elapsedMs": 1228
+    },
+    {
+      "index": 144,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2375,
+      "budgetNodes": 127105,
+      "budgetPeakStates": 6793,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 145,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1618,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 18350,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2419
+    },
+    {
+      "index": 146,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1780,
+      "budgetNodes": 96909,
+      "budgetPeakStates": 13764,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 147,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 811,
+      "budgetNodes": 58595,
+      "budgetPeakStates": 22885,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1476
+    },
+    {
+      "index": 148,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 975,
+      "budgetNodes": 54968,
+      "budgetPeakStates": 7227,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 149,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 13,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1585,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 15503,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 3083
+    },
+    {
+      "index": 150,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2046,
+      "budgetNodes": 113386,
+      "budgetPeakStates": 13307,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 151,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 305,
+      "budgetNodes": 24592,
+      "budgetPeakStates": 12227,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1098
+    },
+    {
+      "index": 152,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1691,
+      "budgetNodes": 88769,
+      "budgetPeakStates": 19838,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 24,
+        "refillEdges": 33
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 153,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 19,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 407,
+      "budgetNodes": 29470,
+      "budgetPeakStates": 10190,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 882
+    },
+    {
+      "index": 154,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 893,
+      "budgetNodes": 46238,
+      "budgetPeakStates": 43572,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 12,
+        "refillEdges": 11
+      },
+      "elapsedMs": 2025
+    },
+    {
+      "index": 155,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 702,
+      "budgetNodes": 53845,
+      "budgetPeakStates": 25771,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1335
+    },
+    {
+      "index": 156,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 639,
+      "budgetNodes": 36034,
+      "budgetPeakStates": 4806,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 13,
+        "refillEdges": 14
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 157,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 545,
+      "budgetNodes": 38454,
+      "budgetPeakStates": 11671,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 12
+      },
+      "elapsedMs": 1248
+    },
+    {
+      "index": 158,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2068,
+      "budgetNodes": 111221,
+      "budgetPeakStates": 16175,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 4000
+    },
+    {
+      "index": 159,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 356,
+      "budgetNodes": 24238,
+      "budgetPeakStates": 13191,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 832
+    },
+    {
+      "index": 160,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 9,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1350,
+      "budgetNodes": 77148,
+      "budgetPeakStates": 11423,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "win"
+        },
+        {
+          "budget": 18,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 161,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 20,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 626,
+      "budgetNodes": 45191,
+      "budgetPeakStates": 15765,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1467
+    },
+    {
+      "index": 162,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 652,
+      "budgetNodes": 38173,
+      "budgetPeakStates": 12049,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 163,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 819,
+      "budgetNodes": 58722,
+      "budgetPeakStates": 23402,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1367
+    },
+    {
+      "index": 164,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1736,
+      "budgetNodes": 96292,
+      "budgetPeakStates": 13714,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 19
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 165,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 12,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1666,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 16624,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 2270
+    },
+    {
+      "index": 166,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 25,
+      "worst": 25,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 25,
+        "refillRounds": 3,
+        "policyStates": 9,
+        "refillEdges": 12
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 167,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1464,
+      "budgetNodes": 96869,
+      "budgetPeakStates": 21155,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2017
+    },
+    {
+      "index": 168,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 882,
+      "budgetNodes": 48566,
+      "budgetPeakStates": 6378,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 74,
+        "refillEdges": 113
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 169,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 828,
+      "budgetNodes": 62151,
+      "budgetPeakStates": 15750,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1476
+    },
+    {
+      "index": 170,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2213,
+      "budgetNodes": 124847,
+      "budgetPeakStates": 13541,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 171,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 562,
+      "budgetNodes": 40771,
+      "budgetPeakStates": 16905,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1148
+    },
+    {
+      "index": 172,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 9,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1480,
+      "budgetNodes": 74587,
+      "budgetPeakStates": 9088,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 173,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 21,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1503,
+      "budgetNodes": 114887,
+      "budgetPeakStates": 21974,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "win"
+        },
+        {
+          "budget": 20,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 2614
+    },
+    {
+      "index": 174,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2133,
+      "budgetNodes": 116485,
+      "budgetPeakStates": 14786,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 175,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 715,
+      "budgetNodes": 55675,
+      "budgetPeakStates": 16821,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1234
+    },
+    {
+      "index": 176,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 14,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1076,
+      "budgetNodes": 59563,
+      "budgetPeakStates": 6444,
+      "budgetAttempts": [
+        {
+          "budget": 20,
+          "status": "win"
+        },
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 177,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 19,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1204,
+      "budgetNodes": 89942,
+      "budgetPeakStates": 17207,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "win"
+        },
+        {
+          "budget": 18,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 1879
+    },
+    {
+      "index": 178,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 412,
+      "budgetNodes": 21514,
+      "budgetPeakStates": 6894,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 13,
+        "refillEdges": 19
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 179,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 337,
+      "budgetNodes": 22288,
+      "budgetPeakStates": 15198,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 899
+    },
+    {
+      "index": 180,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 20,
+      "worst": 20,
+      "lower": 11,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 793,
+      "budgetNodes": 42191,
+      "budgetPeakStates": 7175,
+      "budgetAttempts": [
+        {
+          "budget": 19,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 20,
+        "refillRounds": 3,
+        "policyStates": 15,
+        "refillEdges": 22
+      },
+      "elapsedMs": 4002
+    },
+    {
+      "index": 181,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 19,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 712,
+      "budgetNodes": 56101,
+      "budgetPeakStates": 14140,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 7
+      },
+      "elapsedMs": 1233
+    },
+    {
+      "index": 182,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1489,
+      "budgetNodes": 82905,
+      "budgetPeakStates": 13902,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 11,
+        "refillEdges": 14
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 183,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 449,
+      "budgetNodes": 33475,
+      "budgetPeakStates": 13774,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1087
+    },
+    {
+      "index": 184,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 17,
+      "worst": 17,
+      "lower": 8,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1363,
+      "budgetNodes": 76892,
+      "budgetPeakStates": 6511,
+      "budgetAttempts": [
+        {
+          "budget": 16,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 17,
+        "refillRounds": 3,
+        "policyStates": 63,
+        "refillEdges": 74
+      },
+      "elapsedMs": 4004
+    },
+    {
+      "index": 185,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 18,
+      "worst": 18,
+      "lower": 18,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 262,
+      "budgetNodes": 21053,
+      "budgetPeakStates": 5868,
+      "budgetAttempts": [
+        {
+          "budget": 17,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 18,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 894
+    },
+    {
+      "index": 186,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1392,
+      "budgetNodes": 79086,
+      "budgetPeakStates": 12645,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 4000
+    },
+    {
+      "index": 187,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 418,
+      "budgetNodes": 31558,
+      "budgetPeakStates": 16376,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 13
+      },
+      "elapsedMs": 1249
+    },
+    {
+      "index": 188,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 21,
+      "worst": 21,
+      "lower": 10,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 0,
+      "budgetNodes": 0,
+      "budgetPeakStates": 0,
+      "budgetAttempts": [],
+      "verification": {
+        "worst": 21,
+        "refillRounds": 3,
+        "policyStates": 22,
+        "refillEdges": 29
+      },
+      "elapsedMs": 4003
+    },
+    {
+      "index": 189,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 22,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 686,
+      "budgetNodes": 53288,
+      "budgetPeakStates": 22030,
+      "budgetAttempts": [
+        {
+          "budget": 22,
+          "status": "win"
+        },
+        {
+          "budget": 21,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 4
+      },
+      "elapsedMs": 1413
+    },
+    {
+      "index": 190,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2333,
+      "budgetNodes": 123639,
+      "budgetPeakStates": 18514,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 4,
+        "refillEdges": 3
+      },
+      "elapsedMs": 4000
+    },
+    {
+      "index": 191,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 23,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 564,
+      "budgetNodes": 42441,
+      "budgetPeakStates": 15505,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 10,
+        "refillEdges": 13
+      },
+      "elapsedMs": 1143
+    },
+    {
+      "index": 192,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 15,
+      "worst": 15,
+      "lower": 15,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 777,
+      "budgetNodes": 38831,
+      "budgetPeakStates": 14719,
+      "budgetAttempts": [
+        {
+          "budget": 16,
+          "status": "win"
+        },
+        {
+          "budget": 14,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 15,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 2467
+    },
+    {
+      "index": 193,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 1111,
+      "budgetNodes": 82905,
+      "budgetPeakStates": 36161,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 6,
+        "refillEdges": 6
+      },
+      "elapsedMs": 1813
+    },
+    {
+      "index": 194,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 23,
+      "worst": 23,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2028,
+      "budgetNodes": 114212,
+      "budgetPeakStates": 14055,
+      "budgetAttempts": [
+        {
+          "budget": 23,
+          "status": "win"
+        },
+        {
+          "budget": 22,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 23,
+        "refillRounds": 3,
+        "policyStates": 12,
+        "refillEdges": 13
+      },
+      "elapsedMs": 4001
+    },
+    {
+      "index": 195,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 823,
+      "budgetNodes": 62471,
+      "budgetPeakStates": 24852,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 5,
+        "refillEdges": 5
+      },
+      "elapsedMs": 1600
+    },
+    {
+      "index": 196,
+      "colorCount": 4,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 17,
+      "worst": 17,
+      "lower": 8,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 876,
+      "budgetNodes": 46357,
+      "budgetPeakStates": 6000,
+      "budgetAttempts": [
+        {
+          "budget": 16,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 17,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 6
+      },
+      "elapsedMs": 4000
+    },
+    {
+      "index": 197,
+      "colorCount": 5,
+      "kind": "uniform",
+      "status": "verified",
+      "initialWorst": 19,
+      "worst": 19,
+      "lower": 19,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 684,
+      "budgetNodes": 53593,
+      "budgetPeakStates": 10737,
+      "budgetAttempts": [
+        {
+          "budget": 18,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 19,
+        "refillRounds": 3,
+        "policyStates": 9,
+        "refillEdges": 12
+      },
+      "elapsedMs": 1407
+    },
+    {
+      "index": 198,
+      "colorCount": 4,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 22,
+      "worst": 22,
+      "lower": 17,
+      "provenOptimal": false,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 2460,
+      "budgetNodes": 128000,
+      "budgetPeakStates": 14773,
+      "budgetAttempts": [
+        {
+          "budget": 21,
+          "status": "unknown"
+        }
+      ],
+      "verification": {
+        "worst": 22,
+        "refillRounds": 3,
+        "policyStates": 8,
+        "refillEdges": 7
+      },
+      "elapsedMs": 3592
+    },
+    {
+      "index": 199,
+      "colorCount": 5,
+      "kind": "fragmented-wrong-bottom",
+      "status": "verified",
+      "initialWorst": 24,
+      "worst": 24,
+      "lower": 24,
+      "provenOptimal": true,
+      "retried": false,
+      "budgetRecovery": false,
+      "budgetSearchElapsedMs": 842,
+      "budgetNodes": 62255,
+      "budgetPeakStates": 27175,
+      "budgetAttempts": [
+        {
+          "budget": 24,
+          "status": "win"
+        },
+        {
+          "budget": 23,
+          "status": "lose"
+        }
+      ],
+      "verification": {
+        "worst": 24,
+        "refillRounds": 3,
+        "policyStates": 7,
+        "refillEdges": 10
+      },
+      "elapsedMs": 1610
+    }
+  ]
+}

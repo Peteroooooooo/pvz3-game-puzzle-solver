@@ -69,7 +69,6 @@ for (const index of [24,575,177,235,935]) {
   // production four-second limit is checked by the batch's balanced profile.
   const solved = engine.solveRefillPolicy(fixture.board,fixture.targets,{...uiOptions,timeLimitMs:15000});
   assert.strictEqual(solved.certificate.budgetStatus,'guaranteed',`missed recovery for case ${index}`);
-  if ([177,235,935].includes(index)) assert.ok(solved.stats.budgetRecoveryElapsedMs > 0);
   assert.ok(verifyPolicy(fixture,solved).worst <= 25);
 }
 console.log('water_solver_batch_verify_test: PASS');

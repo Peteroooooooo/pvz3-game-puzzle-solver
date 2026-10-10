@@ -14,6 +14,7 @@
   const EPSILON = 1e-9;
   const SEARCH_TUBE_CODE = Symbol('searchTubeCode');
   const SEARCH_TARGET_COLORS = Symbol('searchTargetColors');
+  const POLICY_SEARCH_HINTS = Symbol('policySearchHints');
 
   function nowMs() {
     return typeof performance !== 'undefined' && performance.now
@@ -816,6 +817,7 @@
           : 4,
         greedyDepthSlack: Number.isFinite(options.greedyDepthSlack) ? options.greedyDepthSlack : 4,
         upperFraction: Number.isFinite(options.upperFraction) ? options.upperFraction : 0.55,
+        budgetSearch: options.budgetSearch !== false,
         includePolicy: options.includePolicy === true
       },
       startedAt,
@@ -835,6 +837,8 @@
       valueMemo: new Map(),
       greedyMemo: new Map(),
       finalMemo: new Map(),
+      stageCandidates: new Map(),
+      budgetFailures: new Map(),
       policyEntries: new Map()
     };
 
@@ -859,11 +863,16 @@
         complete: true
       });
     }
+    const hints = options.initialIncumbent && options.initialIncumbent[POLICY_SEARCH_HINTS];
+    if (hints) {
+      context.stageCandidates = new Map(hints.stageCandidates);
+      context.finalMemo = new Map(hints.finalMemo);
+    }
     return context;
   }
 
   function rememberPolicyEntry(context, key, state, result, source) {
-    if (!context.options.includePolicy
+    if ((!context.options.includePolicy && context.options.objective !== 'worst-case')
       || !result
       || !Number.isFinite(result.upper)
       || !Array.isArray(result.plan)
@@ -1137,7 +1146,7 @@
     };
   }
 
-  function shortestFinalClear(tubes, targets, context, deadline = context.deadline) {
+  function shortestFinalClear(tubes, targets, context, deadline = context.deadline, moveLimit = Infinity) {
     const capacity = context.options.capacity;
     const start = normalizeSearchState(tubes, targets, capacity);
     const key = canonicalStateKeyNormalized(start.tubes, start.targets);
@@ -1195,6 +1204,12 @@
 
       const current = heapPop(frontier);
       if (bestDepth.get(current.key) !== current.depth) continue;
+      if (current.priority > moveLimit) {
+        // This excludes only the requested budget, not the state itself.
+        // Never put a budget-limited miss in the exact final-state cache.
+        return { found: false, distance: Infinity, moves: null, proven: false,
+          lower: current.priority, budgetExcluded: true };
+      }
       if (current.targets.length === 0) {
         const result = {
           found: true,
@@ -1299,6 +1314,9 @@
       depthSlack: context.options.greedyDepthSlack,
       deadline: context.upperDeadline
     });
+    if (context.options.objective === 'worst-case') {
+      context.stageCandidates.set(key, { ...state, orderedKey, candidates: enumeration.candidates });
+    }
 
     let best = null;
     const bestLocked = enumeration.candidates.find(candidate => candidate.layout.outcomeCount === 1);
@@ -1409,7 +1427,8 @@
     }
 
     if (targetCount === 1) {
-      const final = shortestFinalClear(state.tubes, state.targets, context);
+      const final = shortestFinalClear(state.tubes, state.targets, context, context.deadline,
+        context.options.objective === 'worst-case' ? upperLimit : Infinity);
       const result = {
         lower: final.found ? final.distance : final.lower,
         upper: final.found ? final.distance : Infinity,
@@ -1611,18 +1630,234 @@
     return result;
   }
 
+  // Resume the same frontier after each batch. Candidate/depth shortlists are
+  // ordering hints here, never reasons to discard a feasible continuation.
+  function createBudgetFrontier(state, context, budget) {
+    const capacity = context.options.capacity;
+    const root = { ...state, depth: 0, parent: null, move: null,
+      key: canonicalStateKeyNormalized(state.tubes, state.targets),
+      priority: admissibleMoveLowerBound(state.tubes, state.targets, capacity), order: 0 };
+    const frontier = [root];
+    const seen = new Map([[root.key, 0]]);
+    context.budgetLiveStates++;
+    const terminalSeen = new Map();
+    let order = 1;
+    const terminalKey = candidate => `${candidate.clearedTube}:${candidate.clearedColor}#${
+      refillTerminalStateKey(candidate.tubes, candidate.targets, candidate.clearedTube)}`;
+    const seeds = context.stageCandidates.get(root.key);
+    let seeded = seeds ? seeds.candidates.map(candidate => {
+      if (seeds.orderedKey === orderedStateKeyNormalized(state.tubes, state.targets)) return candidate;
+      const moves = remapPolicyPlan({ ...seeds, canonicalKey: root.key, plan: candidate.moves },
+        state.tubes, state.targets, capacity);
+      if (!moves) return null;
+      let next = state;
+      for (const move of moves) next = applySearchMove(next.tubes, next.targets, move, capacity);
+      return { ...candidate, ...next, moves };
+    }).filter(Boolean) : [];
+
+    return {
+      close() { context.budgetLiveStates -= seen.size; },
+      nextBatch() {
+        if (seeded.length) {
+          const batch = seeded;
+          seeded = [];
+          for (const candidate of batch) {
+            const key = terminalKey(candidate);
+            terminalSeen.set(key, Math.min(terminalSeen.get(key) ?? Infinity, candidate.depth));
+          }
+          return { candidates: batch, exhausted: false };
+        }
+        const candidates = [];
+        let expanded = 0;
+        while (frontier.length && expanded < 256 && candidates.length < 24) {
+          if (isExpired(context) || context.stats.budgetNodes >= context.budgetNodeLimit
+            || context.budgetLiveStates >= context.budgetStateLimit) {
+            return { candidates, exhausted: false, stopped: true };
+          }
+          const current = heapPop(frontier);
+          if (seen.get(current.key) !== current.depth) continue;
+          if (current.priority > budget) return { candidates, exhausted: true };
+          expanded++;
+          context.stats.budgetNodes++;
+          context.stats.deterministicNodes++;
+          for (const move of generateLegalMovesNormalized(current.tubes, current.targets,
+            capacity, true, current.move)) {
+            const next = applySearchMove(current.tubes, current.targets, move, capacity);
+            const depth = current.depth + 1;
+            if (next.clearedColor) {
+              if (depth + minimumDecisionMoves(next.targets, next.clearedColor) > budget) continue;
+              const candidate = { ...next, depth };
+              const key = terminalKey(candidate);
+              if ((terminalSeen.get(key) ?? Infinity) <= depth) continue;
+              terminalSeen.set(key, depth);
+              candidate.moves = [...reconstructRawPath(current), move];
+              candidate.layout = analyzeClearLayout(candidate, { objective: 'worst-case',
+                capacity, refillCount: context.options.refillCount, quick: true,
+                targetsNormalized: true, searchOptimized: true });
+              candidates.push(candidate);
+              context.stats.macroCandidates++;
+              continue;
+            }
+            const key = canonicalStateKeyNormalized(next.tubes, next.targets);
+            if ((seen.get(key) ?? Infinity) <= depth) continue;
+            const priority = depth + admissibleMoveLowerBound(next.tubes, next.targets, capacity);
+            if (priority > budget) continue;
+            if (!seen.has(key)) context.budgetLiveStates++;
+            seen.set(key, depth);
+            context.stats.budgetPeakStates = Math.max(context.stats.budgetPeakStates, context.budgetLiveStates);
+            heapPush(frontier, { ...next, depth, parent: current, move, key, priority, order: order++ });
+          }
+        }
+        candidates.sort((a, b) => a.layout.rank - b.layout.rank || a.depth - b.depth);
+        return { candidates, exhausted: frontier.length === 0 };
+      }
+    };
+  }
+
+  // OR over our first-clear choices, AND over every random refill. A failure
+  // is cached only after all choices fitting this budget have been excluded.
+  // Time/node exhaustion is unknown and cannot raise a proven lower bound.
+  function searchBudgetPolicy(tubes, targets, budget, context) {
+    const capacity = context.options.capacity;
+    const state = normalizeSearchState(tubes, targets, capacity);
+    if (!state.targets.length) return { status: 'win', upper: 0, worstUpper: 0, plan: [] };
+    const key = canonicalStateKeyNormalized(state.tubes, state.targets);
+    const lower = Math.max(admissibleMoveLowerBound(state.tubes, state.targets, capacity),
+      (context.budgetFailures.get(key) ?? -1) + 1);
+    if (lower > budget) {
+      context.stats.budgetPrunes++;
+      return { status: 'lose', lower };
+    }
+    const entry = context.policyEntries.get(key);
+    if (entry && entry.worstCaseUpper <= budget) {
+      const plan = remapPolicyPlan(entry, state.tubes, state.targets, capacity);
+      if (plan) {
+        context.stats.cacheHits++;
+        return { status: 'win', upper: entry.upperBound, worstUpper: entry.worstCaseUpper, plan };
+      }
+    }
+    if (isExpired(context) || context.stats.budgetNodes >= context.budgetNodeLimit) {
+      return { status: 'unknown', lower };
+    }
+    context.stats.budgetStates++;
+    if (state.targets.length === 1) {
+      const final = shortestFinalClear(state.tubes, state.targets, context, context.deadline, budget);
+      if (final.found && final.distance <= budget) {
+        const win = { status: 'win', upper: final.distance, worstUpper: final.distance, plan: final.moves };
+        rememberPolicyEntry(context, key, state, win, 'budget-final');
+        return win;
+      }
+      if (final.lower > budget) {
+        context.budgetFailures.set(key, budget);
+        return { status: 'lose', lower: final.lower };
+      }
+      return { status: 'unknown', lower: final.lower };
+    }
+
+    const search = createBudgetFrontier(state, context, budget);
+    let hasUnknown = false;
+    try {
+      while (!isExpired(context) && context.stats.budgetNodes < context.budgetNodeLimit) {
+        const batch = search.nextBatch();
+        for (const candidate of batch.candidates) {
+          const remaining = budget - candidate.depth;
+          if (remaining < minimumDecisionMoves(candidate.targets, candidate.clearedColor)) continue;
+          const outcomes = enumerateRefillOutcomes(candidate.tubes, candidate.clearedColor,
+            candidate.clearedTube, { capacity, refillCount: context.options.refillCount,
+              targets: candidate.targets, targetsNormalized: true, searchOptimized: true });
+          const { prepared, suffix } = preparePolicyOutcomes(outcomes, candidate.targets, capacity, context);
+          context.stats.chanceOutcomes += prepared.length;
+          if (suffix[0] > remaining) { context.stats.budgetPrunes++; continue; }
+          let upper = candidate.depth;
+          let worstUpper = candidate.depth;
+          let rejected = false;
+          for (const outcome of prepared) {
+            const child = searchBudgetPolicy(outcome.state.tubes, outcome.state.targets, remaining, context);
+            if (child.status !== 'win') {
+              hasUnknown = hasUnknown || child.status === 'unknown';
+              rejected = true;
+              break;
+            }
+            upper += outcome.probability * child.upper;
+            worstUpper = Math.max(worstUpper, candidate.depth + child.worstUpper);
+          }
+          if (!rejected) {
+            const win = { status: 'win', upper, worstUpper, plan: candidate.moves,
+              selectedCandidate: candidate };
+            rememberPolicyEntry(context, key, state, win, 'budget-policy');
+            return win;
+          }
+          if (isExpired(context) || context.stats.budgetNodes >= context.budgetNodeLimit) break;
+        }
+        if (batch.exhausted) {
+          if (hasUnknown) return { status: 'unknown', lower };
+          context.budgetFailures.set(key, Math.max(budget, context.budgetFailures.get(key) ?? -1));
+          return { status: 'lose', lower: budget + 1 };
+        }
+        if (batch.stopped) break;
+      }
+      return { status: 'unknown', lower };
+    } finally {
+      search.close();
+    }
+  }
+
+  function improveWorstCaseBudget(start, incumbent, context) {
+    if (context.options.objective !== 'worst-case' || !context.options.budgetSearch
+      || incumbent.proven || isExpired(context)) return incumbent;
+    const started = nowMs();
+    context.stats.budgetNodes = 0;
+    context.stats.budgetStates = 0;
+    context.stats.budgetPrunes = 0;
+    context.stats.budgetPeakStates = 0;
+    context.stats.budgetAttempts = [];
+    // Bound memory/work separately from correctness: reaching this limit
+    // returns unknown, keeping the incumbent. Frontiers live only on this
+    // recursion stack and are released when each stage returns.
+    context.budgetNodeLimit = Math.min(250000, context.options.maxStageNodes * 4);
+    context.budgetStateLimit = Math.min(100000, context.budgetNodeLimit);
+    context.budgetLiveStates = 0;
+    let best = incumbent;
+    let budget = Math.min(context.options.moveBudget, Math.ceil(best.worstUpper) - 1);
+    while (budget >= best.lower && !isExpired(context)) {
+      const searched = searchBudgetPolicy(start.tubes, start.targets, budget, context);
+      context.stats.budgetAttempts.push({ budget, status: searched.status });
+      if (searched.status === 'win') {
+        best = { ...best, ...searched, guaranteed: true,
+          proven: searched.worstUpper === best.lower };
+        budget = searched.worstUpper - 1;
+      } else {
+        if (searched.status === 'lose') {
+          best = { ...best, lower: Math.max(best.lower, searched.lower),
+            proven: Number.isFinite(best.worstUpper) && searched.lower === best.worstUpper };
+        }
+        break;
+      }
+    }
+    context.stats.budgetSearchElapsedMs = nowMs() - started;
+    return best;
+  }
+
   function solveRefillPolicyOnce(initialTubes, initialTargets, options = {}) {
     const context = makeSearchContext(options);
     const capacity = context.options.capacity;
     const start = normalizeState(initialTubes, initialTargets, capacity);
 
-    const greedy = greedyPolicyValue(start.tubes, start.targets, context, true);
+    const rootKey = canonicalStateKeyNormalized(start.tubes, start.targets);
+    const entry = options.budgetOnly ? context.policyEntries.get(rootKey) : null;
+    const greedy = entry ? { upper: entry.upperBound, worstUpper: entry.worstCaseUpper,
+      plan: remapPolicyPlan(entry, start.tubes, start.targets, capacity), complete: true }
+      : greedyPolicyValue(start.tubes, start.targets, context, true);
     context.stats.greedyElapsedMs = nowMs() - context.startedAt;
     context.stats.greedyUpper = greedy.upper;
     if (greedy.complete) {
       context.greedyMemo.set(canonicalStateKeyNormalized(start.tubes, start.targets), greedy);
     }
-    const solved = solvePolicyState(start.tubes, start.targets, context, true);
+    const base = entry ? { ...greedy, lower: options.initialIncumbent.certificate.objectiveLowerBound,
+      proven: options.initialIncumbent.certificate.provenOptimal, guaranteed: true }
+      : solvePolicyState(start.tubes, start.targets, context, true,
+        context.options.objective === 'worst-case' ? context.options.moveBudget : Infinity);
+    const solved = improveWorstCaseBudget(start, base, context);
     const rawPlan = solved.plan || greedy.plan || [];
     const plan = materializeMovePlan(start.tubes, start.targets, rawPlan, capacity);
     const selected = solved.selectedCandidate || greedy.selectedCandidate || null;
@@ -1684,7 +1919,12 @@
           .sort((a, b) => a.canonicalKey.localeCompare(b.canonicalKey))
       };
     }
-    return finalizePolicyResult(result, start.tubes, start.targets, context.options);
+    const finalized = finalizePolicyResult(result, start.tubes, start.targets, context.options);
+    if (options.keepSearchHints) {
+      Object.defineProperty(finalized, POLICY_SEARCH_HINTS, { configurable: true, value: {
+        stageCandidates: context.stageCandidates, finalMemo: context.finalMemo } });
+    }
+    return finalized;
   }
 
   // Combining independently improved sub-policies may change expected cost:
@@ -1820,12 +2060,15 @@
       timeLimitMs: warmLimitMs,
       includePolicy: true,
       warmStartOptions: undefined,
-      initialIncumbent: undefined
+      initialIncumbent: undefined,
+      budgetSearch: false,
+      keepSearchHints: true
     });
 
     const elapsedAfterWarm = nowMs() - portfolioStartedAt;
     const remainingMs = Math.max(0, totalLimitMs - elapsedAfterWarm);
     if (remainingMs < 10) {
+      delete warmResult[POLICY_SEARCH_HINTS];
       warmResult.stats = {
         ...warmResult.stats,
         warmStartElapsedMs: elapsedAfterWarm,
@@ -1840,7 +2083,9 @@
       includePolicy: true,
       timeLimitMs: remainingMs,
       warmStartOptions: undefined,
-      initialIncumbent: warmResult
+      initialIncumbent: warmResult,
+      budgetSearch: false,
+      keepSearchHints: true
     });
     const phases = [warmResult, fullResult];
     let chosen = isBetterPolicyResult(fullResult, warmResult)
@@ -1857,10 +2102,23 @@
         ...options, ...options.budgetRecoveryOptions,
         objective: options.objective, moveBudget: options.moveBudget,
         includePolicy: true, timeLimitMs: recoveryRemainingMs,
-        warmStartOptions: undefined, initialIncumbent: chosen
+        warmStartOptions: undefined, initialIncumbent: chosen, budgetSearch: false, keepSearchHints: true
       });
       phases.push(recoveryResult);
       if (isBetterPolicyResult(recoveryResult, chosen)) chosen = recoveryResult;
+    }
+    // Preserve the previous portfolio (including its 25-move recovery) before
+    // trying tighter budgets. The new search uses only the time still left.
+    const improvementRemainingMs = Math.max(0, totalLimitMs - (nowMs() - portfolioStartedAt));
+    if (options.budgetSearch !== false && chosen.certificate.objective === 'worst-case'
+      && !chosen.certificate.provenOptimal && improvementRemainingMs >= 10) {
+      const improved = solveRefillPolicyOnce(initialTubes, initialTargets, {
+        ...options, includePolicy: true, timeLimitMs: improvementRemainingMs,
+        initialIncumbent: chosen, warmStartOptions: undefined,
+        budgetOnly: true, budgetSearch: true
+      });
+      phases.push(improved);
+      if (isBetterPolicyResult(improved, chosen)) chosen = improved;
     }
     const result = {
       ...chosen,
@@ -1900,7 +2158,10 @@
       'chanceOutcomes',
       'policyStates',
       'cacheHits',
-      'greedyStates'
+      'greedyStates',
+      'budgetNodes',
+      'budgetStates',
+      'budgetPrunes'
     ];
     for (const key of counterKeys) {
       result.stats[key] = phases.reduce((sum, phase) => sum + (phase.stats[key] || 0), 0);
@@ -1908,6 +2169,10 @@
     result.stats.warmStartElapsedMs = warmResult.stats.elapsedMs;
     result.stats.fullSearchElapsedMs = fullResult.stats.elapsedMs;
     result.stats.budgetRecoveryElapsedMs = recoveryResult ? recoveryResult.stats.elapsedMs : 0;
+    result.stats.budgetSearchElapsedMs = phases.reduce((sum, phase) =>
+      sum + (phase.stats.budgetSearchElapsedMs || 0), 0);
+    result.stats.budgetPeakStates = Math.max(...phases.map(phase => phase.stats.budgetPeakStates || 0));
+    result.stats.budgetAttempts = phases.flatMap(phase => phase.stats.budgetAttempts || []);
     result.stats.elapsedMs = nowMs() - portfolioStartedAt;
 
     if (options.includePolicy === true) {

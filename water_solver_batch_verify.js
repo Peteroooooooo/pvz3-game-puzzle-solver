@@ -180,6 +180,10 @@ function solveAndVerify(task) {
     worst:verification ? verification.worst : null, lower:result.certificate.objectiveLowerBound,
     provenOptimal:result.certificate.provenOptimal, retried,
     budgetRecovery:result.stats.budgetRecoveryElapsedMs > 0,
+    budgetSearchElapsedMs:Math.round(result.stats.budgetSearchElapsedMs || 0),
+    budgetNodes:result.stats.budgetNodes || 0,
+    budgetPeakStates:result.stats.budgetPeakStates || 0,
+    budgetAttempts:result.stats.budgetAttempts || [],
     verification, elapsedMs:Math.round(performance.now()-start),
     ...(verification && verification.worst <= 25 ? {} : {board:fixture.board, targets:fixture.targets})
   };
