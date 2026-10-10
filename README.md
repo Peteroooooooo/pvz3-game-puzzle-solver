@@ -23,7 +23,7 @@ Live demo: [https://peteroooooooo.github.io/pvz3-game-puzzle-solver/](https://pe
 - Shield-aware policy search protects deterministic-refill layouts (especially exactly four eligible tubes), then compares their full downstream cost against immediate clears and other setups
 - Static mode performs complete state search and proves the shortest route; the benchmark sample improves from the legacy 15 steps to a proven 13 steps
 - Refill mode prioritizes the worst total move count, breaking ties by expected moves; worst-case bounds, expected policy cost, and optimality gaps are reported separately
-- A 20-move guarantee requires a complete branch certificate; after refills, verified continuations are reused and executed moves are counted against the original total bound
+- The 25-move whole-game target includes all three refills before the fourth recipe clears. A guarantee requires a complete branch certificate; continuations are reused and executed moves are deducted from the original total budget, including when the next screenshot is imported without playing the steps in this page
 - 4-second, 15-second, and 60-second search budgets run inside a Web Worker
 - Default strict-feedback decoder strategy: all 11,880 valid non-repeating secrets are guaranteed to finish within 4 rounds under permanent correct-slot locks
 - Browser-only, no install required
@@ -44,7 +44,7 @@ Across 2,048 fixed refill seeds on the built-in sample, every strategy clears 10
 
 Worst-case mode verifies all 7 distinct refill edges in the selected sample policy (8 policy states), with a maximum of 17 moves and an exact expectation of 16.8. Independent exhaustive oracles cover 114 compact stochastic boards and 1,760 static shortest-path cases. Pruning adds required departures across target tubes plus the final clear, uses a small capacity-bounded dynamic program for color transfers and blocker removal, checks difficult refill branches first, limits first-clear depth, and passes the remaining move limit to child searches. Only selected policy states cross the Worker boundary and remain in the page.
 
-The 20-move certificate applies to the current board, modeled refill rules, and verified policy; it is not a universal promise. The latest supplied five-color, four-recipe screenshot currently has a constructed 21-move policy, without a proof excluding a 20-move policy. A legal five-recipe editor configuration has a rigorous 21-move lower bound. A timed-out search remains unproven.
+The 25-move certificate covers the current board, all three modeled random refills, and the verified policy. The latest supplied five-color, four-recipe screenshot has a certified 21-move policy. A bounded check of 24 deterministic starting boards (12 four-color and 12 five-color boards, with different recipe placements) certified worst cases of 15–25 moves. The two cases at the 25-move boundary are retained as full-branch regression tests. This coverage is not a proof over every possible initial board. A timed-out search remains unproven; no fourth refill is included after the final recipe.
 
 ## Feedback decoder
 

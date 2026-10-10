@@ -10,6 +10,7 @@
 
   const DEFAULT_CAPACITY = 4;
   const DEFAULT_REFILL_COUNT = 4;
+  const DEFAULT_MOVE_BUDGET = 25;
   const EPSILON = 1e-9;
   const SEARCH_TUBE_CODE = Symbol('searchTubeCode');
   const SEARCH_TARGET_COLORS = Symbol('searchTargetColors');
@@ -793,7 +794,7 @@
     const context = {
       options: {
         objective: options.objective === 'worst-case' ? 'worst-case' : 'expected',
-        moveBudget: Number.isInteger(options.moveBudget) ? Math.max(0, options.moveBudget) : 20,
+        moveBudget: Number.isInteger(options.moveBudget) ? Math.max(0, options.moveBudget) : DEFAULT_MOVE_BUDGET,
         capacity: options.capacity || DEFAULT_CAPACITY,
         refillCount: options.refillCount || DEFAULT_REFILL_COUNT,
         timeLimitMs,
@@ -1666,6 +1667,7 @@
       stats: { ...context.stats, elapsedMs }
     };
     result.certificate.moveBudget = context.options.moveBudget;
+    result.certificate.refillRounds = Math.max(0, start.targets.length - 1);
     result.certificate.budgetStatus = solved.guaranteed === true
       && solved.worstUpper <= context.options.moveBudget ? 'guaranteed'
       : solved.lower > context.options.moveBudget ? 'impossible' : 'unproven';
@@ -1690,7 +1692,7 @@
     const memo = new Map();
     function visit(board, goals) {
       const state = normalizeSearchState(board, goals, capacity);
-      if (!state.targets.length) return { expected: 0, worst: 0 };
+      if (!state.targets.length) return { expected: 0, worst: 0, refillRounds: 0 };
       const key = canonicalStateKeyNormalized(state.tubes, state.targets);
       if (memo.has(key)) return memo.get(key);
       const entry = entries.get(key);
@@ -1702,6 +1704,7 @@
       if (!next.clearedColor || next.targets.length >= state.targets.length) return null;
       let expected = plan.length;
       let worst = plan.length;
+      let refillRounds = 0;
       if (next.targets.length) {
         const outcomes = enumerateRefillOutcomes(next.tubes, next.clearedColor, next.clearedTube, {
           capacity, refillCount: options.refillCount || DEFAULT_REFILL_COUNT,
@@ -1712,11 +1715,13 @@
           if (!child) return null;
           expected += outcome.probability * child.expected;
           worst = Math.max(worst, plan.length + child.worst);
+          refillRounds = Math.max(refillRounds, 1 + child.refillRounds);
         }
       }
       entry.upperBound = expected;
       entry.worstCaseUpper = worst;
-      const value = { expected, worst };
+      entry.refillRounds = refillRounds;
+      const value = { expected, worst, refillRounds };
       memo.set(key, value);
       return value;
     }
@@ -1736,6 +1741,7 @@
     const cert = result.certificate;
     cert.upperBound = value.expected;
     cert.worstCaseUpper = value.worst;
+    cert.refillRounds = value.refillRounds;
     cert.objectiveUpperBound = cert.objective === 'worst-case' ? value.worst : value.expected;
     cert.absoluteGap = Math.max(0, cert.objectiveUpperBound - cert.objectiveLowerBound);
     cert.relativeGap = cert.objectiveLowerBound > EPSILON ? cert.absoluteGap / cert.objectiveLowerBound : null;
@@ -1906,7 +1912,7 @@
     const objective = policy.objective || 'expected';
     const lower = admissibleMoveLowerBound(state.tubes, state.targets, capacity);
     const cost = objective === 'worst-case' ? entry.worstCaseUpper : entry.upperBound;
-    const moveBudget = Number.isInteger(options.moveBudget) ? Math.max(0, options.moveBudget) : 20;
+    const moveBudget = Number.isInteger(options.moveBudget) ? Math.max(0, options.moveBudget) : DEFAULT_MOVE_BUDGET;
     const last = plan[plan.length - 1];
     const layout = analyzeClearLayout({ depth: plan.length, tubes: last.afterState,
       targets: last.remainingTargets, clearedTube: last.clearedTube, clearedColor: last.clearedColor }, options);
@@ -1918,6 +1924,7 @@
         objectiveLowerBound: lower, objectiveUpperBound: cost,
         worstCaseLower: objective === 'worst-case' ? lower : null,
         worstCaseUpper: entry.worstCaseUpper,
+        refillRounds: Number.isInteger(entry.refillRounds) ? entry.refillRounds : Math.max(0, state.targets.length - 1),
         absoluteGap: Math.max(0, cost - lower),
         moveBudget, budgetStatus: entry.worstCaseUpper <= moveBudget ? 'guaranteed' : 'unproven',
         nextClearSteps: plan.length, shortestClearDepth: null, deliberateSetupSteps: null,
@@ -2078,6 +2085,7 @@
   }
 
   return {
+    DEFAULT_MOVE_BUDGET,
     getPolicyContinuation,
     DEFAULT_CAPACITY,
     DEFAULT_REFILL_COUNT,

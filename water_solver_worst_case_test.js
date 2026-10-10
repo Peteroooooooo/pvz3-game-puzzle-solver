@@ -113,13 +113,16 @@ assert.strictEqual(refuted.certificate.budgetStatus, 'impossible');
 const sample = [['G', 'B', 'O', 'R'], ['B', 'O', 'R', 'G'], ['O', 'R', 'G', 'B'],
   ['R', 'G', 'B', 'O'], [], [], []];
 const sampleTargets = ['G', 'B', 'O', 'R'].map((color, tubeIdx) => ({ tubeIdx, color }));
-const solved = engine.solveRefillPolicy(sample, sampleTargets, {
+const fourRecipeOptions = {
   objective: 'worst-case', includePolicy: true, timeLimitMs: 4000,
   maxStageNodes: 8000, maxStageCandidates: 30, stageDepthSlack: 4,
   maxCandidatesEvaluated: { 4: 2, 3: 2, 2: 3 }, finalNodeLimit: 180000,
   greedyNodeLimit: 3000, greedyCandidateLimit: 10, greedyDepthSlack: 3, upperFraction: 0.7
-});
+};
+const solved = engine.solveRefillPolicy(sample, sampleTargets, fourRecipeOptions);
 assert.strictEqual(solved.certificate.budgetStatus, 'guaranteed');
+assert.strictEqual(solved.certificate.moveBudget, 25);
+assert.strictEqual(solved.certificate.refillRounds, 3);
 
 let branches = 0;
 const verified = new Map();
@@ -140,6 +143,7 @@ function replayEveryBranch(board, targets, policy = solved.policy) {
   assert.ok(clear);
   let worst = continuation.plan.length;
   let expected = continuation.plan.length;
+  let refillRounds = 0;
   if (next.targets.length) {
     for (const outcome of engine.enumerateRefillOutcomes(next.tubes, clear.clearedColor,
       clear.clearedTube, { targets: next.targets })) {
@@ -147,33 +151,54 @@ function replayEveryBranch(board, targets, policy = solved.policy) {
       const child = replayEveryBranch(outcome.tubes, next.targets, policy);
       worst = Math.max(worst, continuation.plan.length + child.worst);
       expected += outcome.probability * child.expected;
+      assert.strictEqual(child.refillRounds, next.targets.length - 1);
+      refillRounds = 1 + child.refillRounds;
     }
   }
   assert.ok(worst <= continuation.certificate.worstCaseUpper);
   assert.ok(expected <= continuation.certificate.upperBound + 1e-9);
-  const value = { worst, expected };
+  assert.strictEqual(refillRounds, continuation.certificate.refillRounds);
+  const value = { worst, expected, refillRounds };
   verified.set(key, value);
   return value;
 }
 const actual = replayEveryBranch(sample, sampleTargets);
 assert.ok(actual.worst <= 17);
+assert.strictEqual(actual.refillRounds, 3);
 assert.strictEqual(engine.getPolicyContinuation(solved.policy, [['X'], [], [], [], [], [], []], sampleTargets), null);
 const screenshotBoard = [['P', 'O', 'B', 'G'], ['O', 'R', 'G', 'O'], [], ['R', 'R', 'R', 'G'],
   [], ['P', 'G', 'P', 'B'], ['B', 'O', 'B', 'P']];
 const screenshotTargets = [{ tubeIdx: 3, color: 'P' }, { tubeIdx: 4, color: 'R' },
   { tubeIdx: 5, color: 'O' }, { tubeIdx: 6, color: 'B' }];
-const screenshot = engine.solveRefillPolicy(screenshotBoard, screenshotTargets, {
-  objective: 'worst-case', includePolicy: true, timeLimitMs: 4000,
-  maxStageNodes: 8000, maxStageCandidates: 30, stageDepthSlack: 4,
-  maxCandidatesEvaluated: { 4: 2, 3: 2, 2: 3 }, finalNodeLimit: 180000,
-  greedyNodeLimit: 3000, greedyCandidateLimit: 10, greedyDepthSlack: 3, upperFraction: 0.7
-});
+const screenshot = engine.solveRefillPolicy(screenshotBoard, screenshotTargets, fourRecipeOptions);
 verified.clear();
 const screenshotActual = replayEveryBranch(screenshotBoard, screenshotTargets, screenshot.policy);
 assert.ok(screenshotActual.worst <= 21);
-assert.strictEqual(screenshot.certificate.budgetStatus, 'unproven');
+assert.strictEqual(screenshot.certificate.budgetStatus, 'guaranteed');
+assert.strictEqual(screenshot.certificate.moveBudget, 25);
+assert.strictEqual(screenshotActual.refillRounds, 3);
 assert.strictEqual(screenshot.certificate.provenOptimal, false);
 assert.ok(screenshot.certificate.worstCaseLower < 20);
+assert.strictEqual(engine.getPolicyContinuation(screenshot.policy, screenshotBoard, screenshotTargets,
+  { moveBudget: 25 - 5 }).certificate.budgetStatus, 'unproven');
+
+// Five-color boards at the 25-move boundary, including empty recipe tubes.
+const budgetBoards = [
+  { board: [['O','O','B','R'], [], ['R','B','G','O'], [], ['P','R','P','G'],
+      ['R','G','B','P'], ['P','G','B','O']],
+    targets: [{tubeIdx:0,color:'R'}, {tubeIdx:2,color:'O'}, {tubeIdx:4,color:'B'}, {tubeIdx:5,color:'P'}] },
+  { board: [['B','O','G','O'], ['R','R','B','P'], ['B','G','R','B'], ['R','P','G','P'],
+      ['O','G','P','O'], [], []],
+    targets: [{tubeIdx:4,color:'P'}, {tubeIdx:6,color:'R'}, {tubeIdx:1,color:'G'}, {tubeIdx:5,color:'B'}] }
+];
+for (const fixture of budgetBoards) {
+  const result = engine.solveRefillPolicy(fixture.board, fixture.targets, fourRecipeOptions);
+  assert.strictEqual(result.certificate.budgetStatus, 'guaranteed');
+  verified.clear();
+  const replay = replayEveryBranch(fixture.board, fixture.targets, result.policy);
+  assert.ok(replay.worst <= 25);
+  assert.strictEqual(replay.refillRounds, 3);
+}
 
 const warmOptions = { ...options, timeLimitMs: 50, maxStageNodes: 1000, maxStageCandidates: 20 };
 const warm = engine.solveRefillPolicy(mixed, targets, warmOptions);
