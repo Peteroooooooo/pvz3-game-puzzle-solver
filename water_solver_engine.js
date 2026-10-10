@@ -845,6 +845,12 @@
       : [];
     for (const entry of incumbentEntries) {
       if (!entry || !entry.canonicalKey || !Number.isFinite(entry.upperBound)) continue;
+      // Cached values can be used without searching that child again. Carry
+      // its actual continuation as well, so serialization keeps the full tree.
+      context.policyEntries.set(entry.canonicalKey, {
+        ...entry, tubes: cloneTubes(entry.tubes), targets: cloneTargets(entry.targets),
+        plan: cloneMovePlan(entry.plan)
+      });
       context.greedyMemo.set(entry.canonicalKey, {
         upper: entry.upperBound,
         worstUpper: entry.worstCaseUpper,
@@ -1758,6 +1764,9 @@
 
   function isBetterPolicyResult(candidate, incumbent) {
     if (!incumbent) return true;
+    const candidateVerified = candidate.certificate.guaranteed === true;
+    const incumbentVerified = incumbent.certificate.guaranteed === true;
+    if (candidateVerified !== incumbentVerified) return candidateVerified;
     if (candidate.certificate.objective === 'worst-case') {
       const candidateWorst = candidate.certificate.worstCaseUpper;
       const incumbentWorst = incumbent.certificate.worstCaseUpper;
@@ -1775,9 +1784,9 @@
     return candidate.plan.length < incumbent.plan.length;
   }
 
-  function mergePolicyEntries(first, second, objective = 'expected') {
+  function mergePolicyEntries(results, objective = 'expected') {
     const merged = new Map();
-    for (const result of [first, second]) {
+    for (const result of results) {
       const entries = result && result.policy && Array.isArray(result.policy.entries)
         ? result.policy.entries
         : [];
@@ -1828,13 +1837,31 @@
 
     const fullResult = solveRefillPolicyOnce(initialTubes, initialTargets, {
       ...options,
+      includePolicy: true,
       timeLimitMs: remainingMs,
       warmStartOptions: undefined,
       initialIncumbent: warmResult
     });
-    const chosen = isBetterPolicyResult(fullResult, warmResult)
+    const phases = [warmResult, fullResult];
+    let chosen = isBetterPolicyResult(fullResult, warmResult)
       ? fullResult
       : warmResult;
+    const recoveryRemainingMs = Math.max(0, totalLimitMs - (nowMs() - portfolioStartedAt));
+    let recoveryResult = null;
+    // A fast search can exhaust its layout shortlist before its time budget.
+    // If the whole-game cap is still unproved, spend only the remaining time
+    // on a wider shortlist and more setup depth, reusing the best policy.
+    if (options.budgetRecoveryOptions && chosen.certificate.objective === 'worst-case'
+      && chosen.certificate.budgetStatus === 'unproven' && recoveryRemainingMs >= 10) {
+      recoveryResult = solveRefillPolicyOnce(initialTubes, initialTargets, {
+        ...options, ...options.budgetRecoveryOptions,
+        objective: options.objective, moveBudget: options.moveBudget,
+        includePolicy: true, timeLimitMs: recoveryRemainingMs,
+        warmStartOptions: undefined, initialIncumbent: chosen
+      });
+      phases.push(recoveryResult);
+      if (isBetterPolicyResult(recoveryResult, chosen)) chosen = recoveryResult;
+    }
     const result = {
       ...chosen,
       plan: chosen.plan.map(move => ({
@@ -1848,10 +1875,7 @@
 
     const combinedLower = Math.min(
       result.certificate.objectiveUpperBound,
-      Math.max(
-        warmResult.certificate.objectiveLowerBound,
-        fullResult.certificate.objectiveLowerBound
-      )
+      Math.max(...phases.map(phase => phase.certificate.objectiveLowerBound))
     );
     const combinedGap = Number.isFinite(result.certificate.objectiveUpperBound)
       ? Math.max(0, result.certificate.objectiveUpperBound - combinedLower)
@@ -1879,16 +1903,17 @@
       'greedyStates'
     ];
     for (const key of counterKeys) {
-      result.stats[key] = (warmResult.stats[key] || 0) + (fullResult.stats[key] || 0);
+      result.stats[key] = phases.reduce((sum, phase) => sum + (phase.stats[key] || 0), 0);
     }
     result.stats.warmStartElapsedMs = warmResult.stats.elapsedMs;
     result.stats.fullSearchElapsedMs = fullResult.stats.elapsedMs;
+    result.stats.budgetRecoveryElapsedMs = recoveryResult ? recoveryResult.stats.elapsedMs : 0;
     result.stats.elapsedMs = nowMs() - portfolioStartedAt;
 
     if (options.includePolicy === true) {
       result.policy = {
         objective: result.certificate.objective,
-        entries: mergePolicyEntries(warmResult, fullResult, result.certificate.objective)
+        entries: mergePolicyEntries(phases, result.certificate.objective)
       };
     } else {
       delete result.policy;

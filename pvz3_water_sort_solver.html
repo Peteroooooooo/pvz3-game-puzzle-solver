@@ -2406,10 +2406,15 @@ function getAdvancedSearchOptions() {
   const budget = document.getElementById('selectSearchBudget')
     ? document.getElementById('selectSearchBudget').value
     : 'balanced';
+  const budgetRecoveryOptions = {
+    maxStageNodes: 250000, maxStageCandidates: 1200, stageDepthSlack: 24,
+    maxCandidatesEvaluated: { 4: 120, 3: 160, 2: 300 }, finalNodeLimit: 1500000
+  };
   const fastIncumbent = {
     objective: 'worst-case',
     moveBudget: REFILL_MOVE_BUDGET,
     includePolicy: true,
+    budgetRecoveryOptions,
     timeLimitMs: 4000,
     maxStageNodes: 8000,
     maxStageCandidates: 30,
@@ -2424,7 +2429,7 @@ function getAdvancedSearchOptions() {
 
   if (budget === 'proof') {
     return {
-      objective: 'worst-case', moveBudget: REFILL_MOVE_BUDGET, includePolicy: true,
+      objective: 'worst-case', moveBudget: REFILL_MOVE_BUDGET, includePolicy: true, budgetRecoveryOptions,
       timeLimitMs: 60000,
       maxStageNodes: 250000,
       maxStageCandidates: 1200,
@@ -2441,7 +2446,7 @@ function getAdvancedSearchOptions() {
 
   if (budget === 'deep') {
     return {
-      objective: 'worst-case', moveBudget: REFILL_MOVE_BUDGET, includePolicy: true,
+      objective: 'worst-case', moveBudget: REFILL_MOVE_BUDGET, includePolicy: true, budgetRecoveryOptions,
       timeLimitMs: 15000,
       maxStageNodes: 70000,
       maxStageCandidates: 240,
